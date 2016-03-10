@@ -1,0 +1,52 @@
+CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J
+SRC = mqsmf.c \
+      smfDate.c \
+      smfConv.c \
+      printDEBUG.c \
+      printQ5ST.c    \
+      printQCST.c    \
+      printQCCT.c  \
+      printQCTADP.c\
+      printQCTDNS.c\
+      printQCTDSP.c\
+      printQCTSSL.c\
+      printQESD.c  \
+      printQEST.c  \
+      printQIST.c  \
+      printQJST.c  \
+      printQLST.c  \
+      printQMAC.c  \
+      printQMST.c  \
+      printQPST.c  \
+      printQSGM.c  \
+      printQSPH.c  \
+      printQSRS.c  \
+      printQSST.c  \
+      printQTST.c  \
+      printWQ.c    \
+      printWTAS.c  \
+      printWTID.c
+
+HDR = mqsmfstruc.h \
+      mqsmf.h
+
+INDIR=y:\\metaylor\\mf\\L\\smf
+# INDIR=c:\\temp
+OUTDIR=c:\\temp\\smf
+
+mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win dummy
+	rm -f $@
+	$(CC) $(SRC) -I. /Fe$@ $(CFLAGS)
+	$(INDIR)\\test
+	cd $(INDIR)
+	del /q *.obj
+
+mqsmfstruc.h: csqdsmfc.h convH
+	convH < csqdsmfc.h > $@
+
+convH: convH.c
+	$(CC) /Fe$@ convH.c
+
+
+dummy:
+

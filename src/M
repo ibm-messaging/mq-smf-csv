@@ -1,0 +1,17 @@
+#!/bin/ksh
+
+plat=`uname`
+
+if [ "$plat" = "AIX" ]
+then
+  flags="-q32 "
+  cc="xlc"
+else
+  flags="-m32 "
+  cc="gcc"
+fi
+
+export PLATFLAGS=$flags CC=$cc
+make -e -f Makefile.unix $*
+
+

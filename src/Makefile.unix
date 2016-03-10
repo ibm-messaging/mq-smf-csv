@@ -1,0 +1,51 @@
+
+CC=cc
+CFLAGS= -I. 
+PLATFLAGS=
+SRC = mqsmf.c \
+      smfDate.c \
+      smfConv.c \
+      printDEBUG.c \
+      printQ5ST.c    \
+      printQCST.c    \
+      printQCTADP.c  \
+      printQCTDNS.c  \
+      printQCTDSP.c  \
+      printQCTSSL.c  \
+      printQCCT.c  \
+      printQESD.c  \
+      printQEST.c  \
+      printQIST.c  \
+      printQJST.c  \
+      printQLST.c  \
+      printQMAC.c  \
+      printQMST.c  \
+      printQPST.c  \
+      printQSGM.c  \
+      printQSPH.c  \
+      printQSRS.c  \
+      printQSST.c  \
+      printQTST.c  \
+      printWQ.c    \
+      printWTAS.c  \
+      printWTID.c
+
+HDR = mqsmfstruc.h \
+      mqsmf.h
+
+mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
+	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS)
+	-rm -f out/*
+	-rm -f SMF-*
+	-mkdir out >/dev/null 2>&1 || true
+	$@ -i data/TEST116.dat  -o out -m 200 -d 2
+	$@ -i data/TEST115.dat  -o out -a  -d 2
+
+mqsmfstruc.h: csqdsmfc.h convH
+	convH < csqdsmfc.h > $@
+
+convH: convH.c
+	$(CC) -o $@ convH.c
+
+
+dummy:
