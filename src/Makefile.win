@@ -30,15 +30,9 @@ SRC = mqsmf.c \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
-INDIR=y:\\metaylor\\mf\\L\\smf
-# INDIR=c:\\temp
-OUTDIR=c:\\temp\\smf
-
-mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win dummy
+mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win
 	rm -f $@
 	$(CC) $(SRC) -I. /Fe$@ $(CFLAGS)
-	$(INDIR)\\test
-	cd $(INDIR)
 	del /q *.obj
 
 mqsmfstruc.h: csqdsmfc.h convH
