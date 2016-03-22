@@ -6,7 +6,7 @@ SMFPRINTGLOB;
 
 void printWTAS(wtas *p)
 {
-  int i,j;
+  int i;
   char index[64];
 
   SMFPRINTSTART("WTAS",p,conv16(p->wtaslen));

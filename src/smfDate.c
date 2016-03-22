@@ -53,6 +53,8 @@ static unsigned long long int EPOCH1970 = (STCK1972 - (2*STCKYR365));
 /* This formatter for strftime                                      */
 /********************************************************************/
 static char *fmt = "\"%Y/%m/%d\",\"%H:%M:%S";
+static char *epochTime = "\"1970/01/01\",\"00:00:00,000000\"";
+static char *emptyTime = "\"\",\"\"";
 static char stckTime[64] = {0};
 
 /********************************************************************/
@@ -63,16 +65,26 @@ static char stckTime[64] = {0};
 /*    This routine does not cope with dates before 1970, but        */
 /*    that's not likely to be a concern for processing MQ SMF.      */
 /********************************************************************/
-char * convDate(unsigned long long stck)
+char * convDate(unsigned long long stcki)
 {
   time_t sec;
+  unsigned long long stck;
   unsigned int usec;
   unsigned long long int s;
   struct tm *t;
   size_t offset;
 
-  stck = conv64(stck);   /* Always passed in z/OS endian; ensure converted */
+  stck = conv64(stcki);   /* Always passed in z/OS endian; ensure converted */
 
+  if (stck == 0)
+  {
+    /***********************************************************************/
+    /* Put a hardcoded value
+    /***********************************************************************/
+    strcpy(stckTime,emptyTime);
+  }
+  else
+  {
   s = stck - EPOCH1970;  /* Make relative to our epoch instead of z/OS 1900*/
   s = s / 4096;                                /* Convert stck to microsecs*/
   sec  = (time_t)(s / 1000000);                     /* Split into two parts*/
@@ -81,8 +93,19 @@ char * convDate(unsigned long long stck)
   t = localtime(&sec);                 /* Turn seconds into tm structure...*/
 
   offset = strftime(stckTime,sizeof(stckTime)-1,fmt,t); /* ...and format it*/
-  sprintf(&stckTime[offset],",%6.6d\"",usec);          /* Add on usec value*/
-
+  if (offset == 0)
+  {    
+    /***********************************************************************/
+    /* There seem to be occasions where the timestamp is not a proper      */
+    /* value - perhaps when there has been no work done for the activity   */
+    /* being recorded. So we put a hardcoded value into the string to make */
+    /* those times easy to recognise.                                      */
+    /***********************************************************************/ 
+    strcpy(stckTime,epochTime);
+  }
+  else
+    sprintf(&stckTime[offset],",%6.6d\"",usec);          /* Add on usec value*/
+  }
   return stckTime;
 }
 

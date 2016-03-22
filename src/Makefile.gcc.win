@@ -1,0 +1,50 @@
+
+CC=i686-w64-mingw32-gcc
+CFLAGS= -I. -m32
+PLATFLAGS=
+SRC = mqsmf.c \
+      smfDate.c \
+      smfConv.c \
+      printDEBUG.c \
+      printQ5ST.c    \
+      printQCST.c    \
+      printQCTADP.c  \
+      printQCTDNS.c  \
+      printQCTDSP.c  \
+      printQCTSSL.c  \
+      printQCCT.c  \
+      printQESD.c  \
+      printQEST.c  \
+      printQIST.c  \
+      printQJST.c  \
+      printQLST.c  \
+      printQMAC.c  \
+      printQMST.c  \
+      printQPST.c  \
+      printQSGM.c  \
+      printQSPH.c  \
+      printQSRS.c  \
+      printQSST.c  \
+      printQTST.c  \
+      printWQ.c    \
+      printWTAS.c  \
+      printWTID.c
+
+HDR = mqsmfstruc.h \
+      mqsmf.h
+
+mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
+	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS)
+	-rm -f out/*
+	-rm -f SMF-*
+	-mkdir out >/dev/null 2>&1 || true
+	# dbx ./$@
+
+mqsmfstruc.h: csqdsmfc.h convH.exe
+	./convH.exe < csqdsmfc.h > $@
+
+convH.exe: convH.c
+	$(CC) -o $@ convH.c
+
+
+dummy:

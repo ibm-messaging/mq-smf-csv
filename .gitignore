@@ -1,1 +1,6 @@
 /.project
+*.mp4
+/src/*.exe
+/src/*.obj
+mqsmfstruc.h
+csq*

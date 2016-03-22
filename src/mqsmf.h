@@ -297,7 +297,7 @@ extern char *strMQCHLD  (int v);
   ADDDATA("%s,",convDate(v))
 
 #define ADDTIMEIDX(h,idx,v) \
-  sprintf(tmpHead,"%s[%s] (S),%s[%s](US)",h,idx,h,idx); \
+  sprintf(tmpHead,"%s[%s] (DATE),%s[%s](TIME)",h,idx,h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%s,",convDate(v))
 
@@ -362,8 +362,8 @@ extern char *strMQCHLD  (int v);
   {                      \
     fprintf(fp,"%s",headings);\
     fprintf(fp,"\n");    \
-    first=FALSE;         \
   }                      \
+  first=FALSE;         \
   fprintf(fp,"%s",dataline);\
   fprintf(fp,"\n")
 

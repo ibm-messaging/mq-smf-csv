@@ -60,6 +60,11 @@
 #include <time.h>
 #include <ctype.h>
 
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif  
+
 #include "mqsmf.h"
 
 static void Usage();
@@ -209,8 +214,12 @@ int main( int argc, char *argv[] )
   /* Open the input file                                               */
   /* If this fails, then put out an error message and quit. If no      */
   /* filename was given on command line, use stdin.                    */
-  /* Windows requires the "b" option for binary input.                 */
+  /* Windows requires the "b" option for binary input. And force       */
+  /* stdin to binary in case we need to read from that too.            */
   /*********************************************************************/
+  #ifdef _WIN32
+  setmode(fileno(stdin), O_BINARY);
+  #endif
   fp = inputFile?fopen(inputFile, "rb" ):stdin;
   if (!fp)
   {
@@ -718,7 +727,6 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
 {
   FILE  * fp = NULL;
   char filename[256] = {0};
-  char *filetype;
   char *mode = (append)?"a":"w";
 
   snprintf(filename,sizeof(filename)-1,
@@ -727,7 +735,11 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
   fp = fopen(filename, mode);
   if (fp)
   {
-    long pos = ftell(fp);
+    long pos;
+
+    fseek(fp,0,SEEK_END);    
+    pos = ftell(fp);
+    
     if (pos == 0) /* Have we just created the file, even for "append" mode */
       *newFile = TRUE;
     else

@@ -49,7 +49,9 @@ void printQJST(qjst *p)
 
   if (conv32(p->qjstll)>=offsetof(qjst,qjstio))
   {
-    for (i=0;i<3;i++)
+    /* Array of 1 entry! Reserved space follows for 2 more, but they   */
+    /* are not currently used.                                         */
+    for (i=0;i<1;i++)   
     {
       if (first)
         sprintf(index,"%d",i+1);

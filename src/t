@@ -1,0 +1,5 @@
+make -f *gcc*
+rm -f c:/tmp/smf/out/*
+./mqsmfcsv -i ../testing/data/TESTCHL.dat -o c:/temp/smf/out -d2
+./mqsmfcsv -i ../testing/data/TEST115.dat -o c:/temp/smf/out -d2 -a
+./mqsmfcsv -i c:/temp/smf/data/SMF115.test.bin -m 200 -o c:/temp/smf/out -d2 -a
