@@ -79,7 +79,7 @@ char * convDate(unsigned long long stcki)
   if (stck == 0)
   {
     /***********************************************************************/
-    /* Put a hardcoded value
+    /* Put a hardcoded value                                               */
     /***********************************************************************/
     strcpy(stckTime,emptyTime);
   }
