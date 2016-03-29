@@ -248,12 +248,12 @@ extern char *strMQCHLD  (int v);
   ADDDATA("%llu,",conv64(v))
 
 #define ADDS64IDX(h,idx,v) \
-  if (first) sprintf(tmpHead,"%s [%s]",h,idx); \
+  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%lld,",conv64(v))
 
 #define ADDU64IDX(h,idx,v) \
-  if (first) sprintf(tmpHead,"%s [%s]",h,idx); \
+  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%llu,",conv64(v))
 
@@ -270,12 +270,12 @@ extern char *strMQCHLD  (int v);
   ADDDATA("%X,",conv32(v))
 
 #define ADDS32IDX(h,idx, v) \
-  if (first) sprintf(tmpHead,"%s [%s]",h,idx); \
+  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%d,",conv32(v))
 
 #define ADDU32IDX(h,idx, v) \
-  if (first) sprintf(tmpHead,"%s [%s]",h,idx); \
+  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%u,",conv32(v))
 
@@ -297,7 +297,7 @@ extern char *strMQCHLD  (int v);
   ADDDATA("%s,",convDate(v))
 
 #define ADDTIMEIDX(h,idx,v) \
-  sprintf(tmpHead,"%s[%s] (DATE),%s[%s](TIME)",h,idx,h,idx); \
+  sprintf(tmpHead,"%s{%s} (DATE),%s{%s}(TIME)",h,idx,h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%s,",convDate(v))
 
@@ -307,7 +307,7 @@ extern char *strMQCHLD  (int v);
   ADDDATA("%s,",convSecUSec(v))
 
 #define ADDSTCKIDX(h,idx,v) \
-  sprintf(tmpHead,"%s[%s] (S),%s[%s](US)",h,idx,h,idx); \
+  sprintf(tmpHead,"%s{%s} (S),%s{%s}(US)",h,idx,h,idx); \
   ADDHEAD(tmpHead); \
   ADDDATA("%s,",convSecUSec(v))
 
@@ -323,14 +323,14 @@ extern char *strMQCHLD  (int v);
   ADDSTRN(h,v,strlen(v))                    /* ASCII string null terminated*/
 
 #define ADDSTRIDX(h,idx, v) \
-  if (first) sprintf(tmpHead,"%s [%s]",h,idx); \
+  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDSTRN(tmpHead,v,strlen(v))
 
 #define ADDSTREN(h,v,l) \
   ADDSTRN(h,convStr(v,l),l)                  /* EBCDIC string, known length*/
 
 #define ADDSTRENIDX(h,idx, v,l) \
-  if (first) sprintf(tmpHead,"%s [%s]",h,idx); \
+  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDSTREN(tmpHead,v,l)                      /* EBCDIC string, known length*/
 
 #define COMMON_BLOCK \

@@ -125,6 +125,7 @@ int main( int argc, char *argv[] )
   unsigned int totalRecords = 0;
   unsigned int maxRecords = 0xFFFFFFFF;
   unsigned int unknownCount = 0;
+  unsigned int ignoredCount = 0;
   unsigned short recordSubType;
   unsigned short nextLength;
   int subTypesValid = 0;
@@ -460,7 +461,7 @@ int main( int argc, char *argv[] )
     /*********************************************************************/
     case 2:
     case 3:
-      unknownCount++;
+      ignoredCount++;
       break;
 
     /*********************************************************************/
@@ -693,7 +694,10 @@ mod_exit:
 
 
   printf("Processed %u records total\n",totalRecords);
-  printf("  Unknown and ignored       record count: %u\n",unknownCount);
+  if (unknownCount >0)
+    printf("  Unknown                   record count: %u\n",unknownCount);
+  if (ignoredCount >0)
+    printf("  Ignored                   record count: %u\n",ignoredCount);
   for (i=0;i<256;i++)
   {
     if (Count115[i] > 0)

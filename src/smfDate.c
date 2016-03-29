@@ -76,7 +76,7 @@ char * convDate(unsigned long long stcki)
 
   stck = conv64(stcki);   /* Always passed in z/OS endian; ensure converted */
 
-  if (stck == 0)
+  if (stck == 0 )
   {
     /***********************************************************************/
     /* Put a hardcoded value                                               */
@@ -93,13 +93,13 @@ char * convDate(unsigned long long stcki)
   t = localtime(&sec);                 /* Turn seconds into tm structure...*/
 
   offset = strftime(stckTime,sizeof(stckTime)-1,fmt,t); /* ...and format it*/
-  if (offset == 0)
+  if (offset == 0 || stck < EPOCH1970)
   {    
     /***********************************************************************/
     /* There seem to be occasions where the timestamp is not a proper      */
     /* value - perhaps when there has been no work done for the activity   */
     /* being recorded. So we put a hardcoded value into the string to make */
-    /* those times easy to recognise.                                      */
+    /* those times (MQ bugs?) easy to recognise.                           */
     /***********************************************************************/ 
     strcpy(stckTime,epochTime);
   }
