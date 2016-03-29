@@ -4,3 +4,5 @@
 /src/*.obj
 mqsmfstruc.h
 csq*
+/src/t2
+/src/t3
