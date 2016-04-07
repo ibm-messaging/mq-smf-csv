@@ -548,6 +548,18 @@ int main( int argc, char *argv[] )
           printQSRS((qsrs *)p);
         }
         break;
+        
+#ifdef QIS1IDV
+     /* Pageset statistics introduced in MQ V9 - only compile this block if using */
+     /* the V9 header file.                                                       */ 
+     case 201:
+        for(i = 0; i < triplet[1].n; i++)
+        {
+          p = &dataBuf[triplet[1].offset + triplet[1].l * i];
+          printQIS1((qis1 *)p);
+        }
+        break;
+#endif
 
       case 215:
         for(i = 0; i < triplet[1].n; i++)

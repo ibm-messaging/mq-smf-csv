@@ -15,6 +15,7 @@ SRC = mqsmf.c \
       printQCCT.c  \
       printQESD.c  \
       printQEST.c  \
+      printQIS1.c  \
       printQIST.c  \
       printQJST.c  \
       printQLST.c  \
@@ -33,7 +34,7 @@ SRC = mqsmf.c \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
-mqsmfcsv: $(SRC) $(HDR) Makefile.unix
+mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS)
 
 mqsmfstruc.h: csqdsmfc.h convH

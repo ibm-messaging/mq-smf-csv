@@ -12,6 +12,7 @@ SRC = mqsmf.c \
       printQCTSSL.c\
       printQESD.c  \
       printQEST.c  \
+      printQIS1.c  \
       printQIST.c  \
       printQJST.c  \
       printQLST.c  \
@@ -34,12 +35,14 @@ mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win
 	rm -f $@
 	$(CC) $(SRC) -I. /Fe$@ $(CFLAGS)
 	del /q *.obj
+	copy $@ ..\bin\win
 
 mqsmfstruc.h: csqdsmfc.h convH
 	convH < csqdsmfc.h > $@
 
 convH: convH.c
 	$(CC) /Fe$@ convH.c
+	copy $@ ..\bin\win
 
 
 dummy:

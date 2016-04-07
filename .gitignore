@@ -3,6 +3,8 @@
 /src/*.exe
 /src/*.obj
 mqsmfstruc.h
+src/convH
+src/mqsmfcsv
 csq*
 /src/t2
 /src/t3

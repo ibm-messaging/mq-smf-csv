@@ -133,6 +133,9 @@ extern void printQCTDSP(qct_dsp *);
 extern void printQCTSSL(qct_ssl *);
 extern void printQESD  (qesd *);
 extern void printQEST  (qest *);
+#ifdef QIS1IDV
+extern void printQIS1  (qis1 *);
+#endif
 extern void printQIST  (qist *);
 extern void printQJST  (qjst *);
 extern void printQLST  (qlst *);
