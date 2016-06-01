@@ -5,6 +5,7 @@
 mqsmfstruc.h
 src/convH
 src/mqsmfcsv
+src/Bip*
 csq*
 /src/t2
 /src/t3

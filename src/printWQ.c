@@ -238,6 +238,8 @@ void printWQ(wq *p)
     {
       for (j=0;j<14;j++) /* Last few of the array are unused, so don't print them */
       {
+        if (j==9)
+         continue; /* An unused entry */
         if (first)
           sprintf(index,"%s.%s",verb[i],type[j]);
         ADDU32IDX("CFCOUNT",  index,p->mqcfreq[i].type[j].cfcount);

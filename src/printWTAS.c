@@ -12,6 +12,7 @@ void printWTAS(wtas *p)
   SMFPRINTSTART("WTAS",p,conv16(p->wtaslen));
 
   ADDS32 ("VER" , p->wtasver);
+  ADDSTR ("CORREL", convBin((char *)&p->wtasstrt,16));
   ADDTIME("STRT", p->wtasstrt);
   ADDS32 ("WQCT", p->wtaswqct);
 

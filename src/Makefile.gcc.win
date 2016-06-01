@@ -39,7 +39,7 @@ mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
 	-rm -f out/*
 	-rm -f SMF-*
 	-mkdir out >/dev/null 2>&1 || true
-	copy $@ ..\bin\win
+	cp $@ ../bin/win
 	# dbx ./$@
 
 mqsmfstruc.h: csqdsmfc.h convH.exe
@@ -47,7 +47,7 @@ mqsmfstruc.h: csqdsmfc.h convH.exe
 
 convH.exe: convH.c
 	$(CC) -o $@ convH.c
-	copy $@ ..\bin\win
+	cp $@ ../bin/win
 
 
 dummy:

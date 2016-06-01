@@ -63,7 +63,7 @@
 #ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
-#endif  
+#endif
 
 #include "mqsmf.h"
 
@@ -548,10 +548,10 @@ int main( int argc, char *argv[] )
           printQSRS((qsrs *)p);
         }
         break;
-        
+
 #ifdef QIS1IDV
      /* Pageset statistics introduced in MQ V9 - only compile this block if using */
-     /* the V9 header file.                                                       */ 
+     /* the V9 header file.                                                       */
      case 201:
         for(i = 0; i < triplet[1].n; i++)
         {
@@ -753,9 +753,9 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
   {
     long pos;
 
-    fseek(fp,0,SEEK_END);    
+    fseek(fp,0,SEEK_END);
     pos = ftell(fp);
-    
+
     if (pos == 0) /* Have we just created the file, even for "append" mode */
       *newFile = TRUE;
     else
