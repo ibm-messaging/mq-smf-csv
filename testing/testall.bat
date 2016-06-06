@@ -1,4 +1,4 @@
-set INDIR=y:\metaylor\mf\L\smf
+set INDIR=y:\metaylor\mf\L\mq-smf-csv\src
 set OUTDIR=c:\temp\smf\out
 
 mkdir %OUTDIR%

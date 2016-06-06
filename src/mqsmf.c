@@ -134,6 +134,7 @@ int main( int argc, char *argv[] )
   qwhs *pqwhs;
 
   BOOL error = FALSE;
+  BOOL knownSubType = TRUE;
   int c;
 
   int sectionCount;
@@ -163,6 +164,7 @@ int main( int argc, char *argv[] )
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
+  printf("MQ SMF CSV - Build %s %s\n",__DATE__,__TIME__);
   while((c = mqgetopt(argc, argv, "ad:h:i:m:o:rt:")) != EOF)
   {
     switch(c)
@@ -454,6 +456,7 @@ int main( int argc, char *argv[] )
     /* the triplet[].n values, but we know that some of the entries      */
     /* consist always of a single entry.                                 */
     /*********************************************************************/
+    knownSubType = TRUE;
     switch(recordType)
     {
     /*********************************************************************/
@@ -468,7 +471,6 @@ int main( int argc, char *argv[] )
     /* Processing 115 records                                            */
     /*********************************************************************/
     case 115:
-      Count115[recordSubType]++;
       switch(recordSubType)
       {
       case 1:
@@ -596,18 +598,20 @@ int main( int argc, char *argv[] )
         break;
 
       default:
+        knownSubType = FALSE;
         sprintf(tmpHead,"Unknown SMF 115 subtype %d",recordSubType);
         printDEBUG(tmpHead, dataBuf,offset);
         printf("%s\n",tmpHead);
         break;
       }
+      if (knownSubType)
+        Count115[recordSubType]++;
       break;
 
     /*********************************************************************/
     /* Processing 116 records                                            */
     /*********************************************************************/
     case 116:
-      Count116[recordSubType]++;
       switch(recordSubType)
       {
       case 0:
@@ -673,11 +677,14 @@ int main( int argc, char *argv[] )
         break;
 
       default:
+        knownSubType = FALSE;
         sprintf(tmpHead, "Unknown subtype %d for 116 records");
         printDEBUG(tmpHead, dataBuf,offset);
         printf("%s\n",tmpHead);
         break;
       }
+      if (knownSubType)
+        Count116[recordSubType]++;
       break;
 
 
