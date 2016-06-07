@@ -9,3 +9,5 @@ src/Bip*
 csq*
 /src/t2
 /src/t3
+/testing/data/SMF*
+/tmp/*

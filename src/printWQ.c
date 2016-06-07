@@ -81,11 +81,8 @@ void printWQ(wq *p)
   ADDU32 ("GETA   ",p->geta);
   ADDU32 ("GETS   ",p->gets);
   ADDU32 ("GETERR ",p->geterr);
-  ADDU32 ("GETDVAL",p->getdval);
   ADDSTCK("GETJWET",p->getjwet);
-  ADDSTCK("GETJCET",p->getjcet);
   ADDU32 ("GETJWN ",p->getjwn);
-  ADDU32 ("GETJCN ",p->getjcn);
   ADDSTCK("GETPSET",p->getpset);
   ADDU32 ("GETPSN ",p->getpsn);
   ADDSTCK("GETSUSET",p->getsuset);
@@ -100,17 +97,13 @@ void printWQ(wq *p)
   ADDSTCK("PUTET", p->putet);
   ADDSTCK("PUTCT", p->putct);
   ADDU32 ("PUTN   ",p->putn);
-  ADDU32 ("PUTPWG ",p->putpwg);
   ADDU32 ("PUTIGQ ",p->putigq);
   ADDSTCK("PUTJWET",p->putjwet);
-  ADDSTCK("PUTJCET",p->putjcet);
   ADDU32 ("PUTJWN ",p->putjwn);
-  ADDU32 ("PUTJCN ",p->putjcn);
   ADDSTCK("PUTSUSET",p->putsuset);
   ADDU32 ("PUTSUSN",p->putsusn);
   ADDSTCK("PUTPSET",p->putpset);
   ADDU32 ("PUTPSN ",p->putpsn);
-  ADDU32 ("PUTDDLY",p->putddly);
 
   /*--------------------------------------------------------*/
   /* Put1   - information                                   */
@@ -118,12 +111,9 @@ void printWQ(wq *p)
   ADDSTCK("PUT1ET",   p->put1et);
   ADDSTCK("PUT1CT",   p->put1ct);
   ADDU32 ("PUT1N  "  ,p->put1n);
-  ADDU32 ("PUT1PWG"  ,p->put1pwg);
   ADDU32 ("PUT1IGQ"  ,p->put1igq);
   ADDSTCK("PUT1JWET" ,p->put1jwet);
-  ADDSTCK("PUT1JCET" ,p->put1jcet);
   ADDU32 ("PUT1JWN"  ,p->put1jwn);
-  ADDU32 ("PUT1JCN"  ,p->put1jcn);
   ADDSTCK("PUT1SUSET",p->put1suset);
   ADDU32 ("PUT1SUSN" ,p->put1susn);
   ADDSTCK("PUT1PSET" ,p->put1pset);
@@ -143,9 +133,7 @@ void printWQ(wq *p)
   ADDSTCK("SETCT", p->setct);
   ADDU32 ("SETN  ",p->setn);
   ADDSTCK("SETJWET", p->setjwet);
-  ADDSTCK("SETJCET", p->setjcet);
   ADDU32 ("SETJWN ",p->setjwn);
-  ADDU32 ("SETJCN ",p->setjcn);
 
   /*--------------------------------------------------------*/
   /* other  - information                                   */
@@ -158,7 +146,7 @@ void printWQ(wq *p)
   /* Byte counts and persistent data information            */
   /* The MINMS values for put/get are initially set to      */
   /* 0x0FFFFFFF, and appear that way in the SMF report if   */
-  /* noputs/gets have touched that queue.  But that looks   */
+  /* no puts/gets have touched that queue.  But that looks  */
   /* ugly, so I'm turning them to -1.                       */
   /*--------------------------------------------------------*/
   if (conv32(p->getminms) == 0x0FFFFFFF)
@@ -257,7 +245,7 @@ void printWQ(wq *p)
     ADDSTCK("TOPICCLOSESRB ", p->topicclosesrb);
   }
 
-  if (conv32(p->wqver) > 8)
+  if (conv32(p->wqver) >= 8)
   {
      ADDU32("PUTDDLY",p->putddly);
   }

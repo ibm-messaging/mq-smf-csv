@@ -33,6 +33,9 @@ March 2016 - Initial release
 April 2016 - Update to support MQ V9 pageset statistics
              Improved formatting for import to Access
              Fixed some mis-labelled columns
+June  2016 - Add the "hidden" WTASCORR field
+             Print the buildtime to help know what version is in use
+             Clearer printing of which records were unrecognised
 
 Pull requests
 =============
