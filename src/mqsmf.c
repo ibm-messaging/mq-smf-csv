@@ -77,6 +77,7 @@ static void Usage();
 int   debugLevel = 0;
 BOOL  addEquals = TRUE;
 BOOL  printHeaders = TRUE;
+BOOL  sqlMode = FALSE;
 commonFields_t commonF = {0};
 
 char headings[HEADINGS_LEN];  /* Ensure these are big enough for any line */
@@ -165,7 +166,7 @@ int main( int argc, char *argv[] )
   /* Parse command-line parameters                                  */
   /******************************************************************/
   printf("MQ SMF CSV - Build %s %s\n",__DATE__,__TIME__);
-  while((c = mqgetopt(argc, argv, "ad:h:i:m:o:rt:")) != EOF)
+  while((c = mqgetopt(argc, argv, "ad:h:i:m:o:rst:")) != EOF)
   {
     switch(c)
     {
@@ -191,6 +192,11 @@ int main( int argc, char *argv[] )
         directory = mqoptarg;
         break;
       case 'r':
+        addEquals = 0;
+        break;
+      case 's':
+        sqlMode = TRUE;
+        printHeaders = FALSE;
         addEquals = 0;
         break;
       case 't':
@@ -851,6 +857,7 @@ static void Usage(void)
   printf("  -m <Max records> End after formatting M records. Default to process all.\n");
   printf("  -o <Directory>   Where to put output files. Default to current directory.\n");
   printf("  -r               Do not print '=' on numeric-looking strings.\n");
+  printf("  -s               SQL mode - generate DDL for tables.\n");
   printf("  -t <Ticker>      Print progress message every T records.\n");
   return;
 }

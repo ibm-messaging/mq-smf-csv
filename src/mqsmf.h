@@ -151,6 +151,10 @@ extern void printWQ    (wq   *);
 extern void printWTAS  (wtas *);
 extern void printWTID  (wtid *);
 
+extern void openDDL    (char *);
+extern void closeDDL   (void);
+extern void printDDL   (char *,int, int);
+
 
 /*******************************************************/
 /* Windows has some efficient macros to reverse bytes. */
@@ -206,6 +210,12 @@ extern char *strMQCHLD  (int v);
 #define HEADINGS_LEN (20000)
 #define DATA_LEN     (20000)
 
+#define DDL_I        (1)
+#define DDL_I64      (2)
+#define DDL_C        (3)
+#define DDL_SUS      (4)
+#define DDL_DATETIME (5)
+
 /**********************************************************/
 /* Macros to build the printable lines for CSV output.    */
 /* Separate macros for each data type and when we need    */
@@ -223,7 +233,7 @@ extern char *strMQCHLD  (int v);
 /*     SMFPRINTSTOP;                                      */
 /*   }                                                    */
 /**********************************************************/
-#define ADDHEAD(h) \
+#define ADDHEAD(h,type,len) \
   if (first && h)  \
   {                \
     offsetH += snprintf(&headings[offsetH],HEADINGS_LEN - offsetH, "%s,", h); \
@@ -232,6 +242,7 @@ extern char *strMQCHLD  (int v);
       printf("HEADINGS buffer needs to be bigger than %d bytes.\n",HEADINGS_LEN); \
       exit(1);                      \
     }                               \
+    printDDL(h,type,len); \
   }
 
 #define ADDDATA(fmt,...)  \
@@ -243,108 +254,111 @@ extern char *strMQCHLD  (int v);
   }
 
 #define ADDS64(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I64,0); \
   ADDDATA("%lld,",conv64(v))
 
 #define ADDU64(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I64,0); \
   ADDDATA("%llu,",conv64(v))
 
 #define ADDS64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead); \
+  ADDHEAD(tmpHead,DDL_I64,0); \
   ADDDATA("%lld,",conv64(v))
 
 #define ADDU64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead); \
+  ADDHEAD(tmpHead,DDL_I64,0); \
   ADDDATA("%llu,",conv64(v))
 
 #define ADDS32(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I,0); \
   ADDDATA("%d,",conv32(v))
 
 #define ADDU32(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I,0); \
   ADDDATA("%u,",conv32(v))
 
 #define ADDX32(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I,0); \
   ADDDATA("%X,",conv32(v))
 
 #define ADDS32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead); \
+  ADDHEAD(tmpHead,DDL_I,0); \
   ADDDATA("%d,",conv32(v))
 
 #define ADDU32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead); \
+  ADDHEAD(tmpHead,DDL_I,0); \
   ADDDATA("%u,",conv32(v))
 
 #define ADDS16(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I,0); \
   ADDDATA("%hd,",conv16(v))
 
 #define ADDU16(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I,0); \
   ADDDATA("%hu,",conv16(v))
 
 #define ADDBYTE(h,v) \
-  ADDHEAD(h); \
+  ADDHEAD(h,DDL_I,0); \
   ADDDATA("%u,",(v))
 
 #define ADDTIME(h,v) \
-  sprintf(tmpHead,"%s(DATE),%s(TIME)",h,h); \
-  ADDHEAD(tmpHead); \
+  sprintf(tmpHead,"%s (DATE),%s (TIME)",h,h); \
+  ADDHEAD(tmpHead,DDL_DATETIME,0); \
   ADDDATA("%s,",convDate(v))
 
 #define ADDTIMEIDX(h,idx,v) \
-  sprintf(tmpHead,"%s{%s} (DATE),%s{%s}(TIME)",h,idx,h,idx); \
-  ADDHEAD(tmpHead); \
+  sprintf(tmpHead,"%s{%s} (DATE),%s{%s} (TIME)",h,idx,h,idx); \
+  ADDHEAD(tmpHead,DDL_DATETIME,0); \
   ADDDATA("%s,",convDate(v))
 
 #define ADDSTCK(h,v) \
   sprintf(tmpHead,"%s(S),%s(US)",h,h); \
-  ADDHEAD(tmpHead); \
+  ADDHEAD(tmpHead,DDL_SUS,0); \
   ADDDATA("%s,",convSecUSec(v))
 
 #define ADDSTCKIDX(h,idx,v) \
-  sprintf(tmpHead,"%s{%s} (S),%s{%s}(US)",h,idx,h,idx); \
-  ADDHEAD(tmpHead); \
+  sprintf(tmpHead,"%s{%s}(S),%s{%s}(US)",h,idx,h,idx); \
+  ADDHEAD(tmpHead,DDL_SUS,0); \
   ADDDATA("%s,",convSecUSec(v))
 
 /* Add ASCII string, known length - underpins the other ADDSTRxx macros */
-#define ADDSTRN(h,v,l) \
-  ADDHEAD(h); \
+#define ADDSTRN(h,v,l,maxlen) \
+  ADDHEAD(h,DDL_C,maxlen); \
   { char *equ=""; \
   if (looksLikeNum(l,v) && addEquals) equ="="; \
   ADDDATA("%s\"%-*.*s\",",equ,l,l,v) \
   }
 
-#define ADDSTR(h,v) \
-  ADDSTRN(h,v,strlen(v))                    /* ASCII string null terminated*/
+#define ADDSTR(h,v,maxlen) \
+  ADDSTRN(h,v,strlen(v),maxlen)             /* ASCII string null terminated*/
+
+#define ADDSTRB(h,v,len) \
+  ADDSTR(h,convBin(v,len),len*2+1)                         /* Binary string*/
 
 #define ADDSTRIDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDSTRN(tmpHead,v,strlen(v))
+  ADDSTRN(tmpHead,v,strlen(v),)
 
 #define ADDSTREN(h,v,l) \
-  ADDSTRN(h,convStr(v,l),l)                  /* EBCDIC string, known length*/
+  ADDSTRN(h,convStr(v,l),l,l)                /* EBCDIC string, known length*/
 
 #define ADDSTRENIDX(h,idx, v,l) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDSTREN(tmpHead,v,l)                      /* EBCDIC string, known length*/
 
 #define COMMON_BLOCK \
-  ADDSTR ("DATE",commonF.recordDate); \
-  ADDSTR ("TIME",commonF.recordTime); \
-  ADDSTRN("SID ",commonF.systemId,4); \
-  ADDSTRN("QMGR",commonF.qMgr,4); \
-  ADDSTRN("MQVER",commonF.mqVer,3) \
+  ADDSTR ("Date",commonF.recordDate,0); \
+  ADDSTR ("Time",commonF.recordTime,0); \
+  ADDSTRN("LPAR",commonF.systemId,4,4); \
+  ADDSTRN("QMgr",commonF.qMgr,4,4); \
+  ADDSTRN("MQ_Version",commonF.mqVer,3,3) \
   if (recordType == 115 && commonF.intstart != 0) { \
-    ADDTIME("INTSTART",commonF.intstart) \
-    ADDHEAD("INTDURN (S)"); \
+    ADDTIME("Interval_Start",commonF.intstart) \
+    ADDHEAD("Interval_Duration",DDL_I,0); \
     ADDDATA("%llu,",conv64(commonF.intduration)/1000000L) \
   }
 
@@ -352,8 +366,11 @@ extern char *strMQCHLD  (int v);
   int offsetH=0;  \
   int offsetD=0;  \
   if (debugLevel >=1 ) printDEBUG(n,p,(l));\
-  if (first)      \
+  if (first) {    \
     fp = fopencsv(n,&newFile);\
+    if (sqlMode) \
+      openDDL(n);   \
+  } \
   if (!fp)        \
   {               \
     exit(1);      \
@@ -366,6 +383,8 @@ extern char *strMQCHLD  (int v);
     fprintf(fp,"%s",headings);\
     fprintf(fp,"\n");    \
   }                      \
+  if(first && sqlMode) \
+    closeDDL(); \
   first=FALSE;         \
   fprintf(fp,"%s",dataline);\
   fprintf(fp,"\n")
@@ -398,6 +417,7 @@ extern unsigned char  EBCDIC_TO_ASCII[];
 extern int  debugLevel;
 extern BOOL  addEquals;
 extern BOOL  printHeaders;
+extern BOOL  sqlMode;
 extern unsigned int   recordType;
 extern commonFields_t commonF;
 

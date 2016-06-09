@@ -1,8 +1,9 @@
 
 CC=cc
-CFLAGS= -I. 
+CFLAGS= -I.
 PLATFLAGS=
 SRC = mqsmf.c \
+      smfDDL.c \
       smfDate.c \
       smfConv.c \
       printDEBUG.c \

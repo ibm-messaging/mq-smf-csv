@@ -29,13 +29,23 @@ thoughts on possible enhancements to the code or this repository.
 
 History
 =======
-March 2016 - Initial release
-April 2016 - Update to support MQ V9 pageset statistics
-             Improved formatting for import to Access
-             Fixed some mis-labelled columns
-June  2016 - Add the "hidden" WTASCORR field
-             Print the buildtime to help know what version is in use
-             Clearer printing of which records were unrecognised
+March 2016 (v1.0)
+* Initial release
+
+April 2016 (v1.1)
+* Update to support MQ V9 pageset statistics
+* Improved formatting for import to Access
+* Fixed some mis-labelled columns
+
+June 2016 (v1.1.1)
+* Add the "hidden" WTASCORR field
+* Print the buildtime to help know what version is in use
+* Clearer printing of which records were unrecognised
+
+June 2016 (v1.1.2)
+* Add SQL mode to generate DDL corresponding to column headings
+* printWQ now has more descriptive column names
+
 
 Pull requests
 =============

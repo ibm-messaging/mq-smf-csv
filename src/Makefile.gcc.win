@@ -3,6 +3,7 @@ CC=i686-w64-mingw32-gcc
 CFLAGS= -I. -m32
 PLATFLAGS=
 SRC = mqsmf.c \
+      smfDDL.c \
       smfDate.c \
       smfConv.c \
       printDEBUG.c \

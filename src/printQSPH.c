@@ -28,11 +28,11 @@ void printQSPH(qsph *p)
   ADDU64("DSPNM",p->qsphdspnm);
   ADDSTREN("NAME",p->qsphname,48);
 
-  ADDSTR("FIXED", ((p->qsphflags & QSPHFIXED)?"Yes":"No"));
-  ADDSTR("GLOB ", ((p->qsphflags & QSPHGLOB )?"Yes":"No"));
-  ADDSTR("DSP  ", ((p->qsphflags & QSPHDSPC )?"Yes":"No"));
-  ADDSTR("IVSA ", ((p->qsphflags & QSPHIVSA )?"Yes":"No"));
-  ADDSTR("64BIT", ((p->qsphflags & QSPH64BIT)?"Yes":"No"));
+  ADDSTR("FIXED", ((p->qsphflags & QSPHFIXED)?"Yes":"No"),3);
+  ADDSTR("GLOB ", ((p->qsphflags & QSPHGLOB )?"Yes":"No"),3);
+  ADDSTR("DSP  ", ((p->qsphflags & QSPHDSPC )?"Yes":"No"),3);
+  ADDSTR("IVSA ", ((p->qsphflags & QSPHIVSA )?"Yes":"No"),3);
+  ADDSTR("64BIT", ((p->qsphflags & QSPH64BIT)?"Yes":"No"),3);
 
 
   SMFPRINTSTOP;

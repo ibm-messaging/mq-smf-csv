@@ -33,12 +33,12 @@ void printQMAC(qmac *p, qwhc *pqwhc)
 
 
   ADDSTREN("AID ",pqwhc->qwhcaid,8);
-  ADDSTR  ("CCV ",convBin(pqwhc->qwhccv ,12));
+  ADDSTRB ("CCV ",pqwhc->qwhccv ,12);
   ADDSTREN("CCN ",pqwhc->qwhccn ,8 );
   ADDSTREN("OPID",pqwhc->qwhcopid ,8 );
-  ADDSTR  ("ATYP",strConnType(conv32(pqwhc->qwhcatyp)));
-  ADDSTR  ("TOKN",convBin(pqwhc->qwhctokn ,22));
-  ADDSTR  ("NID ",convBin(pqwhc->qwhcnid  ,16));
+  ADDSTR  ("ATYP",strConnType(conv32(pqwhc->qwhcatyp)),20);
+  ADDSTRB ("TOKN",pqwhc->qwhctokn ,22);
+  ADDSTRB ("NID ",pqwhc->qwhcnid  ,16);
 
   ADDSTCK("CPUT", p->qmaccput);
 

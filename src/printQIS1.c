@@ -24,7 +24,7 @@
 SMFPRINTGLOB;
 
 /*******************************************************************/
-/* Only include this function if building from an MQ V9 header file*/ 
+/* Only include this function if building from an MQ V9 header file*/
 /*******************************************************************/
 #ifdef QIS1IDV
 void printQIS1(qis1 *p)
@@ -66,11 +66,11 @@ void printQIS1(qis1 *p)
 
   if(flags & QIS1EXPF)
   {
-    ADDSTR("EXPAND","Yes");
+    ADDSTR("EXPAND","Yes",3);
   }
   else
   {
-    ADDSTR("EXPAND","No");
+    ADDSTR("EXPAND","No",3);
   }
 
   SMFPRINTSTOP;

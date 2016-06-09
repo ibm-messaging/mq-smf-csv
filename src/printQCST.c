@@ -23,10 +23,10 @@ void printQCST(qcst *p)
 
   ADDTIME ("CLTM",p->qcstcltm);
   ADDSTREN("CHNM",p->qcstchnm,20);
-  ADDSTR  ("CHDP",strMQCHLD((int)p->qcstchdp));
-  ADDSTR  ("CHTY",strMQCHT((int)p->qcstchty));
-  ADDSTR  ("CHST",strMQCHS((int)p->qcstchst));
-  ADDSTR  ("STCL",strMQMON((int)p->qcststcl));
+  ADDSTR  ("CHDP",strMQCHLD((int)p->qcstchdp),20);
+  ADDSTR  ("CHTY",strMQCHT((int)p->qcstchty),20);
+  ADDSTR  ("CHST",strMQCHS((int)p->qcstchst),20);
+  ADDSTR  ("STCL",strMQMON((int)p->qcststcl),20);
   ADDSTREN("CNNM",p->qcstcnnm,48);
   ADDTIME ("STRT",p->qcststrt);
   ADDTIME ("LUDT",p->qcstludt);
@@ -54,7 +54,7 @@ void printQCST(qcst *p)
   ADDU32  ("NTMX",p->qcstntmx);
   ADDTIME ("NTDT",p->qcstntdt);
   ADDSTREN("RQMN",p->qcstrqmn,48);
-  ADDSTR  ("SLSN",convBin(p->qcstslsn,8));
+  ADDSTR  ("SLSN",convBin(p->qcstslsn,8),16);
   ADDSTREN("SLCN",p->qcstslcn,16);
   ADDX32  ("SLCS",p->qcstslcs);
   ADDU32  ("PTRC",p->qcstptrc);

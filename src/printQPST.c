@@ -56,20 +56,20 @@ void printQPST(qpst *p)
 
   if(flags & QPSTLOC)
   {
-    ADDSTR("LOC","Above");
+    ADDSTR("LOC","Above",6);
   }
   else
   {
-    ADDSTR("LOC","Below");
+    ADDSTR("LOC","Below",6);
   }
 
   if(flags & QPSTF4KB)
   {
-    ADDSTR("FIX","Fixed");
+    ADDSTR("FIX","Fixed",6);
   }
   else
   {
-    ADDSTR("FIX","Paged");
+    ADDSTR("FIX","Paged",6);
   }
 
   SMFPRINTSTOP;
