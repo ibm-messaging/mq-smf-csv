@@ -39,17 +39,17 @@ void printQEST(qest *p)
       SMFPRINTSTART("QEST",p,conv16(p->qestll));
       debugLevel = 0;
 
-      ADDSTREN("STR ", p->qeststuc[i].qeststr,sizeof(p->qeststuc[i].qeststr));
-      ADDU32 ("STRN", p->qeststuc[i].qeststrn);
-      ADDU32 ("CSEC", p->qeststuc[i].qestcsec);
-      ADDU32 ("CMEC", p->qeststuc[i].qestcmec);
-      ADDU32 ("RSEC", p->qeststuc[i].qestrsec);
-      ADDU32 ("RMEC", p->qeststuc[i].qestrmec);
-      ADDU32 ("SFUL", p->qeststuc[i].qestsful);
-      ADDU32 ("MNUS", p->qeststuc[i].qestmnus);
-      ADDU32 ("MLUS", p->qeststuc[i].qestmlus);
-      ADDSTCK("SSTC", p->qeststuc[i].qestsstc);
-      ADDSTCK("MSTC", p->qeststuc[i].qestmstc);
+      ADDSTREN("Structure_Name", p->qeststuc[i].qeststr,sizeof(p->qeststuc[i].qeststr));
+      ADDU32 ("Structure_Number", p->qeststuc[i].qeststrn);
+      ADDU32 ("IXLLSTE_Calls", p->qeststuc[i].qestcsec);
+      ADDU32 ("IXLLSTM_Calls", p->qeststuc[i].qestcmec);
+      ADDU32 ("IXLLSTE_Redrives", p->qeststuc[i].qestrsec);
+      ADDU32 ("IXLLSTM_Redrives", p->qeststuc[i].qestrmec);
+      ADDU32 ("Structure_Full", p->qeststuc[i].qestsful);
+      ADDU32 ("Max_In_Use_Entries", p->qeststuc[i].qestmnus);
+      ADDU32 ("Max_In_Use_Elements", p->qeststuc[i].qestmlus);
+      ADDSTCK("IXLLSTE_Calls_Time", p->qeststuc[i].qestsstc);
+      ADDSTCK("IXLLSTM_Calls_Time", p->qeststuc[i].qestmstc);
 
       SMFPRINTSTOP;
     }

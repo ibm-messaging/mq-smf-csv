@@ -19,13 +19,13 @@ void printQCTDNS(qct_dns *p)
 {
   SMFPRINTSTART("QCTDNS", p, sizeof(qct_dns));
 
-  ADDU32 ("TSKN",p->qcttskn);
-  ADDU32 ("REQN",p->qctreqn);
-  ADDSTCK("CPTM",p->qctcptm);
-  ADDSTCK("ELTM",p->qcteltm);
-  ADDSTCK("WTTM",p->qctwttm);
-  ADDTIME("LGTM",p->qctlgtm);
-  ADDSTCK("LGDU",p->qctlgdu);
+  ADDU32 ("Task_Number"      ,p->qcttskn);
+  ADDU32 ("Request_Count"    ,p->qctreqn);
+  ADDSTCK("Task_CPU_Time"    ,p->qctcptm);
+  ADDSTCK("Task_Elapsed_Time",p->qcteltm);
+  ADDSTCK("Task_Wait_Time"   ,p->qctwttm);
+  ADDTIME("Max_DNS_Request_Time",p->qctlgtm);
+  ADDSTCK("Max_DNS_Request_Duration",p->qctlgdu);
 
   SMFPRINTSTOP;
 

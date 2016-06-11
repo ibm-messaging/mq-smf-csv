@@ -409,3 +409,33 @@ char *strMQCHLD  (int v)
    return c;
 }
 
+char *strCfStatType(int v)
+{
+  char *c;
+  switch (v)
+  {
+  case  0: c = "Lock"        ; break;
+  case  1: c = "Unlock"      ; break;
+  case  2: c = "WrLCCtl"     ; break;
+  case  3: c = "SigXCF"      ; break;
+  case  4: c = "SigCF"       ; break;
+  case  5: c = "Read"        ; break;
+  case  6: c = "Write"       ; break;
+  case  7: c = "StartMon"    ; break;
+  case  8: c = "StopMon"     ; break;
+  case  9: c = "Unused"      ; break;
+  case 10: c = "New"         ; break;
+  case 11: c = "Move"        ; break;
+  case 12: c = "MoveEntry"   ; break;
+  case 13: c = "Delete"      ; break;
+  case 14: c = "Unused"      ; break;
+  case 15: c = "Unused"      ; break;
+  case 16: c = "Unused"      ; break;
+  case 17: c = "Unused"      ; break;
+  case 18: c = "Unused"      ; break;
+  case 19: c = "Unused"      ; break;
+  default: c = ""; break;
+  }
+  return c;
+}
+

@@ -20,11 +20,11 @@ void printQCTADP(qct_adp *p)
 {
   SMFPRINTSTART("QCTADP", p, sizeof(qct_adp));
 
-  ADDU32 ("TSKN",p->qcttskn);
-  ADDU32 ("REQN",p->qctreqn);
-  ADDSTCK("CPTM",p->qctcptm);
-  ADDSTCK("ELTM",p->qcteltm);
-  ADDSTCK("WTTM",p->qctwttm);
+  ADDU32 ("Task_Number"      ,p->qcttskn);
+  ADDU32 ("Request_Count"    ,p->qctreqn);
+  ADDSTCK("Task_CPU_Time"    ,p->qctcptm);
+  ADDSTCK("Task_Elapsed_Time",p->qcteltm);
+  ADDSTCK("Task_Wait_Time"   ,p->qctwttm);
   SMFPRINTSTOP;
 
   return;

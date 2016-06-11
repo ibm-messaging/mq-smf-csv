@@ -362,7 +362,7 @@ int main( int argc, char *argv[] )
     {
       int mon, day;
       int hour, min,sec,hund;
-
+      char *sep;
       calcYMD(year, ddd, &mon, &day);
 
       hund = time % 100;
@@ -373,9 +373,17 @@ int main( int argc, char *argv[] )
       min = (time / 60) % 60;
       time = time - (min * 60);
       sec = time % 60;
-      sprintf(commonF.recordDate,"%4.4d/%02.2d/%02.2d",
+
+      if (sqlMode)
+        sep = "-";
+      else
+        sep = "/";
+
+      sprintf(commonF.recordDate,"%4.4d%s%02.2d%s%02.2d",
         year,
+        sep,
         mon,
+        sep,
         day);
 
       /*******************************************************************/
@@ -625,6 +633,9 @@ int main( int argc, char *argv[] )
         /* This is unlike the rest of the formatters in that we combine  */
         /* data from two elements (and the QWHC structure is overlaid on */
         /* the end of the QWHS, so we have to refer to it in an odd way).*/
+        /*                                                               */
+        /* There are also QWAC structures defined, but never seem to be  */
+        /* used, so we do not have a formatter for them.                 */
         /*****************************************************************/
         p = &dataBuf[triplet[2].offset ];
         {

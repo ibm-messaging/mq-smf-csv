@@ -19,14 +19,14 @@ void printQSGM(qsgm *p)
 {
   SMFPRINTSTART("QSGM", p, conv16(p->qsgmll));
 
-  ADDS32( "LVTOT" ,p->qsgmlvtot);
-  ADDS32( "LVNEW" ,p->qsgmlvnew);
-  ADDS32( "LVMAX" ,p->qsgmlvmax);
-  ADDS32( "LVMIN" ,p->qsgmlvmin);
-  ADDS32( "COUNT" ,p->qsgmcount);
-  ADDBYTE("SCLS"  ,p->qsgmscls);
-  ADDU64( "CSECT" ,p->qsgmcsect);
-  ADDS32( "OFFSET",p->qsgmoffset);
+  ADDS32( "Length_Total",p->qsgmlvtot);
+  ADDS32( "New_Records" ,p->qsgmlvnew);
+  ADDS32( "Length_Max"  ,p->qsgmlvmax);
+  ADDS32( "Length_Min"  ,p->qsgmlvmin);
+  ADDS32( "Requests"    ,p->qsgmcount);
+  ADDBYTE("Storage_Class",p->qsgmscls);
+  ADDU64( "CSECT"       ,p->qsgmcsect);
+  ADDS32( "CSECT_Offset",p->qsgmoffset);
 
   SMFPRINTSTOP;
 

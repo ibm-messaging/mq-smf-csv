@@ -18,18 +18,18 @@ void printWTID(wtid *p)
 {
   SMFPRINTSTART("WTID", p, conv16(p->wtidlen));
 
-  ADDSTR  ("ATYP", strConnType(conv32(p->wtidatyp)),16);
-  ADDSTREN("CCN ", p->wtidccn, 8);
-  ADDSTREN("OPID", p->wtidopid,8);
+  ADDSTR  ("Appl_Type", strConnType(conv32(p->wtidatyp)),16);
+  ADDSTREN("Connection_Name", p->wtidccn, 8);
+  ADDSTREN("Operator_ID", p->wtidopid,8);
   ADDSTRB ("NID ", p->wtidnid, 16);
-  ADDSTRB ("CORI(HEX)", p->wtidcori, 12);
-  ADDSTREN("CORI(CHAR)", p->wtidcori, 12);
-  ADDSTRB ("UOWI", p->wtiduowi, 24);
-  ADDSTRB ("ACCT", p->wtidacct, 22);
-  ADDSTREN("CHL ", p->wtidchl, 20);
-  ADDSTREN("CHLC", p->wtidchlc, 48);
-  ADDSTRB ("CTXT", p->wtidctxt, 16);
-  ADDSTREN("TRAN", p->wtidtran, 8);
+  ADDSTRB ("Correl(HEX)", p->wtidcori, 12);
+  ADDSTREN("Correl(CHAR)", p->wtidcori, 12);
+  ADDSTRB ("UOW_ID", p->wtiduowi, 24);
+  ADDSTRB ("Accounting_Token", p->wtidacct, 22);
+  ADDSTREN("Channel_Name", p->wtidchl, 20);
+  ADDSTREN("Channel_Connection_Name", p->wtidchlc, 48);
+  ADDSTRB ("Context_Token", p->wtidctxt, 16);
+  ADDSTREN("MVS_UserId", p->wtidtran, 8);
 
   SMFPRINTSTOP;
 

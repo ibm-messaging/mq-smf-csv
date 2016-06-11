@@ -22,48 +22,48 @@ void printQJST(qjst *p)
 
   SMFPRINTSTART("QJST", p, conv16(p->qjstll));
 
-  ADDS32("WRW  ",p->qjstwrw );
-  ADDS32("WRNW ",p->qjstwrnw);
-  ADDS32("WRF  ",p->qjstwrf );
-  ADDS32("WTB  ",p->qjstwtb );
-  ADDS32("RBUF ",p->qjstrbuf);
-  ADDS32("RACT ",p->qjstract);
-  ADDS32("RARH ",p->qjstrarh);
-  ADDS32("TVC  ",p->qjsttvc );
-  ADDS32("BSDS ",p->qjstbsds);
-  ADDS32("BFFL ",p->qjstbffl);
-  ADDS32("BFWR ",p->qjstbfwr);
-  ADDS32("ALR  ",p->qjstalr );
-  ADDS32("ALW  ",p->qjstalw );
-  ADDS32("CIOF ",p->qjstciof);
-  ADDS32("LLCP ",p->qjstllcp);
-  ADDS32("WUR  ",p->qjstwur );
-  ADDS32("LAMA ",p->qjstlama);
-  ADDS32("LAMS ",p->qjstlams);
-  ADDS32("LSUS ",p->qjstlsus);
-  ADDS32("LOGW ",p->qjstlogw);
-  ADDS32("CIWR ",p->qjstciwr);
-  ADDS32("SERW ",p->qjstserw);
-  ADDS32("THRW ",p->qjstthrw);
-  ADDS32("BPAG ",p->qjstbpag);
+  ADDS32("WRT_Request_Wait"      ,p->qjstwrw );
+  ADDS32("WRT_Request_NoWait"    ,p->qjstwrnw);
+  ADDS32("WRT_Request_Force"     ,p->qjstwrf );
+  ADDS32("Unavailable_Buffer_Count",p->qjstwtb );
+  ADDS32("Log_Read_Output_Buffer",p->qjstrbuf);
+  ADDS32("Log_Read_Active_Log"   ,p->qjstract);
+  ADDS32("Log_Read_Archive_Log"  ,p->qjstrarh);
+  ADDS32("Tape_Contention_Delays",p->qjsttvc );
+  ADDS32("BSDS_Access "          ,p->qjstbsds);
+  ADDS32("Active_Log_CI"         ,p->qjstbffl);
+  ADDS32("Buffer_Writes"         ,p->qjstbfwr);
+  ADDS32("Archive_Read"          ,p->qjstalr );
+  ADDS32("Archive_Write"         ,p->qjstalw );
+  ADDS32("CI_Offloads"           ,p->qjstciof);
+  ADDS32("Checkpoints"           ,p->qjstllcp);
+  ADDS32("Read_Delayed"          ,p->qjstwur );
+  ADDS32("Lookahead_Mount_Attempts",p->qjstlama);
+  ADDS32("Lookahead_Mount_Succeed",p->qjstlams);
+  ADDS32("Log_Request_Suspends"  ,p->qjstlsus);
+  ADDS32("Log_Writes"            ,p->qjstlogw);
+  ADDS32("Log_CI"                ,p->qjstciwr);
+  ADDS32("Log_CI_Serial"         ,p->qjstserw);
+  ADDS32("Log_Write_Threshold"   ,p->qjstthrw);
+  ADDS32("Log_Write_Buffer_Paged",p->qjstbpag);
 
   if (conv32(p->qjstll)>=offsetof(qjst,qjstio))
   {
     /* Array of 1 entry! Reserved space follows for 2 more, but they   */
     /* are not currently used.                                         */
-    for (i=0;i<1;i++)   
+    for (i=0;i<1;i++)
     {
       if (first)
         sprintf(index,"%d",i+1);
 
-      ADDS32IDX("CMPREQ",index,p->qjstcompr[i].qjstcmpreq);
-      ADDS32IDX("CMPFAIL  ", index,p->qjstcompr[i].qjstcmpfail);
-      ADDS64IDX("CMPUNCMP ", index,p->qjstcompr[i].qjstcmpuncmp);
-      ADDS64IDX("CMPCOMP  ", index,p->qjstcompr[i].qjstcmpcomp);
-      ADDS32IDX("DECREQ   ", index,p->qjstcompr[i].qjstdecreq);
-      ADDS32IDX("DECFAIL  ", index,p->qjstcompr[i].qjstdecfail);
-      ADDS64IDX("DECUNCMP ", index,p->qjstcompr[i].qjstdecuncmp);
-      ADDS64IDX("DECCOMP  ", index, p->qjstcompr[i].qjstdeccomp);
+      ADDS32IDX("Comp_Requests"            , index,p->qjstcompr[i].qjstcmpreq);
+      ADDS32IDX("Comp_Fail"                , index,p->qjstcompr[i].qjstcmpfail);
+      ADDS64IDX("Comp_Uncompressed_Bytes"  , index,p->qjstcompr[i].qjstcmpuncmp);
+      ADDS64IDX("Comp_Compressed_Bytes"    , index,p->qjstcompr[i].qjstcmpcomp);
+      ADDS32IDX("Decomp_Requests"          , index,p->qjstcompr[i].qjstdecreq);
+      ADDS32IDX("Decomp_Fail"              , index,p->qjstcompr[i].qjstdecfail);
+      ADDS64IDX("Decomp_Uncompressed_Bytes", index,p->qjstcompr[i].qjstdecuncmp);
+      ADDS64IDX("Decomp_Compressed_Bytes"   , index, p->qjstcompr[i].qjstdeccomp);
     }
   }
 
@@ -76,20 +76,24 @@ void printQJST(qjst *p)
         if (first)
           sprintf(index,"%d.%d",i+1,j+1);
 
-        ADDU32IDX("IOCOUNT   ", index , p->qjstio[i].qjstiotype[j].qjstiocount);
-        ADDU32IDX("IOCI      ", index , p->qjstio[i].qjstiotype[j].qjstioci);
-        ADDSTCKIDX("IOTOTIO  ", index , p->qjstio[i].qjstiotype[j].qjstiototio);
-        ADDSTCKIDX("IOTOTSUS ", index , p->qjstio[i].qjstiotype[j].qjstiototsus);
+        ADDU32IDX("IO_Count"      , index , p->qjstio[i].qjstiotype[j].qjstiocount);
+        ADDU32IDX("IO_CI"         , index , p->qjstio[i].qjstiotype[j].qjstioci);
+        ADDSTCKIDX("IO_Total_Time", index , p->qjstio[i].qjstiotype[j].qjstiototio);
+        ADDSTCKIDX("IO_Total_Suspend_Time", index , p->qjstio[i].qjstiotype[j].qjstiototsus);
 
-        ADDSTCKIDX("IOMAXIO  ", index , p->qjstio[i].qjstiotype[j].qjstiomaxio);
-        ADDTIMEIDX("IOMAXIOT  ", index ,p->qjstio[i].qjstiotype[j].qjstiomaxioT);
-        ADDSTRENIDX("IOMAXIOL", index , p->qjstio[i].qjstiotype[j].qjstiomaxiol,8);
+        ADDSTCKIDX("IO_Max_Duration" , index , p->qjstio[i].qjstiotype[j].qjstiomaxio);
+        ADDTIMEIDX("IO_Max_Time"     , index ,p->qjstio[i].qjstiotype[j].qjstiomaxioT);
+        ADDSTRENIDX("IO_Max_Log_ID"  , index , p->qjstio[i].qjstiotype[j].qjstiomaxiol,8);
 
-        ADDSTCKIDX("IOMAXSUS  ", index, p->qjstio[i].qjstiotype[j].qjstiomaxsus);
-        ADDTIMEIDX("IOMAXSUST  ", index, p->qjstio[i].qjstiotype[j].qjstiomaxsusT);
-        ADDSTRENIDX("IOMAXSUSL", index, p->qjstio[i].qjstiotype[j].qjstiomaxsusl,8);
+        ADDSTCKIDX("IO_Max_Suspend_Dur"     , index, p->qjstio[i].qjstiotype[j].qjstiomaxsus);
+        ADDTIMEIDX("IO_Max_Suspend_Time"    , index, p->qjstio[i].qjstiotype[j].qjstiomaxsusT);
+        ADDSTRENIDX("IO_Max_Suspend_Log_ID" , index, p->qjstio[i].qjstiotype[j].qjstiomaxsusl,8);
       }
     }
+
+  ADDTIME("Writer_Idle_Time"     , p->qjstslptu);
+  ADDU64 ("IO_Time_Sum_Squares_1", p->qjstiosqu[0]);
+  ADDU64 ("IO_Time_Sum_Squares_2", p->qjstiosqu[1]);
   }
 
   SMFPRINTSTOP;

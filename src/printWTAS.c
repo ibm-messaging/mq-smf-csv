@@ -13,19 +13,27 @@
 #include <stdio.h>
 #include "mqsmf.h"
 
+
+static char *verb[] = {
+  "Cmit",
+  "Prep"
+};
+
 SMFPRINTGLOB;
 
 void printWTAS(wtas *p)
 {
-  int i;
+  int i,j;
+  cfstat *cf;
   char index[64];
+  char indexet[64];
 
   SMFPRINTSTART("WTAS",p,conv16(p->wtaslen));
 
-  ADDS32 ("VER" , p->wtasver);
-  ADDSTRB("CORREL", (char *)&p->wtasstrt,16);
-  ADDTIME("STRT", p->wtasstrt);
-  ADDS32 ("WQCT", p->wtaswqct);
+  ADDS32 ("Record_Version" , p->wtasver);
+  ADDSTRB("Correl", (char *)&p->wtasstrt,16);
+  ADDTIME("Start_Time", p->wtasstrt);
+  ADDS32 ("Block_Count", p->wtaswqct);
 
   /*-----------------------------------------------------------*/
   /* STCK elapse waiting for a each latch class and the number */
@@ -35,114 +43,138 @@ void printWTAS(wtas *p)
   {
     /* Latches are known by index from 1, not from zero  */
     sprintf(index,"%d",i+1);
-    ADDSTCKIDX("LWET",index,p->wtaslwet[i]);
-    ADDS32IDX ("LWN",index,p->wtaslwn[i]);
+    ADDSTCKIDX("Latch_Wait_Time",index,p->wtaslwet[i]);
+    ADDS32IDX ("Latch_Wait_Count",index,p->wtaslwn[i]);
   }
 
-  ADDSTRB("LOWN", p->wtaslown,8);
+  ADDSTRB("Longest_Latch", p->wtaslown,8);
 
   /*-----------------------------------------------------------*/
   /* other statistics                                          */
   /*-----------------------------------------------------------*/
-  ADDSTCK("OTET", p->wtasotet);
-  ADDSTCK("OTCT", p->wtasotct);
-  ADDS32 ("OTN ", p->wtasotn);
-  ADDSTCK("MLW ", p->wtasmlw);
-  ADDS32 ("MWLN", p->wtasmlwn);
+  ADDSTCK("Other_MQI_ET"   , p->wtasotet);
+  ADDSTCK("Other_MQI_CT"   , p->wtasotct);
+  ADDS32 ("Other_MQI_Count", p->wtasotn);
+  ADDSTCK("Max_Latch_Wait_Time", p->wtasmlw);
+  ADDS32 ("Max_Latch_Wait_ID", p->wtasmlwn);
 
   /*-----------------------------------------------------------*/
   /* Commit statistics                                         */
   /*-----------------------------------------------------------*/
-  ADDSTCK("CMET", p->wtascmet);
-  ADDSTCK("CMT ", p->wtascmct);
-  ADDS32 ("CMN ", p->wtascmn);
+  ADDSTCK("Commit_ET"   , p->wtascmet);
+  ADDSTCK("Commit_CT"   , p->wtascmct);
+  ADDS32 ("Commit_Count", p->wtascmn);
 
   /*-----------------------------------------------------------*/
   /* Backout statistics                                        */
   /*-----------------------------------------------------------*/
-  ADDSTCK("BAET", p->wtasbaet);
-  ADDSTCK("BACT", p->wtasbact);
-  ADDS32 ("BAN ", p->wtasban);
+  ADDSTCK("Backout_ET"   , p->wtasbaet);
+  ADDSTCK("Backout_CT"   , p->wtasbact);
+  ADDS32 ("Backout_Count", p->wtasban);
 
   /*-----------------------------------------------------------*/
   /* Journal and logging information                           */
   /*-----------------------------------------------------------*/
-  ADDSTCK("JWET", p->wtasjwet);
-  ADDU32 ("JWN ", p->wtasjwn);
-  ADDU32 ("JWB ", p->wtasjwb);
-  ADDSTCK("JCET", p->wtasjcet);
-  ADDU32 ("JCN ", p->wtasjcn);
-  ADDU32 ("SUSN", p->wtassusn);
-  ADDSTCK("SUSE", p->wtassuse);
+  ADDSTCK("Journal_Write_ET"   , p->wtasjwet);
+  ADDU32 ("Journal_Write_Count", p->wtasjwn);
+  ADDU32 ("Journal_Write_Bytes", p->wtasjwb);
+  ADDSTCK("Journal_Forced_Write_ET", p->wtasjcet);
+  ADDU32 ("Journal_Fored_Write_Count", p->wtasjcn);
+  ADDU32 ("Task_Suspend_Count", p->wtassusn);
+  ADDSTCK("Task_Suspend_Time", p->wtassuse);
 
   /*-----------------------------------------------------------*/
   /* Pageset 0 logging activity                                */
   /*-----------------------------------------------------------*/
-  ADDSTCK("PSE0", p->wtaspse0);
-  ADDU32 ("PSN0", p->wtaspsn0);
+  ADDSTCK("Pageset0_Log_ET"   , p->wtaspse0);
+  ADDU32 ("Pageset0_Log_Count", p->wtaspsn0);
 
   /*-----------------------------------------------------------*/
   /* DB2 activity                                              */
   /*-----------------------------------------------------------*/
-  ADDSTCK("DBET", p->wtasdbet);
-  ADDSTCK("DBES", p->wtasdbes);
-  ADDSTCK("DBMT", p->wtasdbmt);
-  ADDSTCK("DBMS", p->wtasdbms);
-  ADDU32 ("DBCT", p->wtasdbct);
+  ADDSTCK("DB2_Elapse_Thread", p->wtasdbet);
+  ADDSTCK("DB2_Elapse_Server", p->wtasdbes);
+  ADDSTCK("DB2_Max_Elapse_Thread", p->wtasdbmt);
+  ADDSTCK("DB2_Max_Elapse_Server", p->wtasdbms);
+  ADDU32 ("DB2_Request_Count", p->wtasdbct);
 
-  ADDU64("DBPT", p->wtasdbpt);
-  ADDU64("DBGT", p->wtasdbgt);
+  ADDU64("DB2_Bytes_Written", p->wtasdbpt);
+  ADDU64("DB2_Bytes_Read"   , p->wtasdbgt);
 
   /*-----------------------------------------------------------*/
   /* CF activity                                               */
   /*-----------------------------------------------------------*/
-  ADDU32 ("CSEC",p->wtascsec);
-  ADDU32 ("CMEC",p->wtascmec);
-  ADDU32 ("RSEC",p->wtasrsec);
-  ADDU32 ("RMEC",p->wtasrmec);
-  ADDSTCK("SSTC",p->wtassstc);
-  ADDSTCK("MSTC",p->wtasmstc);
+  ADDU32 ("CF_STE_Call_Count",p->wtascsec);
+  ADDU32 ("CF_STM_Call_Count",p->wtascmec);
+  ADDU32 ("CF_STE_Redrive_Count",p->wtasrsec);
+  ADDU32 ("CF_STM_Redrive_Count",p->wtasrmec);
+  ADDSTCK("CF_STE_Elapsed",p->wtassstc);
+  ADDSTCK("CF_STM_Elapsed",p->wtasmstc);
 
   /*-----------------------------------------------------------*/
   /* Interval data and page counts                             */
   /*-----------------------------------------------------------*/
-  ADDSTCK("INTS", p->wtasints);
-  ADDSTCK("INTE", p->wtasinte);
-  ADDS32 ("GPO ", p->wtasgpo);
-  ADDS32 ("GPN ", p->wtasgpn);
+  ADDTIME("WTAS_Interval_Start", p->wtasints);
+  ADDTIME("WTAS_Interval_End"  , p->wtasinte);
+  ADDS32 ("Get_Pages_Old", p->wtasgpo);
+  ADDS32 ("Get_Pages_New", p->wtasgpn);
 
   /*-----------------------------------------------------------*/
   /* Version 7 (WTAS_VER_4) inclusions                         */
   /*-----------------------------------------------------------*/
   if (conv32(p->wtasver) >= WTAS_VER_4)
   {
-    ADDSTCK("PBHW", p->wtaspbhw);
-    ADDSTCK("PBTT", p->wtaspbtt);
+    ADDSTCK("Publish_High_Water", p->wtaspbhw);
+    ADDSTCK("Publish_Total_ET"  , p->wtaspbtt);
 
-    ADDSTCK("TPET", p->wtastpet);
-    ADDSTCK("TPCT", p->wtastpct);
-    ADDU32 ("TPN ", p->wtastpn);
+    ADDSTCK("Topic_ET", p->wtastpet);
+    ADDSTCK("Topic_CT", p->wtastpct);
+    ADDU32 ("Topic_Count", p->wtastpn);
 
-    ADDSTCK("SUET", p->wtassuet);
-    ADDSTCK("SUCT", p->wtassuct);
+    ADDSTCK("Subscribe_ET", p->wtassuet);
+    ADDSTCK("Subscribe_CT", p->wtassuct);
+    ADDU32 ("Subscribe_Count", p->wtassun );
+    ADDU32 ("Subscribe_Selector_Count", p->wtassusc);
+    ADDU32 ("Subscribe_Max_Select_Len", p->wtassusl);
 
-    ADDU32 ("SUN ", p->wtassun );
-    ADDU32 ("SUSC", p->wtassusc);
-    ADDU32 ("SUSL", p->wtassusl);
+    ADDSTCK("SubReq_ET", p->wtassqet);
+    ADDSTCK("SubReq_CT", p->wtassqct);
+    ADDU32 ("SubReq_Count", p->wtassqn);
 
-    ADDSTCK("SQET", p->wtassqet);
-    ADDSTCK("SQCT", p->wtassqct);
-    ADDU32 ("SQN ", p->wtassqn);
+    ADDSTCK("MQCTL_ET", p->wtasctet);
+    ADDSTCK("MQCTL_CT", p->wtasctct);
+    ADDU32 ("MQCTL_Count", p->wtasctn);
+    ADDSTCK("MQCTL_CPU", p->wtasctsr);
 
-    ADDSTCK("CTET", p->wtasctet);
-    ADDSTCK("CTCT", p->wtasctct);
-    ADDU32 ("CTN ", p->wtasctn);
+    ADDSTCK("MQSTAT_ET", p->wtasstet);
+    ADDSTCK("MQSTAT_CT", p->wtasstct);
+    ADDU32 ("MQSTAT_Count", p->wtasstn);
 
-    ADDSTCK("STET", p->wtasstet);
-    ADDSTCK("STCT", p->wtasstct);
-    ADDU32 ("STN ", p->wtasstn);
+    for (i=0;i<2;i++)
+    {
+      if (i==0)
+        cf = &p->commitcf;
+      else
+        cf = &p->prepcf;
 
-    ADDSTCK("CTSR", p->wtasctsr);
+      for (j=0;j<14;j++)/* Last few of the array are unused, so don't print them*/
+      {
+        if (j==9)
+         continue;                                       /* An unused entry*/
+        if (first) {
+          /* Easier to understand if "ET" is at the end of the headings. */
+          /* So there are two types of heading needed in this loop.      */
+          sprintf(index,  "%s_%s"   ,verb[i],strCfStatType(j));
+          sprintf(indexet,"%s_%s_ET",verb[i],strCfStatType(j));
+        }
+        ADDU32IDX("CFCount"   , index,  cf->type[j].cfcount);
+        ADDU32IDX("CFSync"    , index,  cf->type[j].cfsyncn);
+        ADDU32IDX("CFSync"    , indexet,cf->type[j].cfsyncet);
+        ADDU32IDX("CFAsync"   , index,  cf->type[j].cfasyncn);
+        ADDU32IDX("CFAsync"   , indexet,cf->type[j].cfasyncet);
+      }
+    }
+
 
   }                                                  /* End if (WTAS_VER_4)*/
 
@@ -151,13 +183,13 @@ void printWTAS(wtas *p)
   /*-----------------------------------------------------------*/
   if (conv32(p->wtasver) >= WTAS_VER_5)
   {
-    ADDU32 ("SMWB", p -> wtassmwb);
-    ADDU32 ("SMRB", p -> wtassmrb);
-    ADDU32 ("SMWP", p -> wtassmwp);
-    ADDU32 ("SMRP", p -> wtassmrp);
-    ADDU32 ("SMRS", p -> wtassmrs);
+    ADDU32 ("SMDS_Write_Bytes", p -> wtassmwb);
+    ADDU32 ("SMDS_Read_Bytes", p -> wtassmrb);
+    ADDU32 ("SMDS_Write_Pages", p -> wtassmwp);
+    ADDU32 ("SMDS_Read_Pages", p -> wtassmrp);
+    ADDU32 ("SMDS_Saved_Reads", p -> wtassmrs);
 
-    ADDSTCK("SMWT", p -> wtassmwt);
+    ADDSTCK("SMDS_IO_Wait_Time", p -> wtassmwt);
   }
 
   /*-----------------------------------------------------------*/
@@ -165,13 +197,13 @@ void printWTAS(wtas *p)
   /*-----------------------------------------------------------*/
   if (conv32(p->wtasver) >= WTAS_VER_8)
   {
-    ADDSTCK("PRET", p -> wtaspret);
-    ADDSTCK("PRCT", p -> wtasprct);
-    ADDU32 ("PRN ", p -> wtasprn);
+    ADDSTCK("Prepare_ET", p -> wtaspret);
+    ADDSTCK("Prepare_CT", p -> wtasprct);
+    ADDU32 ("Prepare_Count", p -> wtasprn);
     for (i = 0; i < 32; i++)
     {
       sprintf(index,"%d",i+1);
-      ADDSTCKIDX("LMAX", index, p -> wtaslmax[i]);
+      ADDSTCKIDX("Longest_Latch", index, p -> wtaslmax[i]);
     }
   }
 

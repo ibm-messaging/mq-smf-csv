@@ -30,22 +30,22 @@ void printQPST(qpst *p)
 
   SMFPRINTSTART("QPST", p, conv16(p->qpstll));
 
-  ADDS32("POOL",p->qpstpool);
-  ADDS32("NBUF",p->qpstnbuf);
-  ADDS32("CBSL",p->qpstcbsl);
-  ADDS32("CBS ",p->qpstcbs );
-  ADDS32("GETP",p->qpstgetp);
-  ADDS32("GETN",p->qpstgetn);
-  ADDS32("RIO ",p->qpstrio );
-  ADDS32("STW ",p->qpststw );
-  ADDS32("TPW ",p->qpsttpw );
-  ADDS32("WIO ",p->qpstwio );
-  ADDS32("IMW ",p->qpstimw );
-  ADDS32("DWT ",p->qpstdwt );
-  ADDS32("DMC ",p->qpstdmc );
-  ADDS32("STL ",p->qpststl );
-  ADDS32("STLA",p->qpststla);
-  ADDS32("SOS ",p->qpstsos );
+  ADDS32("BufferPool",p->qpstpool);
+  ADDS32("Buffer_Count",p->qpstnbuf);
+  ADDS32("Lowest_Stealable",p->qpstcbsl);
+  ADDS32("Current_Stealable",p->qpstcbs );
+  ADDS32("Getp_Old_Requests",p->qpstgetp);
+  ADDS32("Getp_New_Requests",p->qpstgetn);
+  ADDS32("DASD_Read",p->qpstrio );
+  ADDS32("Set_Write_Pages",p->qpststw );
+  ADDS32("Pages_Written",p->qpsttpw );
+  ADDS32("DASD_Write",p->qpstwio );
+  ADDS32("Sync_Writes",p->qpstimw );
+  ADDS32("Defer_Write_THold_Reached",p->qpstdwt );
+  ADDS32("Sync_Write_THold_Reached",p->qpstdmc );
+  ADDS32("Buffer_Steals",p->qpststl );
+  ADDS32("Buffer_Steals_Hash_Changes",p->qpststla);
+  ADDS32("Suspend_No_Buffers",p->qpstsos );
 
   /*****************************************************************/
   /* Extract the word containing bitfield flags. Make sure it's in */

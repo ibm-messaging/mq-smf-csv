@@ -32,24 +32,24 @@ void printQMAC(qmac *p, qwhc *pqwhc)
     printDEBUG("QWHC",pqwhc,conv16(pqwhc->qwhclen));
 
 
-  ADDSTREN("AID ",pqwhc->qwhcaid,8);
-  ADDSTRB ("CCV ",pqwhc->qwhccv ,12);
-  ADDSTREN("CCN ",pqwhc->qwhccn ,8 );
-  ADDSTREN("OPID",pqwhc->qwhcopid ,8 );
-  ADDSTR  ("ATYP",strConnType(conv32(pqwhc->qwhcatyp)),20);
-  ADDSTRB ("TOKN",pqwhc->qwhctokn ,22);
-  ADDSTRB ("NID ",pqwhc->qwhcnid  ,16);
+  ADDSTREN("Authorisation_ID ",pqwhc->qwhcaid,8);
+  ADDSTRB ("Correl_ID",pqwhc->qwhccv ,12);
+  ADDSTREN("Connection_Name",pqwhc->qwhccn ,8 );
+  ADDSTREN("Operator_ID",pqwhc->qwhcopid ,8 );
+  ADDSTR  ("Application_Type",strConnType(conv32(pqwhc->qwhcatyp)),20);
+  ADDSTRB ("Accounting_Token",pqwhc->qwhctokn ,22);
+  ADDSTRB ("Network_ID ",pqwhc->qwhcnid  ,16);
 
-  ADDSTCK("CPUT", p->qmaccput);
+  ADDSTCK("CPU_Time", p->qmaccput);
 
-  ADDU32("PUTA" , p->qmacputl.qmacputa);
-  ADDU32("PUTB" , p->qmacputl.qmacputb);
-  ADDU32("PUTC" , p->qmacputl.qmacputc);
-  ADDU32("PUTD" , p->qmacputl.qmacputd);
-  ADDU32("GETA" , p->qmacgetl.qmacgeta);
-  ADDU32("GETB" , p->qmacgetl.qmacgetb);
-  ADDU32("GETC" , p->qmacgetl.qmacgetc);
-  ADDU32("GETD" , p->qmacgetl.qmacgetd);
+  ADDU32("Puts_Len_0_99"      , p->qmacputl.qmacputa);
+  ADDU32("Puts_Len_100_999"   , p->qmacputl.qmacputb);
+  ADDU32("Puts_Len_1000_9999" , p->qmacputl.qmacputc);
+  ADDU32("Puts_Len_10000"     , p->qmacputl.qmacputd);
+  ADDU32("Gets_Len_0_99"      , p->qmacgetl.qmacgeta);
+  ADDU32("Gets_Len_100_999"   , p->qmacgetl.qmacgetb);
+  ADDU32("Gets_Len_1000_9999" , p->qmacgetl.qmacgetc);
+  ADDU32("Gets_Len_10000"     , p->qmacgetl.qmacgetd);
 
   SMFPRINTSTOP;
 

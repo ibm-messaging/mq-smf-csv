@@ -19,15 +19,15 @@ void printQCCT(qcct *p)
 {
   SMFPRINTSTART("QCCT", p, conv16(p->qcctll));
 
-  ADDSTREN("JOBN",p->qcctjobn,8);
-  ADDSTREN("QSGN",p->qcctqsgn,4);
-  ADDU32 ("NOCC",p->qcctnocc);
-  ADDU32 ("MXCC",p->qcctmxcc);
-  ADDU32 ("NOAC",p->qcctnoac);
-  ADDU32 ("MXAC",p->qcctmxac);
-  ADDU32 ("MXTP",p->qcctmxtp);
-  ADDU32 ("MXLU",p->qcctmxlu);
-  ADDU32 ("STUS",p->qcctstus);
+  ADDSTREN("Job_Name"             ,p->qcctjobn,8);
+  ADDSTREN("QSG_Name"             ,p->qcctqsgn,4);
+  ADDU32 ("Current_Chl_High_Water",p->qcctnocc);
+  ADDU32 ("Current_Chl_Max"       ,p->qcctmxcc);
+  ADDU32 ("Active_Chl_High_Water" ,p->qcctnoac);
+  ADDU32 ("Active_Chl_Max"        ,p->qcctmxac);
+  ADDU32 ("Max_TCP_Chl"           ,p->qcctmxtp);
+  ADDU32 ("Max_LU62_Chl"          ,p->qcctmxlu);
+  ADDU32 ("Storage_Usage"         ,p->qcctstus);
   SMFPRINTSTOP;
 
   return;

@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include "mqsmf.h"
 
-SMFPRINTGLOB;
-
 static char *verb[] = {
   "Open",
   "Close",
@@ -23,28 +21,8 @@ static char *verb[] = {
   "Put1"
 };
 
-static char *type[] = {
-  "Lock"            ,
-  "Unlock"          ,
-  "WrLCControls"    ,
-  "SigUsingXCF"     ,
-  "SigUsingCF"      ,
-  "Read"            ,
-  "Write"           ,
-  "StartMon"        ,
-  "StopMon"         ,
-  "Unused"          ,
-  "New"             ,
-  "Move"            ,
-  "MoveEntry"       ,
-  "Delete"          ,
-  "Unused"          ,
-  "Unused"          ,
-  "Unused"          ,
-  "Unused"          ,
-  "Unused"          ,
-  "Unused"
-};
+SMFPRINTGLOB;
+
 
 /**********************************************************/
 /* Print out the contents of the WQ block                 */
@@ -245,8 +223,8 @@ void printWQ(wq *p)
         if (first) {
           /* Easier to understand if "ET" is at the end of the headings. */
           /* So there are two types of heading needed in this loop.      */
-          sprintf(index,  "%s_%s"   ,verb[i],type[j]);
-          sprintf(indexet,"%s_%s_ET",verb[i],type[j]);
+          sprintf(index,  "%s_%s"   ,verb[i],strCfStatType(j));
+          sprintf(indexet,"%s_%s_ET",verb[i],strCfStatType(j));
         }
         ADDU32IDX("CFCount"   , index,  p->mqcfreq[i].type[j].cfcount);
         ADDU32IDX("CFSync"    , index,  p->mqcfreq[i].type[j].cfsyncn);

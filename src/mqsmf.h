@@ -210,6 +210,9 @@ extern char *strMQCHLD  (int v);
 #define HEADINGS_LEN (20000)
 #define DATA_LEN     (20000)
 
+/**********************************************************/
+/* Datatypes that allow creation of SQL DDL statements    */
+/**********************************************************/
 #define DDL_I        (1)
 #define DDL_I64      (2)
 #define DDL_C        (3)
@@ -242,6 +245,7 @@ extern char *strMQCHLD  (int v);
       printf("HEADINGS buffer needs to be bigger than %d bytes.\n",HEADINGS_LEN); \
       exit(1);                      \
     }                               \
+    if (sqlMode) \
     printDDL(h,type,len); \
   }
 
@@ -351,8 +355,8 @@ extern char *strMQCHLD  (int v);
   ADDSTREN(tmpHead,v,l)                      /* EBCDIC string, known length*/
 
 #define COMMON_BLOCK \
-  ADDSTR ("Date",commonF.recordDate,0); \
-  ADDSTR ("Time",commonF.recordTime,0); \
+  ADDSTR ("Date",commonF.recordDate,8); \
+  ADDSTR ("Time",commonF.recordTime,16); \
   ADDSTRN("LPAR",commonF.systemId,4,4); \
   ADDSTRN("QMgr",commonF.qMgr,4,4); \
   ADDSTRN("MQ_Version",commonF.mqVer,3,3) \

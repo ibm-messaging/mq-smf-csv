@@ -20,12 +20,12 @@ void printQCTDSP(qct_dsp *p)
 {
   SMFPRINTSTART("QCTDSP", p, sizeof(qct_dsp));
 
-  ADDU32 ("TSKN",p->qcttskn);
-  ADDU32 ("REQN",p->qctreqn);
-  ADDSTCK("CPTM",p->qctcptm);
-  ADDSTCK("ELTM",p->qcteltm);
-  ADDSTCK("WTTM",p->qctwttm);
-  ADDS32 ("CHLN",p->qctchln);
+  ADDU32 ("Task_Number"      ,p->qcttskn);
+  ADDU32 ("Request_Count"    ,p->qctreqn);
+  ADDSTCK("Task_CPU_Time"    ,p->qctcptm);
+  ADDSTCK("Task_Elapsed_Time",p->qcteltm);
+  ADDSTCK("Task_Wait_Time"   ,p->qctwttm);
+  ADDS32 ("Task_Channel_Count",p->qctchln);
   SMFPRINTSTOP;
 
   return;

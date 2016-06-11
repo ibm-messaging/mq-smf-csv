@@ -19,9 +19,9 @@ void printQLST(qlst *p)
 {
   SMFPRINTSTART("QLST", p, conv16(p->qlstll));
 
-  ADDU32("GETL",p->qlstgetl);
-  ADDU32("HLDL",p->qlsthldl);
-  ADDU32("RELL",p->qlstrell);
+  ADDU32("Get_Lock_Requests",p->qlstgetl);
+  ADDU32("Get_Lock_Held",p->qlsthldl);
+  ADDU32("Release_Lock" ,p->qlstrell);
 
   SMFPRINTSTOP;
   return;

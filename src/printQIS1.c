@@ -34,28 +34,28 @@ void printQIS1(qis1 *p)
 
   SMFPRINTSTART("QIS1", p, sizeof(qis1));
 
-  ADDU32 ("PSNO",p->qis1psno);
-  ADDU32 ("BPNO",p->qis1bpno);
-  ADDBYTE("STAT",p->qis1stat);
-  ADDU32 ("TOPG",p->qis1topg);
-  ADDU32 ("UNPG",p->qis1unpg);
-  ADDU32 ("PPG ",p->qis1ppg);
-  ADDU32 ("NPPG",p->qis1nppg);
-  ADDU32 ("FULL",p->qis1full);
-  ADDU32 ("PCHI",p->qis1pchi);
-  ADDU32 ("DWPN",p->qis1dwpn);
-  ADDU32 ("DWPP",p->qis1dwpp);
-  ADDSTCK("DWPT",p->qis1dwpt);
-  ADDU32 ("IMWN",p->qis1imwn);
-  ADDU32 ("IMWP",p->qis1imwp);
-  ADDSTCK("IMWT",p->qis1imwt);
-  ADDU32 ("GETN",p->qis1getn);
-  ADDU32 ("GETP",p->qis1getp);
-  ADDSTCK("GETT",p->qis1gett);
-  ADDU32 ("CKPP",p->qis1ckpp );
-  ADDBYTE("STRN",p->qis1strn);
-  ADDBYTE("EXPM",p->qis1expm);
-  ADDS16 ("EXPN",p->qis1expn);
+  ADDU32 ("Pageset"            ,p->qis1psno);
+  ADDU32 ("BufferPool"         ,p->qis1bpno);
+  ADDBYTE("Pageset_Status"     ,p->qis1stat);
+  ADDU32 ("Total_Pages"        ,p->qis1topg);
+  ADDU32 ("Unused_Pages"       ,p->qis1unpg);
+  ADDU32 ("Persistent_Pages "  ,p->qis1ppg);
+  ADDU32 ("Nonpersistent_Pages",p->qis1nppg);
+  ADDU32 ("Full_Count"         ,p->qis1full);
+  ADDU32 ("Put_Cursor_High"    ,p->qis1pchi);
+  ADDU32 ("Page_Write_IO"      ,p->qis1dwpn);
+  ADDU32 ("Pages_Written"      ,p->qis1dwpp);
+  ADDSTCK("Page_Write_IO_Time" ,p->qis1dwpt);
+  ADDU32 ("IMW_Pages_IO"       ,p->qis1imwn);
+  ADDU32 ("IMW_Pages"          ,p->qis1imwp);
+  ADDSTCK("IMW_Pages_IO_Time"  ,p->qis1imwt);
+  ADDU32 ("Pages_Read_IO"      ,p->qis1getn);
+  ADDU32 ("Pages_Read"         ,p->qis1getp);
+  ADDSTCK("Pages_Read_IO_Time" ,p->qis1gett);
+  ADDU32 ("Checkpoint_Pages_Written",p->qis1ckpp );
+  ADDBYTE("Stripes"            ,p->qis1strn);
+  ADDS16 ("Expansions"         ,p->qis1expn);
+  ADDBYTE("Expansion_Method"   ,p->qis1expm);
 
   /*****************************************************************/
   /* Extract the word containing bitfield flags. Make sure it's in */
@@ -66,11 +66,11 @@ void printQIS1(qis1 *p)
 
   if(flags & QIS1EXPF)
   {
-    ADDSTR("EXPAND","Yes",3);
+    ADDSTR("Expand","Yes",3);
   }
   else
   {
-    ADDSTR("EXPAND","No",3);
+    ADDSTR("Expand","No",3);
   }
 
   SMFPRINTSTOP;

@@ -19,13 +19,13 @@ void printQCTSSL(qct_ssl *p)
 {
   SMFPRINTSTART("QCTSSL", p, sizeof(qct_ssl));
 
-  ADDU32 ("TSKN",p->qcttskn);
-  ADDU32 ("REQN",p->qctreqn);
-  ADDSTCK("CPTM",p->qctcptm);
-  ADDSTCK("ELTM",p->qcteltm);
-  ADDSTCK("WTTM",p->qctwttm);
-  ADDTIME("LSTM",p->qctlstm);
-  ADDSTCK("LSDU",p->qctlsdu);
+  ADDU32 ("Task_Number"      ,p->qcttskn);
+  ADDU32 ("Request_Count"    ,p->qctreqn);
+  ADDSTCK("Task_CPU_Time"    ,p->qctcptm);
+  ADDSTCK("Task_Elapsed_Time",p->qcteltm);
+  ADDSTCK("Task_Wait_Time"   ,p->qctwttm);
+  ADDTIME("Max_SSL_Request_Time",p->qctlstm);
+  ADDSTCK("Max_SSL_Request_Duration",p->qctlsdu);
 
   SMFPRINTSTOP;
 
