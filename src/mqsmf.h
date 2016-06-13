@@ -196,6 +196,7 @@ extern char *strMQMON (int v);
 extern char *strMQCHT (int v);
 extern char *strMQCHS  (int v);
 extern char *strMQCHLD  (int v);
+extern char *strCfStatType  (int v);
 
 /**********************************************************/
 /* How long are the lines for data and headings.          */

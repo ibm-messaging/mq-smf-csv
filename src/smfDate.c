@@ -56,7 +56,7 @@ static char *sqlFmt = "\"%Y-%m-%d\",\"%H:%M:%S";
 static char *csvFmt = "\"%Y/%m/%d\",\"%H:%M:%S";
 static char *sqlEpoch = "\"1970-01-01\",\"00:00:00,000000\"";
 static char *csvEpoch = "\"1970/01/01\",\"00:00:00,000000\"";
-static char *emptyTime = "\"\",\"\"";
+static char *csvEmpty = "\"\",\"\"";
 static char stckTime[64] = {0};
 
 /********************************************************************/
@@ -76,7 +76,21 @@ char * convDate(unsigned long long stcki)
   struct tm *t;
   char *fmt;
   char *epochTime;
+  char *emptyTime;
   size_t offset;
+
+  if (sqlMode)
+  { 
+    epochTime = sqlEpoch;
+    emptyTime = sqlEpoch;
+    fmt = sqlFmt;
+  }
+  else
+  {
+    epochTime = csvEpoch;
+    emptyTime = csvEmpty; 
+    fmt = csvFmt;
+  }
 
   stck = conv64(stcki);   /* Always passed in z/OS endian; ensure converted */
 
@@ -96,16 +110,6 @@ char * convDate(unsigned long long stcki)
 
   t = localtime(&sec);                 /* Turn seconds into tm structure...*/
 
-  if (sqlMode)
-  { 
-    epochTime = sqlEpoch;
-    fmt = sqlFmt;
-  }
-  else
-  {
-    epochTime = csvEpoch;
-    fmt = csvFmt;
-  }
   offset = strftime(stckTime,sizeof(stckTime)-1,fmt,t); /* ...and format it*/
   if (offset == 0 || stck < EPOCH1970)
   {

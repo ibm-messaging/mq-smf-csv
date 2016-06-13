@@ -66,7 +66,7 @@ void printDDL(char *name, int type, int len)
   case DDL_C:
     if (!strcmp(name,"Date")) /* special case for CommonHeader field */
     {
-      fprintf(fp,"%s \"%s\" \t CHAR(10)\n",comma,format(nameCopy));
+      fprintf(fp,"%s \"%s\" \t DATE    \n",comma,format(nameCopy));
     }
     else
     {
@@ -97,7 +97,7 @@ void printDDL(char *name, int type, int len)
 
     p2 = strstr(nameCopy," (DATE)");
     if (p2) *p2 = 0;
-    fprintf(fp,"%s \"%s_Date\" \t CHAR(10)\n",comma,format(nameCopy));
+    fprintf(fp,"%s \"%s_Date\" \t DATE\n",comma,format(nameCopy));
 
     p = p+1;
     if (p2) p2 = strstr(p," (TIME)");
