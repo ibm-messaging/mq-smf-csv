@@ -40,8 +40,11 @@ void openDDL(char *name)
 
 void closeDDL(void)
 {
-  fprintf(fp,");\n\n");
-  fflush(fp);
+  if (fp)
+  {
+    fprintf(fp,");\n\n");
+    fflush(fp);
+  }
   return;
 }
 
@@ -52,25 +55,26 @@ void printDDL(char *name, int type, int len)
   char nameCopy[COL_HEAD_LEN];  /* Cannot modify fixed strings, have to copy input*/
 
   if (!fp)
-   return;
+    return;
+
   strncpy(nameCopy,name,sizeof(nameCopy)-1);
 
   switch (type)
   {
   case DDL_I:
-    fprintf(fp,"%s \"%s\" \t INTEGER\n",comma,format(nameCopy));
+    fprintf(fp,"%s %s \t INTEGER\n",comma,format(nameCopy));
     break;
   case DDL_I64:
-    fprintf(fp,"%s \"%s\" \t BIGINT\n",comma,format(nameCopy));
+    fprintf(fp,"%s %s \t BIGINT\n",comma,format(nameCopy));
     break;
   case DDL_C:
-    if (!strcmp(name,"Date")) /* special case for CommonHeader field */
+    if (!strcmp(name,"Date"))        /* special case for CommonHeader field*/
     {
-      fprintf(fp,"%s \"%s\" \t DATE    \n",comma,format(nameCopy));
+      fprintf(fp,"%s %s \t DATE    \n",comma,format(nameCopy));
     }
     else
     {
-      fprintf(fp,"%s \"%s\" \t CHAR(%d)\n",comma,format(nameCopy),len);
+      fprintf(fp,"%s %s \t CHAR(%d)\n",comma,format(nameCopy),len);
     }
     break;
   case DDL_SUS:
@@ -81,12 +85,12 @@ void printDDL(char *name, int type, int len)
 
     p2 = strstr(nameCopy,"(S)");
     if (p2) *p2 = 0;
-    fprintf(fp,"%s \"%s_s\" \t INTEGER\n",comma,format(nameCopy));
+    fprintf(fp,"%s %s_s \t INTEGER\n",comma,format(nameCopy));
 
     p = p+1;
     p2 = strstr(p,"(US)");
     if (p2) *p2 = 0;
-    fprintf(fp,"%s \"%s_us\" \t INTEGER\n",comma,format(p));
+    fprintf(fp,"%s %s_us \t INTEGER\n",comma,format(p));
     break;
 
   case DDL_DATETIME:
@@ -97,12 +101,12 @@ void printDDL(char *name, int type, int len)
 
     p2 = strstr(nameCopy," (DATE)");
     if (p2) *p2 = 0;
-    fprintf(fp,"%s \"%s_Date\" \t DATE\n",comma,format(nameCopy));
+    fprintf(fp,"%s %s_Date \t DATE\n",comma,format(nameCopy));
 
     p = p+1;
     if (p2) p2 = strstr(p," (TIME)");
     *p2 = 0;
-    fprintf(fp,"%s \"%s_Time\" \t CHAR(19)\n",comma,format(p));
+    fprintf(fp,"%s %s_Time \t CHAR(19)\n",comma,format(p));
     break;
   }
 

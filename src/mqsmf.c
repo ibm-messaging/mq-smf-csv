@@ -268,6 +268,9 @@ int main( int argc, char *argv[] )
     /* amount.                                                          */
     /********************************************************************/
     nextLength = conv16(pSMFRecord->Header.SMFLEN) - 4;
+    if (debugLevel >=3)
+      printf("   NextLen = %d bytes \n",nextLength);
+
     bytesRead = fread(&pSMFRecord->Header.SMFRECFLG, 1, nextLength , fp);
     if (bytesRead != nextLength)
     {
@@ -296,6 +299,9 @@ int main( int argc, char *argv[] )
         nextLength = conv16(nextLength);
         fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
 
+        if (debugLevel >=3)
+          printf("   NextLen = %d bytes \n",nextLength);
+
         if (offset+nextLength > sizeof(dataBuf))
         {
           printf("SMF record appears to be too large for buffer\n");
@@ -307,6 +313,9 @@ int main( int argc, char *argv[] )
       } while (pSMFRecord->Header.SMFSEG[0] != 0x02);/* end of record indicator*/
 
     }
+
+    if (debugLevel >=3)
+      printf("Read a full record of %d bytes \n",offset);
 
     totalRecords++;
 
@@ -399,6 +408,9 @@ int main( int argc, char *argv[] )
         hund);
     }
 
+    if (debugLevel >= 2)
+      printDEBUG("FULL RECORD",dataBuf,offset);
+
     if (recordType == 116 || recordType == 115)
     {
       /*******************************************************************/
@@ -444,7 +456,7 @@ int main( int argc, char *argv[] )
     /*********************************************************************/
     /* One we know how many sections there are, copy the triplet values  */
     /* into a local array, doing the endianness conversion on the way.   */
-    /* That makes it look at bit easier rather than than having convxxx  */
+    /* That makes it look a  bit easier rather than than having convxxx  */
     /* function calls everywhere else.                                   */
     /*********************************************************************/
     for (i=0;i<sectionCount;i++)
@@ -454,8 +466,6 @@ int main( int argc, char *argv[] )
       triplet[i].n       = conv16(pSMFRecord->s[i].n);
     }
 
-    if (debugLevel >= 2)
-      printDEBUG("FULL RECORD",dataBuf,offset);
 
     /*********************************************************************/
     /* And now we can start formatting the actual data.                  */
