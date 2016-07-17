@@ -59,6 +59,7 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -80,9 +81,9 @@ BOOL  printHeaders = TRUE;
 BOOL  sqlMode = FALSE;
 commonFields_t commonF = {0};
 
-char headings[HEADINGS_LEN];  /* Ensure these are big enough for any line */
+char headings[HEADINGS_LEN];    /* Ensure these are big enough for any line*/
 char dataline[DATA_LEN];
-char tmpHead[64];      /* Working space for a column heading       */
+char tmpHead[64];                     /* Working space for a column heading*/
 unsigned int   recordType;
 
 /********************************************************************/
@@ -91,7 +92,7 @@ unsigned int   recordType;
 static BOOL  append = FALSE;
 static char *directory = NULL;
 
-static unsigned int Count115[256] = {0};  /* Max subtype is 255 */
+static unsigned int Count115[256] = {0};              /* Max subtype is 255*/
 static unsigned int Count116[256] = {0};
 
 /********************************************************************/
@@ -113,16 +114,18 @@ int main( int argc, char *argv[] )
 
   SMFRecord_t *pSMFRecord;
   int ticker = DEFAULT_TICKER;
-  int i,j;                           /* loop counters                    */
-  char  dataBuf[MAX_SMF_DATA];       /* Contains the SMF data            */
-  int   bytesRead;                   /* Number of bytes from fread()     */
-  int   offset;                      /* total number of bytes in a record*/
-  unsigned int d[3];                 /* used in date conversion          */
-  unsigned int ddd,year;             /* day number and year number       */
-  unsigned int time;                 /* Copied from the SMF header       */
+  int i,j;                             /* loop counters                    */
+  char  dataBuf[MAX_SMF_DATA];         /* Contains the SMF data            */
+  int   bytesRead;                     /* Number of bytes from fread()     */
+  int   offset;                        /* total number of bytes in a record*/
+  unsigned int d[3];                   /* used in date conversion          */
+  unsigned int ddd,year;               /* day number and year number       */
+  unsigned int time;                   /* Copied from the SMF header       */
 
   char *inputFile = NULL;
   FILE *fp;
+  size_t totalFileSize = 0;
+  struct stat statbuf;
   unsigned int totalRecords = 0;
   unsigned int maxRecords = 0xFFFFFFFF;
   unsigned int unknownCount = 0;
@@ -236,6 +239,9 @@ int main( int argc, char *argv[] )
       inputFile,strerror(errno),errno);
     goto mod_exit;
   }
+
+  fstat(fileno(fp),&statbuf);
+  totalFileSize = statbuf.st_size;
 
   convInit();      /* Decide whether this is a big or little endian machine*/
 
@@ -727,7 +733,11 @@ int main( int argc, char *argv[] )
     }
 
     if (totalRecords % ticker == 0)
-      printf("Processed %u records\n",totalRecords);
+    {
+      long   pos;
+      pos = ftell(fp);
+      printf("Processed %u records [%5.2f%%]\n",totalRecords,(totalFileSize > 0)?((float)(100.0*pos)/totalFileSize):(float)0);
+    }
 
   } while (0 != bytesRead && totalRecords < maxRecords);
 
