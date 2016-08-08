@@ -149,7 +149,7 @@ extern void printQSST  (qsst *);
 extern void printQTST  (qtst *);
 extern void printWQ    (wq   *);
 extern void printWTAS  (wtas *);
-extern void printWTID  (wtid *);
+extern void printWTID  (wtid *, unsigned char *);
 
 extern void openDDL    (char *);
 extern void closeDDL   (void);

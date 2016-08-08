@@ -136,6 +136,7 @@ int main( int argc, char *argv[] )
   int qTriplet;
   char *p;
   qwhs *pqwhs;
+  unsigned char correlid[16];
 
   BOOL error = FALSE;
   BOOL knownSubType = TRUE;
@@ -663,8 +664,7 @@ int main( int argc, char *argv[] )
 
       case 1:
       case 2:
-        p = &dataBuf[triplet[1].offset  ];
-        printWTID((wtid *)p);
+        memset(correlid,0,16);
 
         /*****************************************************************/
         /* The queue records may or may not exist in subtype 1 records.  */
@@ -678,6 +678,7 @@ int main( int argc, char *argv[] )
         {
           p = &dataBuf[triplet[2].offset  ];
           printWTAS((wtas *)p);
+          memcpy(correlid,&((wtas *)p)->wtasstrt,16);
 
           if (conv32(((wtas *)p)->wtaswqct) > 0)
             qTriplet = 3;
@@ -696,8 +697,12 @@ int main( int argc, char *argv[] )
           {
             p = &dataBuf[triplet[qTriplet].offset + triplet[qTriplet].l * i];
             printWQ((wq *)p);
+            memcpy(correlid,((wq *)p)->correl,16);
           }
         }
+        p = &dataBuf[triplet[1].offset  ];
+        printWTID((wtid *)p,correlid);
+
         break;
 
 
