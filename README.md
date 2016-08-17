@@ -46,6 +46,13 @@ June 2016 (v1.1.2)
 * Add SQL mode to generate DDL corresponding to column headings
 * printWQ now has more descriptive column names
 
+July 2016
+* Add progress indicator
+
+August 2016
+* Add correlator field to better link WQ/WTID/WTAS
+* Add user-written content in docs directory. How to use SQL.       
+
 
 Pull requests
 =============
