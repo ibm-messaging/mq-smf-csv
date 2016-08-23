@@ -57,7 +57,7 @@ int main(int argc, char **argv)
          continue;
        else
        {
-          printf(line);
+          printf("%s",line);
           if (line[strlen(line)-1] != '\n')
             printf("\n");
        }
