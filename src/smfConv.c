@@ -310,6 +310,7 @@ char *strMQQT (int v)
   case     3: c = "Alias"; break;
   case     6: c = "Remote"; break;
   case     7: c = "Cluster"; break;
+  case     8: c = "Topic"; break; /* not really a qtype but unique MQOT value */
   case  1001: c = "All"; break;
   default: c = ""; break;
   }

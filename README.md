@@ -53,6 +53,9 @@ August 2016
 * Add correlator field to better link WQ/WTID/WTAS
 * Add user-written content in docs directory. How to use SQL.       
 
+October 2016
+* Support reading from large (>2GB) files
+
 
 Pull requests
 =============

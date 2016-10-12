@@ -53,6 +53,16 @@
 /*                                                                    */
 /**********************************************************************/
 
+/**********************************************************************/
+/* Define flags so that this 32-bit program can access 64-bit files   */
+/* These flags need to be set up before including any other headers   */
+/**********************************************************************/
+#ifndef _WIN32
+#define __USE_LARGEFILE64    /* for Linux */
+#define _FILE_OFFSET_BITS 64 /* for Linux */
+#define _LARGE_FILES         /* for AIX   */
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,9 +71,22 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+/**********************************************************************/
+/* Different ways of getting to 64-bit file offsets, and different    */
+/* datatypes. Now the system headers have been loaded, define the     */
+/* real functions and datatypes for the large values.                 */
+/**********************************************************************/
 #ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
+
+#define fstat  _fstat64
+#define ftello _ftelli64
+typedef signed long long myoff_t;
+typedef struct __stat64 mystat_t;
+#else
+typedef off_t myoff_t;
+typedef struct stat mystat_t;
 #endif
 
 #include "mqsmf.h"
@@ -124,8 +147,8 @@ int main( int argc, char *argv[] )
 
   char *inputFile = NULL;
   FILE *fp;
-  size_t totalFileSize = 0;
-  struct stat statbuf;
+  myoff_t totalFileSize = 0;
+  mystat_t statbuf;
   unsigned int totalRecords = 0;
   unsigned int maxRecords = 0xFFFFFFFF;
   unsigned int unknownCount = 0;
@@ -243,6 +266,8 @@ int main( int argc, char *argv[] )
 
   fstat(fileno(fp),&statbuf);
   totalFileSize = statbuf.st_size;
+  if (debugLevel >=3 )
+    printf("Total File Size = %lld\n",totalFileSize);
 
   convInit();      /* Decide whether this is a big or little endian machine*/
 
@@ -739,8 +764,8 @@ int main( int argc, char *argv[] )
 
     if (totalRecords % ticker == 0)
     {
-      long   pos;
-      pos = ftell(fp);
+      myoff_t     pos;
+      pos = ftello(fp);
       printf("Processed %u records [%5.2f%%]\n",totalRecords,(totalFileSize > 0)?((float)(100.0*pos)/totalFileSize):(float)0);
     }
 
@@ -800,7 +825,7 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
   fp = fopen(filename, mode);
   if (fp)
   {
-    long pos;
+    off_t pos;
 
     fseek(fp,0,SEEK_END);
     pos = ftell(fp);
