@@ -51,10 +51,12 @@ July 2016
 
 August 2016
 * Add correlator field to better link WQ/WTID/WTAS
-* Add user-written content in docs directory. How to use SQL.       
+* Add user-written content in docs directory. How to use SQL.
 
 October 2016
 * Support reading from large (>2GB) files
+* SMF 115 subtype 231 (CHIN) records do not use same scale for qwhsdurn
+(though this seems to be undocumented)
 
 
 Pull requests

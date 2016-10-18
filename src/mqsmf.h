@@ -362,9 +362,14 @@ extern char *strCfStatType  (int v);
   ADDSTRN("QMgr",commonF.qMgr,4,4); \
   ADDSTRN("MQ_Version",commonF.mqVer,3,3) \
   if (recordType == 115 && commonF.intstart != 0) { \
+    unsigned long long du = conv64(commonF.intduration)/1000000L; \
     ADDTIME("Interval_Start",commonF.intstart) \
     ADDHEAD("Interval_Duration",DDL_I,0); \
-    ADDDATA("%llu,",conv64(commonF.intduration)/1000000L) \
+    if (recordSubType == 231) { \
+    ADDDATA("%llu,",du/4096L); \
+    } else { \
+    ADDDATA("%llu,",du); \
+    } \
   }
 
 #define SMFPRINTSTART(n,p,l) \
@@ -424,6 +429,7 @@ extern BOOL  addEquals;
 extern BOOL  printHeaders;
 extern BOOL  sqlMode;
 extern unsigned int   recordType;
+extern unsigned short recordSubType;
 extern commonFields_t commonF;
 
 #endif

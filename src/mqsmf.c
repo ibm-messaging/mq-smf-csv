@@ -108,6 +108,7 @@ char headings[HEADINGS_LEN];    /* Ensure these are big enough for any line*/
 char dataline[DATA_LEN];
 char tmpHead[64];                     /* Working space for a column heading*/
 unsigned int   recordType;
+unsigned short   recordSubType;
 
 /********************************************************************/
 /* Variables scoped to this module                                  */
@@ -153,7 +154,6 @@ int main( int argc, char *argv[] )
   unsigned int maxRecords = 0xFFFFFFFF;
   unsigned int unknownCount = 0;
   unsigned int ignoredCount = 0;
-  unsigned short recordSubType;
   unsigned short nextLength;
   int subTypesValid = 0;
   int qTriplet;
