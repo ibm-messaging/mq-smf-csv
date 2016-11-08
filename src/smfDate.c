@@ -138,8 +138,8 @@ void calcYMD(int year,int dayOfYear,int *mon,int *day)
   int isLeapYear = FALSE;
   int i;
 
-  if ((year % 4    == 0) &&
-      (year % 100  != 0) &&
+  if (((year % 4    == 0) &&
+      (year % 100  != 0)) ||
       (year % 400 == 0))
     isLeapYear = TRUE;
 
