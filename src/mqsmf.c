@@ -188,6 +188,8 @@ int main( int argc, char *argv[] )
     printf("Need: short=%d int=%d long=%d long long=%d bytes\n",2,4,4,8);
     exit(1);
   }
+  
+  /*printf("Sizeof qwhs = %d\n",sizeof(qwhs));*/
 
   /******************************************************************/
   /* Parse command-line parameters                                  */
@@ -463,7 +465,7 @@ int main( int argc, char *argv[] )
       strcpy(commonF.stckFormat,convDate(pqwhs->qwhsstck));
       if (recordType == 115)
       {
-        if (strncmp(commonF.mqVer,"701",3) > 0)
+        if (conv16(pqwhs->qwhslen) >= 52)
         {
           /* This structure changes size on different platforms because */
           /* of how the compiler deals with bitfields. So have to do it */
@@ -483,7 +485,13 @@ int main( int argc, char *argv[] )
       }
     }
     else
+    {
       sectionCount = 0;
+      pqwhs = NULL;
+    }
+
+    if (debugLevel >=3 && pqwhs != NULL)
+       printf("Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
 
     /*********************************************************************/
     /* One we know how many sections there are, copy the triplet values  */

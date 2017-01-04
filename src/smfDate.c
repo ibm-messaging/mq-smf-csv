@@ -144,7 +144,9 @@ void calcYMD(int year,int dayOfYear,int *mon,int *day)
     isLeapYear = TRUE;
 
   if (isLeapYear)
-    days[1]++;                                        /* Update Feb*/
+    days[1] = 29;                                        /* Update Feb*/
+  else
+    days[1] = 28;
 
   for (i=0;i<12;i++)
   {
