@@ -58,6 +58,10 @@ October 2016
 * SMF 115 subtype 231 (CHIN) records do not use same scale for qwhsdurn
 (though this seems to be undocumented)
 
+February 2017
+* STCK durations printed as just microseconds value when in SQL mode. Still
+split as seconds/microseconds otherwise.
+
 
 Pull requests
 =============

@@ -321,11 +321,17 @@ extern char *strCfStatType  (int v);
   ADDDATA("%s,",convDate(v))
 
 #define ADDSTCK(h,v) \
+  if (sqlMode) \
+  sprintf(tmpHead,"%s(US)",h); \
+  else\
   sprintf(tmpHead,"%s(S),%s(US)",h,h); \
   ADDHEAD(tmpHead,DDL_SUS,0); \
   ADDDATA("%s,",convSecUSec(v))
 
 #define ADDSTCKIDX(h,idx,v) \
+  if (sqlMode) \
+  sprintf(tmpHead,"%s{%s}(US)",h,idx); \
+  else \
   sprintf(tmpHead,"%s{%s}(S),%s{%s}(US)",h,idx,h,idx); \
   ADDHEAD(tmpHead,DDL_SUS,0); \
   ADDDATA("%s,",convSecUSec(v))

@@ -79,7 +79,7 @@ void printWTAS(wtas *p)
   ADDU32 ("Journal_Write_Count", p->wtasjwn);
   ADDU32 ("Journal_Write_Bytes", p->wtasjwb);
   ADDSTCK("Journal_Forced_Write_ET", p->wtasjcet);
-  ADDU32 ("Journal_Fored_Write_Count", p->wtasjcn);
+  ADDU32 ("Journal_Forced_Write_Count", p->wtasjcn);
   ADDU32 ("Task_Suspend_Count", p->wtassusn);
   ADDSTCK("Task_Suspend_Time", p->wtassuse);
 

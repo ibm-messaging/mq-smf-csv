@@ -150,7 +150,10 @@ char *convBin(unsigned char *inbuf, int origlen)
 /* DESCRIPTION:                                                       */
 /*   Convert a STCK value into a string showing duration in seconds   */
 /*   and microseconds. The two numbers are comma-separated for use in */
-/*   the CSV output. The input STCK is assumed to be in z/OS          */
+/*   the CSV output as some spreadsheets had problems with 64-bit     */
+/*   values. But in SQL mode, just print a single number as databases */
+/*   are able to handle a BIGINT datatype.                            */
+/*   The input STCK is assumed to be in z/OS                          */
 /*   big-endian format, so must be converted to local endianness first*/
 /**********************************************************************/
 static char usecBuf[64];
@@ -169,7 +172,10 @@ char *convSecUSec(unsigned long long s)
   }
 
   /* Separate fields by ',' for CSV formats */
-  sprintf(usecBuf,"%u, %u ",sec,usec);
+  if (sqlMode)
+    sprintf(usecBuf,"%llu ",s);
+  else
+    sprintf(usecBuf,"%u, %u ",sec,usec);
 
   return usecBuf;
 }

@@ -78,19 +78,10 @@ void printDDL(char *name, int type, int len)
     }
     break;
   case DDL_SUS:
-    /* Split a heading into sec and usec columns */
-    /* The CSV heading embeds a ',' to do that on the data */
-    p = strchr(nameCopy,',');
-    *p = 0;
-
-    p2 = strstr(nameCopy,"(S)");
+    p2 = strstr(nameCopy,"(US)");
     if (p2) *p2 = 0;
-    fprintf(fp,"%s %s_s \t INTEGER\n",comma,format(nameCopy));
+    fprintf(fp,"%s %s_us \t BIGINT\n",comma,format(nameCopy));
 
-    p = p+1;
-    p2 = strstr(p,"(US)");
-    if (p2) *p2 = 0;
-    fprintf(fp,"%s %s_us \t INTEGER\n",comma,format(p));
     break;
 
   case DDL_DATETIME:
