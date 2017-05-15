@@ -38,6 +38,16 @@ void printQMST(qmst *p)
     ADDS32("Status",p->qmststus);
     ADDS32("Pubs"  ,p->qmstpubs);
   }
+#if CSQDSMF_VERSION >= 903
+  if (conv16(p->qmstll) >  offsetof(qmst,  qmstspp))/* Fields added for V7.0.3 */
+  {
+    ADDS64("PersPuts",    p->qmstspp);  /* Number of success pers puts   */
+    ADDS64("NonPersPuts", p->qmstsnp);  /* Number of success pers puts   */
+    ADDS64("PersPutBytes",    p->qmstpbp);  /* Number of success pers puts   */
+    ADDS64("NonPersPutBytes", p->qmstnbp);  /* Number of success pers puts   */
+  }
+#endif
+
   SMFPRINTSTOP;
 
   return;

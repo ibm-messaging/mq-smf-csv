@@ -36,12 +36,12 @@ HDR = mqsmfstruc.h \
       mqsmf.h
 
 mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
-	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS)
+	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 
-mqsmfstruc.h: csqdsmfc.h convH
-	convH < csqdsmfc.h > $@
+mqsmfstruc.h: csqdsmfc-$(VERS).h convH dummy
+	convH < csqdsmfc-$(VERS).h > $@
 
-convH: convH.c
+convH: convH.c dummy
 	$(CC) -o $@ convH.c
 
 

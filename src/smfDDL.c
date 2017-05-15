@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <mqsmf.h>
+#include "mqsmf.h"
 
 static FILE *fp = NULL;
 char *comma = "";

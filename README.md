@@ -62,6 +62,11 @@ February 2017
 * STCK durations printed as just microseconds value when in SQL mode. Still
 split as seconds/microseconds otherwise.
 
+May 2017
+* Added support for the 903 SMF extensions
+* Using a VERS flag during the build to select correct base header file
+and features
+
 
 Pull requests
 =============

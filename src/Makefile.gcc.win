@@ -2,6 +2,7 @@
 CC=i686-w64-mingw32-gcc
 CFLAGS= -I. -m32
 PLATFLAGS=
+VERS=903
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
@@ -36,15 +37,15 @@ HDR = mqsmfstruc.h \
       mqsmf.h
 
 mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
-	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS)
+	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 	-rm -f out/*
 	-rm -f SMF-*
 	-mkdir out >/dev/null 2>&1 || true
 	cp $@ ../bin/win
 	# dbx ./$@
 
-mqsmfstruc.h: csqdsmfc.h convH.exe
-	./convH.exe < csqdsmfc.h > $@
+mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy	
+	./convH.exe < csqdsmfc-$(VERS).h > $@
 
 convH.exe: convH.c
 	$(CC) -o $@ convH.c
