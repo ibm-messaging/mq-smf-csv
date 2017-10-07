@@ -37,12 +37,10 @@ HDR = mqsmfstruc.h \
       mqsmf.h
 
 mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
+	-rm -f $@
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
-	-rm -f out/*
-	-rm -f SMF-*
 	-mkdir out >/dev/null 2>&1 || true
 	cp $@ ../bin/win
-	# dbx ./$@
 
 mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy	
 	./convH.exe < csqdsmfc-$(VERS).h > $@

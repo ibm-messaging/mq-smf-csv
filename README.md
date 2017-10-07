@@ -67,6 +67,10 @@ May 2017
 * Using a VERS flag during the build to select correct base header file
 and features
 
+Oct 2017
+* Found that some 115 subtypes do not have a QWHS structure correctly
+created; cannot rely on it being there
+
 
 Pull requests
 =============

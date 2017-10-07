@@ -188,7 +188,7 @@ int main( int argc, char *argv[] )
     printf("Need: short=%d int=%d long=%d long long=%d bytes\n",2,4,4,8);
     exit(1);
   }
-  
+
   /*printf("Sizeof qwhs = %d\n",sizeof(qwhs));*/
 
   /******************************************************************/
@@ -448,39 +448,50 @@ int main( int argc, char *argv[] )
     if (recordType == 116 || recordType == 115)
     {
       /*******************************************************************/
-      /* The first triplet past the standard header points at a          */
+      /* The first triplet past the standard header usually points at a  */
       /* QWHS structure.                                                 */
       /*                                                                 */
       /* This has various pieces of information about the record.        */
       /* Most important here is to say how many data  sections are       */
       /* in it, which says how many further triplets should be           */
-      /* used.                                                           */
+      /* used. If there is no valid QWHS, then we assume that there      */
+      /* is only one further triplet so force that value.                */
       /*                                                                 */
       /* Also pick up the STCK value that may be useful                  */
       /* for sorting.                                                    */
       /*******************************************************************/
       p = &dataBuf[conv32(pSMFRecord->s[0].offset)];
-      pqwhs = (qwhs *)p;
-      sectionCount =  pqwhs->qwhsnsda[0];
-      strcpy(commonF.stckFormat,convDate(pqwhs->qwhsstck));
-      if (recordType == 115)
+      if (conv16(pSMFRecord->s[0].l) == 4)           /* There is no QWHS */
       {
-        if (conv16(pqwhs->qwhslen) >= 52)
+        sectionCount = 2;    /* 1 extra triplet beyond the QWHS location */
+        pqwhs = NULL;
+        commonF.intstart = 0;
+        commonF.intduration = 0;
+      }
+      else
+      {
+        pqwhs = (qwhs *)p;
+        sectionCount =  pqwhs->qwhsnsda[0];
+        strcpy(commonF.stckFormat,convDate(pqwhs->qwhsstck));
+        if (recordType == 115)
         {
-          /* This structure changes size on different platforms because */
-          /* of how the compiler deals with bitfields. So have to do it */
-          /* explicitly with known offsets after the structure changes. */
-          char *t = (char *)&(pqwhs->qwhsflag1);
-          t+=4;
-          memcpy(&commonF.intstart,t,8);
-          t+=8;
-          memcpy(&commonF.intduration,t,8);
-        }
-        else
-        {
-           /* These fields were added after V701 so ignore for old SMF */
-           commonF.intstart = 0;
-           commonF.intduration = 0;
+          if (conv16(pqwhs->qwhslen) >= 52)
+          {
+            /* This structure changes size on different platforms because */
+            /* of how the compiler deals with bitfields. So have to do it */
+            /* explicitly with known offsets after the structure changes. */
+            char *t = (char *)&(pqwhs->qwhsflag1);
+            t+=4;
+            memcpy(&commonF.intstart,t,8);
+            t+=8;
+            memcpy(&commonF.intduration,t,8);
+          }
+          else
+          {
+             /* These fields were added after V701 so ignore for old SMF */
+             commonF.intstart = 0;
+             commonF.intduration = 0;
+          }
         }
       }
     }
@@ -837,6 +848,7 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
 
     fseek(fp,0,SEEK_END);
     pos = ftell(fp);
+    /*setbuf(fp,0); */ /* useful to have this line when debugging */
 
     if (pos == 0) /* Have we just created the file, even for "append" mode */
       *newFile = TRUE;
