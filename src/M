@@ -13,7 +13,7 @@ else
   targdir="../bin/linux"
 fi
 
-export PLATFLAGS=$flags CC=$cc VERS=903
+export PLATFLAGS=$flags CC=$cc VERS=904
 make -e -f Makefile.unix $*
 
 rm -f $targdir/convH $targdir/mqsmfcsv

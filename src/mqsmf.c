@@ -664,7 +664,12 @@ int main( int argc, char *argv[] )
               case 2: printQCTDSP((qct_dsp *)p);break;
               case 3: printQCTADP((qct_adp *)p);break;
               case 4: printQCTSSL((qct_ssl *)p);break;
-              case 5: printQCTDNS((qct_dns *)p);break;
+              /* If nothing has been done with DNS in this interval, the
+                 record seems to be present but contain garbage.
+               */
+              case 5: if (triplet[i].l == sizeof(qct_dns)) 
+                          printQCTDNS((qct_dns *)p);
+                      break;
               default: break;
               }
             }

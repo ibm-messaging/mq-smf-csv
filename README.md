@@ -71,6 +71,9 @@ Oct 2017
 * Found that some 115 subtypes do not have a QWHS structure correctly
 created; cannot rely on it being there
 
+Jan 2018
+* QCTDNS structure is not initialised when there hae been no activity
+
 
 Pull requests
 =============

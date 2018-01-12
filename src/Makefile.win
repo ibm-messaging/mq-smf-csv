@@ -1,5 +1,5 @@
 CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J
-VERS=903
+VERS=904
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
@@ -39,10 +39,10 @@ mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win
 	del /q *.obj
 	copy $@ ..\bin\win
 
-mqsmfstruc.h: csqdsmfc-$(VERS).h convH dummy
+mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy
 	convH < csqdsmfc-$(VERS).h > $@
 
-convH: convH.c
+convH.exe: convH.c
 	$(CC) /Fe$@ convH.c
 	copy $@ ..\bin\win
 
