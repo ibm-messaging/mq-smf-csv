@@ -80,8 +80,9 @@
 #include <io.h>
 #include <fcntl.h>
 
-#define fstat  _fstat64
-#define ftello _ftelli64
+#define fstat   _fstat64
+#define ftello  _ftelli64
+#define fseeko  _fseeki64
 typedef signed long long myoff_t;
 typedef struct __stat64 mystat_t;
 #else
@@ -101,6 +102,7 @@ static void Usage();
 int   debugLevel = 0;
 BOOL  addEquals = TRUE;
 BOOL  printHeaders = TRUE;
+BOOL  useRDW = TRUE;
 BOOL  sqlMode = FALSE;
 commonFields_t commonF = {0};
 
@@ -148,6 +150,9 @@ int main( int argc, char *argv[] )
 
   char *inputFile = NULL;
   FILE *fp;
+  char *b;
+  char *basename;
+  myoff_t currentOffset = 0;
   myoff_t totalFileSize = 0;
   mystat_t statbuf;
   unsigned int totalRecords = 0;
@@ -160,6 +165,7 @@ int main( int argc, char *argv[] )
   char *p;
   qwhs *pqwhs;
   unsigned char correlid[16];
+  int offsetCorrection;
 
   BOOL error = FALSE;
   BOOL knownSubType = TRUE;
@@ -195,7 +201,7 @@ int main( int argc, char *argv[] )
   /* Parse command-line parameters                                  */
   /******************************************************************/
   printf("MQ SMF CSV - Build %s %s\n",__DATE__,__TIME__);
-  while((c = mqgetopt(argc, argv, "ad:h:i:m:o:rst:")) != EOF)
+  while((c = mqgetopt(argc, argv, "ad:f:h:i:m:o:rst:")) != EOF)
   {
     switch(c)
     {
@@ -204,6 +210,16 @@ int main( int argc, char *argv[] )
         break;
       case 'd':
         debugLevel = atoi(mqoptarg);
+        break;
+      case 'f':
+        for (i=0;i<strlen(mqoptarg);i++)
+          mqoptarg[i] = toupper(mqoptarg[i]);
+        if (!strcmp(mqoptarg,"NORDW"))
+          useRDW = FALSE;
+        else if (!strcmp(mqoptarg,"RDW"))
+          useRDW = TRUE;
+        else
+          error = TRUE;
         break;
       case 'h':
         for (i=0;i<strlen(mqoptarg);i++)
@@ -272,84 +288,110 @@ int main( int argc, char *argv[] )
     printf("Total File Size = %lld\n",totalFileSize);
 
   convInit();      /* Decide whether this is a big or little endian machine*/
+  b = strrchr(inputFile,'/');
+  if (!b)
+    b = strrchr(inputFile,'\\');
+  if (!b)
+    basename = inputFile;
+  else
+    basename = b+1;
+  printf("Input file: %s. Format: %s.\n",basename, useRDW?"RDW":"Without RDW");
 
   /********************************************************************/
   /* Loop until we have no more data or enough records have been read */
   /********************************************************************/
+  currentOffset = 0;
   pSMFRecord = (SMFRecord_t *)&dataBuf;
   do
   {
-    /********************************************************************/
-    /* Start reading data and processing the MQ records                 */
-    /* First, read the length of this file record (not necessarily the  */
-    /* same as the SMF record length). It comes from the first two      */
-    /* bytes of the Record Descriptor Word (RDW).                       */
-    /********************************************************************/
-
-    bytesRead = fread(&pSMFRecord->Header.SMFLEN,1,2,fp);
-    if (bytesRead < 2)
-      continue;
-
-    /********************************************************************/
-    /* The second half-word is the segment indicator.                   */
-    /********************************************************************/
-    fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
-
-    /********************************************************************/
-    /* And then read the actual data, starting at the RECFLG field in   */
-    /* the structure. The amount of data to read is given by the length */
-    /* minus the 4 bytes of the RDW. Check that we have read the right  */
-    /* amount.                                                          */
-    /********************************************************************/
-    nextLength = conv16(pSMFRecord->Header.SMFLEN) - 4;
-    if (debugLevel >=3)
-      printf("   NextLen = %d bytes \n",nextLength);
-
-    bytesRead = fread(&pSMFRecord->Header.SMFRECFLG, 1, nextLength , fp);
-    if (bytesRead != nextLength)
+    /**********************************************************************/
+    /* The mechanism for reading the file depends on whether the RDW      */
+    /* field is available. If it is, we know how long to read for each    */
+    /* record. If it is not, then we read the maximum length each time and*/
+    /* reset the pointer for the next read once we have parsed the record.*/
+    /**********************************************************************/
+    memset(dataBuf,0,sizeof(dataBuf));
+    if (useRDW)
     {
-      printf("Error reading full record from input file\n");
-      goto mod_exit;
-    }
-    offset = bytesRead + 4;
+      /********************************************************************/
+      /* Start reading data and processing the MQ records                 */
+      /* First, read the length of this file record (not necessarily the  */
+      /* same as the SMF record length). It comes from the first two      */
+      /* bytes of the Record Descriptor Word (RDW).                       */
+      /********************************************************************/
 
-    /********************************************************************/
-    /* If the segment indicator is non-zero, then we need to continue   */
-    /* reading the next record into the same buffer.  There is no       */
-    /* SMF header on the subsequent segments, it's just raw data.  So   */
-    /* we read the length of the next partial record, and its segment   */
-    /* value.  Then the data itself.  And loop until we get to          */
-    /* end-of-record indicator in the segment field.  Regardless of     */
-    /* segmentation, no SMF record is meant to be >32768 bytes, so we   */
-    /* need to check that.  Once again, ignore the RDW when working     */
-    /* out how much real data there is.                                 */
-    /********************************************************************/
-    if (pSMFRecord->Header.SMFSEG[0] != 0)
-    {
-      do
+      bytesRead = fread(&pSMFRecord->Header.SMFLEN,1,2,fp);
+      if (bytesRead < 2)
+        continue;
+
+      /********************************************************************/
+      /* The second half-word is the segment indicator.                   */
+      /********************************************************************/
+      fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
+
+      /********************************************************************/
+      /* And then read the actual data, starting at the RECFLG field in   */
+      /* the structure. The amount of data to read is given by the length */
+      /* minus the 4 bytes of the RDW. Check that we have read the right  */
+      /* amount.                                                          */
+      /********************************************************************/
+      nextLength = conv16(pSMFRecord->Header.SMFLEN) - 4;
+      if (debugLevel >=3)
+        printf("   NextLen = %d bytes \n",nextLength);
+
+      bytesRead = fread(&pSMFRecord->Header.SMFRECFLG, 1, nextLength , fp);
+      if (bytesRead != nextLength)
       {
+        printf("Error reading full record from input file\n");
+        goto mod_exit;
+      }
+      offset = bytesRead + 4;
 
-        fread(&nextLength ,1,2,fp);
-        nextLength = conv16(nextLength);
-        fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
-
-        if (debugLevel >=3)
-          printf("   NextLen = %d bytes \n",nextLength);
-
-        if (offset+nextLength > sizeof(dataBuf))
+      /********************************************************************/
+      /* If the segment indicator is non-zero, then we need to continue   */
+      /* reading the next record into the same buffer.  There is no       */
+      /* SMF header on the subsequent segments, it's just raw data.  So   */
+      /* we read the length of the next partial record, and its segment   */
+      /* value.  Then the data itself.  And loop until we get to          */
+      /* end-of-record indicator in the segment field.  Regardless of     */
+      /* segmentation, no SMF record is meant to be >32768 bytes, so we   */
+      /* need to check that.  Once again, ignore the RDW when working     */
+      /* out how much real data there is.                                 */
+      /********************************************************************/
+      if (pSMFRecord->Header.SMFSEG[0] != 0)
+      {
+        do
         {
-          printf("SMF record appears to be too large for buffer\n");
-          goto mod_exit;
-        }
 
-        bytesRead = fread(&dataBuf[offset], 1, nextLength-4 , fp );
-        offset += bytesRead;
-      } while (pSMFRecord->Header.SMFSEG[0] != 0x02);/* end of record indicator*/
+          fread(&nextLength ,1,2,fp);
+          nextLength = conv16(nextLength);
+          fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
 
+          if (debugLevel >=3)
+            printf("   NextLen = %d bytes \n",nextLength);
+
+          if (offset+nextLength > sizeof(dataBuf))
+          {
+            printf("SMF record appears to be too large for buffer\n");
+            goto mod_exit;
+          }
+
+          bytesRead = fread(&dataBuf[offset], 1, nextLength-4 , fp );
+          offset += bytesRead;
+        } while (pSMFRecord->Header.SMFSEG[0] != 0x02);/* end of record indicator*/
+
+      }
+      offsetCorrection = 0;
     }
-
-    if (debugLevel >=3)
-      printf("Read a full record of %d bytes \n",offset);
+    else
+    {
+      fseeko(fp,currentOffset,SEEK_SET);
+      bytesRead = fread(&pSMFRecord->Header.SMFRECFLG,1,32768,fp);
+      offset = bytesRead;
+      offsetCorrection = 4;
+      if (bytesRead <= 0)
+        break;
+    }
 
     totalRecords++;
 
@@ -360,7 +402,11 @@ int main( int argc, char *argv[] )
     /*********************************************************************/
     recordType    = pSMFRecord->Header.SMFRECRTY;
 
-    subTypesValid = (pSMFRecord->Header.SMFRECFLG & 0x02);
+    /*********************************************************************/
+    /* zOS refers to bits from the left - reversed from what you might   */
+    /* expect. So "bit 1" indicating subtypes is '0100 0000' == 0x40     */
+    /*********************************************************************/
+    subTypesValid = ((pSMFRecord->Header.SMFRECFLG & 0x40) == 0x40);
     if (subTypesValid)
       recordSubType = conv16(pSMFRecord->Header.SMFRECSTY);
     else
@@ -442,9 +488,6 @@ int main( int argc, char *argv[] )
         hund);
     }
 
-    if (debugLevel >= 2)
-      printDEBUG("FULL RECORD",dataBuf,offset);
-
     if (recordType == 116 || recordType == 115)
     {
       /*******************************************************************/
@@ -509,12 +552,49 @@ int main( int argc, char *argv[] )
     /* into a local array, doing the endianness conversion on the way.   */
     /* That makes it look a  bit easier rather than than having convxxx  */
     /* function calls everywhere else.                                   */
+    /* We do not need to correct for the offset in non-RDW files as that */
+    /* space is still allocated at the front of the buffer.              */
     /*********************************************************************/
-    for (i=0;i<sectionCount;i++)
     {
-      triplet[i].offset  = conv32(pSMFRecord->s[i].offset);
-      triplet[i].l       = conv16(pSMFRecord->s[i].l);
-      triplet[i].n       = conv16(pSMFRecord->s[i].n);
+      int highestOffset = 0;
+      int h = -1;
+      int recLength = 0;
+      memset(triplet,0,sizeof(triplet));
+      for (i=0;i<sectionCount;i++)
+      {
+        triplet[i].offset  = conv32(pSMFRecord->s[i].offset);
+        triplet[i].l       = conv16(pSMFRecord->s[i].l);
+        triplet[i].n       = conv16(pSMFRecord->s[i].n);
+        if (triplet[i].offset > highestOffset &&
+           triplet[i].offset > 0 &&
+           triplet[i].n > 0)
+        {
+          highestOffset = triplet[i].offset;
+          h = i;
+        }
+      }
+      if (h < 0) {
+        if (subTypesValid)
+        {
+          recLength = sizeof(SMFHeader_t) - offsetCorrection;
+        }
+        else
+        {
+          recLength = offsetof(SMFHeader_t,SMFRECSSID) - offsetCorrection;
+        }
+      } else {
+        recLength = triplet[h].offset + triplet[h].l * triplet[h].n - offsetCorrection;
+      }
+      currentOffset += recLength;
+
+      if (debugLevel >= 3)
+      {
+        printf("Highest triple = %d RecLength = %d New Offset = %lld\n",
+          h, recLength,currentOffset);
+      }
+
+      if (debugLevel >= 2)
+        printDEBUG("FULL RECORD",dataBuf + offsetCorrection,recLength);
     }
 
 
@@ -667,7 +747,7 @@ int main( int argc, char *argv[] )
               /* If nothing has been done with DNS in this interval, the
                  record seems to be present but contain garbage.
                */
-              case 5: if (triplet[i].l == sizeof(qct_dns)) 
+              case 5: if (triplet[i].l == sizeof(qct_dns))
                           printQCTDNS((qct_dns *)p);
                       break;
               default: break;
@@ -853,7 +933,8 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
 
     fseek(fp,0,SEEK_END);
     pos = ftell(fp);
-    /*setbuf(fp,0); */ /* useful to have this line when debugging */
+    if (debugLevel >= 0)
+      setbuf(fp,0);  /* useful to have this line when debugging */
 
     if (pos == 0) /* Have we just created the file, even for "append" mode */
       *newFile = TRUE;
@@ -935,9 +1016,10 @@ static void Usage(void)
 {
   printf("Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
   printf("         [-h yes|no] [ -i <input file> [-m <max records>]\n");
-  printf("         [-r ] [-t <ticker>]\n");
+  printf("         [-f RDW | NORDW] [-r ] [-t <ticker>]\n");
   printf("  -a               Append to files if they exist. Default is overwrite.\n");
   printf("  -d <Level>       Debug by dumping binary records (Level = 1 or 2).\n");
+  printf("  -f RDW | NORDW   Input file format. Default is RDW.\n");
   printf("  -h yes|no        Print column headers for new output files. Default is yes.\n");
   printf("  -i <Input file>  Default is to read from stdin.\n");
   printf("  -m <Max records> End after formatting M records. Default to process all.\n");

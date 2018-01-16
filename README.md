@@ -72,8 +72,10 @@ Oct 2017
 created; cannot rely on it being there
 
 Jan 2018
-* QCTDNS structure is not initialised when there hae been no activity
-
+* QCTDNS structure is not initialised when there has been no activity
+* Can now process files that have not been downloaded with the RDW option,
+as some sites do not have suitable ftp package available. New option
+is "-f NORDW".
 
 Pull requests
 =============

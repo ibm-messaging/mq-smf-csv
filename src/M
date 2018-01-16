@@ -4,13 +4,17 @@ plat=`uname`
 
 if [ "$plat" = "AIX" ]
 then
-  flags="-q32 "
+  flags="-q32"
   cc="xlc"
   targdir="../bin/aix"
 else
   flags="-m32 "
   cc="gcc"
   targdir="../bin/linux"
+fi
+if [ "$CCDEBUG" != "" ]
+then
+  flags="$flags -g"
 fi
 
 export PLATFLAGS=$flags CC=$cc VERS=904

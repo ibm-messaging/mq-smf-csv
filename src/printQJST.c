@@ -47,7 +47,7 @@ void printQJST(qjst *p)
   ADDS32("Log_Write_Threshold"   ,p->qjstthrw);
   ADDS32("Log_Write_Buffer_Paged",p->qjstbpag);
 
-  if (conv32(p->qjstll)>=offsetof(qjst,qjstio))
+  if (conv16(p->qjstll)>=offsetof(qjst,qjstio))
   {
     /* Array of 1 entry! Reserved space follows for 2 more, but they   */
     /* are not currently used.                                         */
@@ -67,7 +67,7 @@ void printQJST(qjst *p)
     }
   }
 
-  if (conv32(p->qjstll)>=sizeof(qjst))
+  if (conv16(p->qjstll)>=sizeof(qjst))
   {
     for (i=0;i<2;i++)
     {
