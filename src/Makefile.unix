@@ -2,7 +2,7 @@
 CC=cc
 CFLAGS= -I.
 PLATFLAGS=
-SRC = mqsmf.c \
+SRC = \
       smfDDL.c \
       smfDate.c \
       smfConv.c \
@@ -30,7 +30,8 @@ SRC = mqsmf.c \
       printQTST.c  \
       printWQ.c    \
       printWTAS.c  \
-      printWTID.c
+      printWTID.c  \
+      mqsmf.c
 
 HDR = mqsmfstruc.h \
       mqsmf.h

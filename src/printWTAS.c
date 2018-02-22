@@ -119,17 +119,29 @@ void printWTAS(wtas *p)
   ADDS32 ("Get_Pages_Old", p->wtasgpo);
   ADDS32 ("Get_Pages_New", p->wtasgpn);
 
+  /*************************************************************/
+  /* NOTE: Some of these fields have been used for purposes    */
+  /*       which do not match the original field name. This    */
+  /*       is not documented anywhere I could find ...         */
+  /*    wtastpn  is effectively unused                         */
+  /*    wtaspbhw is now referred to as wtaslruw                */
+  /*    wtaspbtt is now referred to as wtaslruh                */
+  /*  The column headings now match the real use, not the      */
+  /*  the header file descriptions.                            */
+  /*************************************************************/
+
   /*-----------------------------------------------------------*/
   /* Version 7 (WTAS_VER_4) inclusions                         */
   /*-----------------------------------------------------------*/
   if (conv32(p->wtasver) >= WTAS_VER_4)
   {
-    ADDSTCK("Publish_High_Water", p->wtaspbhw);
-    ADDSTCK("Publish_Total_ET"  , p->wtaspbtt);
+    ADDSTCK("BufferPool_Latch_Wait", p->wtaspbhw);
+    ADDSTCK("Held_BufferPool_Latch_ET"  , p->wtaspbtt);
 
     ADDSTCK("Topic_ET", p->wtastpet);
     ADDSTCK("Topic_CT", p->wtastpct);
-    ADDU32 ("Topic_Count", p->wtastpn);
+
+    /*ADDU32 ("Topic_Count", p->wtastpn);*//* Not used */
 
     ADDSTCK("Subscribe_ET", p->wtassuet);
     ADDSTCK("Subscribe_CT", p->wtassuct);
