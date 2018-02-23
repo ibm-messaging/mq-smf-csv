@@ -48,3 +48,11 @@ Jan 2018
 * Can now process files that have not been downloaded with the RDW option,
 as some sites do not have suitable ftp package available. New option
 is "-f NORDW".
+
+Feb 2018
+* Added a simple "checkpoint" manager to recover after failures of the
+formatter. This may help when you run out of disk space while formatting
+very large output - the program may be able to restart from a more recent
+checkpoint.
+* Discovered a few fields in the WTAS structure are not used in the way
+the documentation and product header files claim.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2018 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -35,15 +35,19 @@
 /*                 necessary byte-swapping from big to little-endian  */
 /*                 values.                                            */
 /*                                                                    */
-/*                 When downloading the SMF dump, make sure the RDW   */
-/*                 (record descriptor word) is included in the file.  */
+/*                 When downloading the SMF dump, it is preferred to  */
+/*                 have the RDW (record descriptor word) included in  */
+/*                 the file.                                          */
 /*                 This is because the I/O on Windows and Unix        */
 /*                 platforms does not understand the record-oriented  */
 /*                 z/OS file format; instead we have to know how long */
 /*                 each record is - given by the RDW. This is not     */
 /*                 the default option on many file transfer programs. */
 /*                 Check the documentation for your file manager on   */
-/*                 how to include the RDW when downloading.           */
+/*                 how to include the RDW when downloading. If you    */
+/*                 cannot get the RDW included, then this program now */
+/*                 supports a mechanism that does not require it, but */
+/*                 is slightly slower when formatting the data.       */
 /*                                                                    */
 /*                 Structures are defined as "packed" which means that*/
 /*                 fields within a structure may not start on a       */
@@ -118,15 +122,18 @@ char tmpHead[64];                     /* Working space for a column heading*/
 unsigned int   recordType;
 unsigned short   recordSubType;
 
+/********************************************************************/
+/* Structure and vars to control checkpoint recording and playback  */
+/********************************************************************/
 typedef struct {
   char *name;
   FILE *fp;
   myoff_t offset;
 } checkPoint_t;
 
-#define MAXCP (50)
+#define MAXCP (50) /* Maximum number of output files */
 checkPoint_t checkPoint[MAXCP] = {NULL,NULL,0};
-char *checkPointFileBaseName = "MQSMFCHKPT.txt";
+char *checkPointFileBaseName = "SMF-CKPT.txt";
 char  checkPointFileName[PATH_MAX] = {0};
 BOOL  checkPointTaken = FALSE;
 
@@ -140,7 +147,7 @@ static char *directory = NULL;
 static unsigned int totalRecords = 0;
 static unsigned int startingRecords = 0;
 
-static unsigned int Count115[256] = {0};              /* Max subtype is 255*/
+static unsigned int Count115[256] = {0};             /* Max subtype is 255 */
 static unsigned int Count116[256] = {0};
 
 /********************************************************************/
@@ -152,6 +159,7 @@ static int   mqoptind = 1;             /* getopt index                     */
 static int   mqoptopt;                 /* getopt option                    */
 static char* mqoptarg;                 /* getopt argument                  */
 
+static BOOL debugBREAK = FALSE;
 
 /********************************************************************/
 /* MAIN                                                             */
@@ -290,6 +298,10 @@ int main( int argc, char *argv[] )
     exit(1);
   }
 
+  /* Set up any special debug processing */
+  if (getenv("MQSMFCSV_BREAK")) {
+    debugBREAK=TRUE;
+  }
 
   /*********************************************************************/
   /* Open the input file                                               */
@@ -315,6 +327,7 @@ int main( int argc, char *argv[] )
     printf("Total File Size = %lld\n",totalFileSize);
 
   convInit();      /* Decide whether this is a big or little endian machine*/
+
   b = strrchr(inputFile,'/');
   if (!b)
     b = strrchr(inputFile,'\\');
@@ -927,10 +940,10 @@ int main( int argc, char *argv[] )
       takeCheckPoint(checkPointFileName,pos);
     }
 
-    if (getenv("MQSMFCSV_BREAK") != NULL) /* for testing purposes */
+    if (debugBREAK) /* for testing purposes */
     {
       /* Want to force an abend at some point after a checkpoint */
-      if (totalRecords % ticker == 0 && checkPointTaken)
+      if (totalRecords % ticker == 3 && checkPointTaken)
       {
         printf("Testing: Exiting after %d records processed\n",totalRecords);
         exit(0);
@@ -939,7 +952,8 @@ int main( int argc, char *argv[] )
   } while (0 != bytesRead && totalRecords < maxRecords);
 
   /***********************************************************************/
-  /* Cleanup and exit.                                                   */
+  /* Cleanup and exit. If we get here normally, then the checkpoint      */
+  /* file is not needed any more, so it is deleted.                      */
   /***********************************************************************/
   if (debugLevel >= 1) {
     printf("Removing checkpoint file\n");
@@ -957,21 +971,27 @@ mod_exit:
   }
 
   printf("Processed %u records total\n",totalRecords);
-  if (unknownCount >0)
-    printf("  Unknown                   record count: %u\n",unknownCount);
-  if (ignoredCount >0)
-    printf("  Ignored                   record count: %u\n",ignoredCount);
-  for (i=0;i<256;i++)
-  {
-    if (Count115[i] > 0)
-      printf("  Formatted 115 subtype %3d record count: %u\n",i,Count115[i]);
-  }
-  for (i=0;i<256;i++)
-  {
-    if (Count116[i] > 0)
-      printf("  Formatted 116 subtype %3d record count: %u\n",i,Count116[i]);
-  }
 
+  /**********************************************************************/
+  /* If the program has been restarted via checkpoint, these counts are */
+  /* not accurate, so don't bother printing them                        */
+  /**********************************************************************/
+  if (!resumeCheckPoint) {
+    if (unknownCount >0)
+      printf("  Unknown                   record count: %u\n",unknownCount);
+    if (ignoredCount >0)
+      printf("  Ignored                   record count: %u\n",ignoredCount);
+    for (i=0;i<256;i++)
+    {
+      if (Count115[i] > 0)
+        printf("  Formatted 115 subtype %3d record count: %u\n",i,Count115[i]);
+    }
+    for (i=0;i<256;i++)
+    {
+      if (Count116[i] > 0)
+        printf("  Formatted 116 subtype %3d record count: %u\n",i,Count116[i]);
+    }
+  }
   exit(0);
 }
 
@@ -1008,7 +1028,8 @@ FILE * fopencsv(const char * basename, BOOL *newFile)
        return fp;
     }
   }
-  /* Get here if we've not read an offset */
+
+  /* Get here if we've not read an offset from the checkpoint recovery file */
   for (i=0;i<MAXCP;i++) {
     if (checkPoint[i].name == NULL) {
       checkPoint[i].name = strdup(basename);
@@ -1019,7 +1040,8 @@ FILE * fopencsv(const char * basename, BOOL *newFile)
     }
   }
   if (!foundGap) {
-    printf("Need to increase MAXCP\n");
+    printf("Need to increase MAXCP and rebuild.\n");
+    exit(1);
   }
   return fp;
 }
@@ -1029,7 +1051,7 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
   FILE  * fp = NULL;
   char filename[PATH_MAX] = {0};
   char *mode = (append)?"a":"w";
-  if (resumeCheckPoint && append)
+  if (resumeCheckPoint && append && !strcmp(ext,"csv"))
     mode = "r+";
 
   snprintf(filename,sizeof(filename)-1,
@@ -1085,17 +1107,19 @@ void takeCheckPoint(char *f, myoff_t pos) {
     exit(1);
   }
 
-  /* Offset and current status for the input file */
-  b = fprintf(fp, "%lld %d\n",pos,totalRecords);
+  /********************************************************************/
+  /* Record offset and current status for the input file              */
+  /********************************************************************/
+  b = fprintf(fp, "%d %lld %d\n",totalRecords,pos);
   for (i=0;i<MAXCP;i++) {
-    /* Name and offset for all the output files */
+    /* Record name and offset for all the output files */
     if (checkPoint[i].name) {
       b = fprintf(fp,"%s %lld\n",checkPoint[i].name,ftello(checkPoint[i].fp));
     }
   }
   fflush(fp);
   fclose(fp);
-  checkPointTaken = TRUE; /* Use this during testing */
+  checkPointTaken = TRUE; /* This is used during testing */
   return;
 }
 
@@ -1104,6 +1128,9 @@ void takeCheckPoint(char *f, myoff_t pos) {
 /* PURPOSE: Work out where we were on the previous execution of the      */
 /*   formatter. It causes us to reset the input file and all of the      */
 /*   output streams to wherever we had got to.                           */
+/*   There is not a lot of validation on the input format of the file so */
+/*   if it goes wrong, you have to restart the formatting from the       */
+/*   beginning.                                                          */
 /*************************************************************************/
 myoff_t readCheckPoint(FILE *fp) {
   myoff_t inputOffset = 0;
@@ -1117,10 +1144,21 @@ myoff_t readCheckPoint(FILE *fp) {
     printf("Error reading from recovery checkpoint file\n");
     exit(1);
   }
-  sscanf(line,"%lld %d",&inputOffset,&startingRecords);
-  printf("Reading from recovery checkpoint.\n");
-  printf("InputOffset: %lld Processed records: %d\n",inputOffset, startingRecords);
 
+  /************************************************************************/
+  /* First line has two fields for the input file starting state          */
+  /************************************************************************/
+  sscanf(line,"%d %lld",&startingRecords,&inputOffset);
+  printf("Reading from recovery checkpoint.\n");
+
+  if (debugLevel >=1) {
+    printf("InputOffset: %lld Processed records: %d\n",inputOffset, startingRecords);
+  }
+
+  /************************************************************************/
+  /* Subsequent lines have two fields naming the output structure and how */
+  /* far it's been written.                                               */
+  /************************************************************************/
   do {
     memset(line,0,sizeof(line));
     c = fgets(line,sizeof(line)-1,fp);
@@ -1130,7 +1168,7 @@ myoff_t readCheckPoint(FILE *fp) {
       sscanf(line,"%s %lld",field,&offset);
       checkPoint[i].name = strdup(field);
       checkPoint[i].offset = offset;
-      if (debugLevel >=1) {
+      if (debugLevel >=2) {
         printf("Loaded status[%d] for %s as offset %lld\n",i,field,offset);
       }
       i++;
