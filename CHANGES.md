@@ -56,3 +56,6 @@ very large output - the program may be able to restart from a more recent
 checkpoint.
 * Discovered a few fields in the WTAS structure are not used in the way
 the documentation and product header files claim.
+* Some SMF integers are too large for the INTEGER datatype. The unsigned
+32-bits compared to the SQL which is signed 32-bit, So switching
+to always use BIGINT.

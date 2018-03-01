@@ -1110,7 +1110,7 @@ void takeCheckPoint(char *f, myoff_t pos) {
   /********************************************************************/
   /* Record offset and current status for the input file              */
   /********************************************************************/
-  b = fprintf(fp, "%d %lld %d\n",totalRecords,pos);
+  b = fprintf(fp, "%d %lld\n",totalRecords,pos);
   for (i=0;i<MAXCP;i++) {
     /* Record name and offset for all the output files */
     if (checkPoint[i].name) {

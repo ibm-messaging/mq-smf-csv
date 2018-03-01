@@ -62,7 +62,9 @@ void printDDL(char *name, int type, int len)
   switch (type)
   {
   case DDL_I:
-    fprintf(fp,"%s %s \t INTEGER\n",comma,format(nameCopy));
+    /* SQL Integer is a 'signed 32-bit' when sometimes we need unsigned */
+    /* So make it a big int always                                      */
+    fprintf(fp,"%s %s \t BIGINT \n",comma,format(nameCopy));
     break;
   case DDL_I64:
     fprintf(fp,"%s %s \t BIGINT\n",comma,format(nameCopy));
