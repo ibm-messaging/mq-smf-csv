@@ -38,6 +38,7 @@ void printWQ(wq *p)
   ADDSTRB ("Correlation"    ,p->correl, 16);
   ADDSTREN("Open_Name",p->objname,48);
   ADDSTREN("Base_Name",p->basename,48);
+  setIndex("Base_Name");
   ADDTIME ("Open"     ,p->opentime);
   ADDTIME ("Close"    ,p->clostime);
 

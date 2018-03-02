@@ -18,6 +18,8 @@
 static FILE *fp = NULL;
 char *comma = "";
 
+char *primaryKey = NULL;
+
 #define COL_HEAD_LEN (64)
 
 static char *format(char *);
@@ -25,6 +27,8 @@ static char *format(char *);
 void openDDL(char *name)
 {
    BOOL newFile;
+
+   primaryKey = NULL;
    if (!fp)
    {
      fp = fopenext("MQTABLES","ddl", &newFile);
@@ -38,21 +42,32 @@ void openDDL(char *name)
    comma = " ";                               /* Start with it blank */
 }
 
-void closeDDL(void)
+void closeDDL(char *name)
 {
   if (fp)
   {
-    fprintf(fp,");\n\n");
+    fprintf(fp,");\n");
+    if (primaryKey) { 
+      fprintf(fp,"CREATE INDEX %s ON MQSMF.%s(%s);\n",primaryKey,name,primaryKey);
+    }
+    fprintf(fp,"\n");
     fflush(fp);
   }
   return;
 }
 
+void setIndex(char *key) 
+{
+  primaryKey = key;
+  return;
+}
+
+
 void printDDL(char *name, int type, int len)
 {
   char *p;
   char *p2;
-  char nameCopy[COL_HEAD_LEN];  /* Cannot modify fixed strings, have to copy input*/
+  char nameCopy[COL_HEAD_LEN] = {0};  /* Cannot modify fixed strings, have to copy input*/
 
   if (!fp)
     return;

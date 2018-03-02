@@ -152,8 +152,9 @@ extern void printWTAS  (wtas *);
 extern void printWTID  (wtid *, unsigned char *);
 
 extern void openDDL    (char *);
-extern void closeDDL   (void);
+extern void closeDDL   (char *);
 extern void printDDL   (char *,int, int);
+extern void setIndex   (char *);
 
 
 /*******************************************************/
@@ -381,6 +382,7 @@ extern char *strCfStatType  (int v);
 #define SMFPRINTSTART(n,p,l) \
   int offsetH=0;  \
   int offsetD=0;  \
+  char *tableName = n; \
   if (debugLevel >=1 ) printDEBUG(n,p,(l));\
   if (first) {    \
     fp = fopencsv(n,&newFile);\
@@ -400,7 +402,7 @@ extern char *strCfStatType  (int v);
     fprintf(fp,"\n");    \
   }                      \
   if(first && sqlMode) \
-    closeDDL(); \
+    closeDDL(tableName); \
   first=FALSE;         \
   fprintf(fp,"%s",dataline);\
   fprintf(fp,"\n")
