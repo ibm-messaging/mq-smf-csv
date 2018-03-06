@@ -17,38 +17,61 @@
 
 static FILE *fp = NULL;
 char *comma = "";
+char *schema = "MQSMF";
 
-char *primaryKey = NULL;
+#define INDEXSETSIZE 128
+char *indexSet[INDEXSETSIZE] = {0};  
+int   nextIndex = 0;
 
 #define COL_HEAD_LEN (64)
 
 static char *format(char *);
 
+/*
+ * The DDL generated here is very simple. The
+ * table is created with a fixed name and relevant
+ * datatypes. If any index columns have been named
+ * then those are added to the DDL with each table.
+ * There is no "Primary key" defined.
+ */
+
 void openDDL(char *name)
 {
    BOOL newFile;
+   int i;
 
-   primaryKey = NULL;
+   for (i=0;i<INDEXSETSIZE;i++)
+   {
+     indexSet[i] = NULL;
+   }
+   nextIndex = 0;
+
    if (!fp)
    {
      fp = fopenext("MQTABLES","ddl", &newFile);
      if (!fp) /* fopenext will print detailed error message */
        exit(1);
    }
-   fprintf(fp,"DROP   TABLE MQSMF.%s;  \n",name);
+   fprintf(fp,"DROP   TABLE %s.%s;  \n",schema,name);
 
    /* If you want more sophisticated SQL, then you could change this */
-   fprintf(fp,"CREATE TABLE MQSMF.%s (\n",name);
+   fprintf(fp,"CREATE TABLE %s.%s (\n",schema,name);
    comma = " ";                               /* Start with it blank */
 }
 
 void closeDDL(char *name)
 {
+  int i;
   if (fp)
   {
+    /* Could add "... IN <tablespace>" to this if needed */
     fprintf(fp,");\n");
-    if (primaryKey) { 
-      fprintf(fp,"CREATE INDEX %s ON MQSMF.%s(%s);\n",primaryKey,name,primaryKey);
+    for (i=0;i<INDEXSETSIZE;i++)
+    {
+      char *c = indexSet[i];
+      if (c) { 
+        fprintf(fp,"CREATE INDEX %s ON %s.%s(%s);\n",c,schema,name,c);
+      }
     }
     fprintf(fp,"\n");
     fflush(fp);
@@ -56,9 +79,17 @@ void closeDDL(char *name)
   return;
 }
 
-void setIndex(char *key) 
+void addIndex(char *key) 
 {
-  primaryKey = key;
+  if (nextIndex <INDEXSETSIZE) {
+    indexSet[nextIndex] = key;
+    nextIndex++;
+  }
+  else 
+  {
+    /* Extremely unlikely that we'll have this number of index columns for a table */
+    printf("Warning: Cannot add %s to table index. Need to increase INDEXSETSIZE\n",key);
+  }
   return;
 }
 
@@ -94,11 +125,10 @@ void printDDL(char *name, int type, int len)
       fprintf(fp,"%s %s \t CHAR(%d)\n",comma,format(nameCopy),len);
     }
     break;
-  case DDL_SUS:
+  case DDL_SUS: /* a seconds/microseconds field */
     p2 = strstr(nameCopy,"(US)");
     if (p2) *p2 = 0;
     fprintf(fp,"%s %s_us \t BIGINT\n",comma,format(nameCopy));
-
     break;
 
   case DDL_DATETIME:
@@ -181,7 +211,7 @@ static char *format(char *name)
 
   /* Check for column name length - I've seen this as a limit in some DBs */
   /* Leave room for _DATE etc as prefix */
-  if(strlen(nameNoDup) > 27)
+  if (strlen(nameNoDup) > 27)
     printf("Warning: Column %s may be too long\n",nameNoDup);
 
   return nameNoDup;

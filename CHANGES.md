@@ -59,3 +59,8 @@ the documentation and product header files claim.
 * Some SMF integers are too large for the INTEGER datatype. The unsigned
 32-bits compared to the SQL which is signed 32-bit, So switching
 to always use BIGINT.
+
+Mar 2018
+* Add code to help add INDEX to columns in the SQL DDL output
+* Add optimisation to Makefiles
+* Even 64-bit values may be too large when they are not really counters

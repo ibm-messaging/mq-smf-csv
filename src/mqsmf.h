@@ -154,7 +154,7 @@ extern void printWTID  (wtid *, unsigned char *);
 extern void openDDL    (char *);
 extern void closeDDL   (char *);
 extern void printDDL   (char *,int, int);
-extern void setIndex   (char *);
+extern void addIndex   (char *);
 
 
 /*******************************************************/
@@ -221,6 +221,16 @@ extern char *strCfStatType  (int v);
 #define DDL_SUS      (4)
 #define DDL_DATETIME (5)
 
+/************************************************************************/
+/* Some "unsigned 64-bit" in the SMF are really pointers or correlators */
+/* No real counter is likely to reach the top bit. But treating them as */
+/* unsigned values in these cases is causing overflow when loading into */
+/* DB2 because SQL 64-bit quantities are always signed with no option   */
+/* for the C datatype. So as an expediency, we will drop the sign bit   */
+/* which should not affect any real calculations.                       */
+/************************************************************************/
+#define DROPSIGN 0x7FFFFFFFFFFFFFFF
+
 /**********************************************************/
 /* Macros to build the printable lines for CSV output.    */
 /* Separate macros for each data type and when we need    */
@@ -265,7 +275,7 @@ extern char *strCfStatType  (int v);
 
 #define ADDU64(h,v) \
   ADDHEAD(h,DDL_I64,0); \
-  ADDDATA("%llu,",conv64(v))
+  ADDDATA("%lld,",(DROPSIGN & conv64(v)))
 
 #define ADDS64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
@@ -275,7 +285,7 @@ extern char *strCfStatType  (int v);
 #define ADDU64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEAD(tmpHead,DDL_I64,0); \
-  ADDDATA("%llu,",conv64(v))
+  ADDDATA("%lld,",(DROPSIGN & conv64(v)))
 
 #define ADDS32(h,v) \
   ADDHEAD(h,DDL_I,0); \
@@ -394,6 +404,11 @@ extern char *strCfStatType  (int v);
     exit(1);      \
   } \
   COMMON_BLOCK
+
+#define ADDINDEX(n) \
+  if (first) { \
+    addIndex(n); \
+  }
 
 #define SMFPRINTSTOP \
   if (first && newFile && printHeaders)             \
