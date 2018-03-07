@@ -25,7 +25,7 @@ void printQSGM(qsgm *p)
   ADDS32( "Length_Min"  ,p->qsgmlvmin);
   ADDS32( "Requests"    ,p->qsgmcount);
   ADDBYTE("Storage_Class",p->qsgmscls);
-  ADDU64( "CSECT"       ,p->qsgmcsect);
+  ADDSTREN( "CSECT"       ,(char *)&p->qsgmcsect,8);
   ADDS32( "CSECT_Offset",p->qsgmoffset);
 
   SMFPRINTSTOP;

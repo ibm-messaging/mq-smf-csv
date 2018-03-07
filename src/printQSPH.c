@@ -25,7 +25,11 @@ void printQSPH(qsph *p)
   ADDU16("Record_Size",p->qsphbsize);
   ADDU16("Records_per_Segment",p->qsphbcnt );
   ADDU32("PHB_Count",p->qsphcount);
-  ADDU64("Dataspace_Name",p->qsphdspnm);
+  if (p->qsphflags & QSPHDSPC) {
+    ADDSTREN("Dataspace_Name",(char *)&p->qsphdspnm,8);
+  } else {
+    ADDSTR("Dataspace_Name","        ",8);
+  }
   ADDSTREN("Name",p->qsphname,48);
 
   ADDSTR("Attr_Fixed", ((p->qsphflags & QSPHFIXED)?"Yes":"No"),3);
