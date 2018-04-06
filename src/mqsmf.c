@@ -113,12 +113,9 @@ int   debugLevel = 0;
 BOOL  addEquals = TRUE;
 BOOL  printHeaders = TRUE;
 BOOL  useRDW = TRUE;
-BOOL  sqlMode = FALSE;
 commonFields_t commonF = {0};
+enum outputFormat_e outputFormat = OF_CSV;
 
-char headings[HEADINGS_LEN];    /* Ensure these are big enough for any line*/
-char dataline[DATA_LEN];
-char tmpHead[64];                     /* Working space for a column heading*/
 unsigned int   recordType;
 unsigned short   recordSubType;
 
@@ -249,12 +246,14 @@ int main( int argc, char *argv[] )
       case 'f':
         for (i=0;i<strlen(mqoptarg);i++)
           mqoptarg[i] = toupper(mqoptarg[i]);
-        if (!strcmp(mqoptarg,"NORDW"))
+        if (strstr(mqoptarg,"NORDW"))
           useRDW = FALSE;
-        else if (!strcmp(mqoptarg,"RDW"))
+        else if (strstr(mqoptarg,"RDW"))
           useRDW = TRUE;
-        else
-          error = TRUE;
+        if (strstr(mqoptarg,"JSON"))
+          outputFormat = OF_JSON;
+        else if (strstr(mqoptarg,"SQL"))
+          outputFormat = OF_SQL;
         break;
       case 'h':
         for (i=0;i<strlen(mqoptarg);i++)
@@ -275,7 +274,7 @@ int main( int argc, char *argv[] )
         addEquals = 0;
         break;
       case 's':
-        sqlMode = TRUE;
+        outputFormat = OF_SQL;
         printHeaders = FALSE;
         addEquals = 0;
         break;
@@ -310,6 +309,12 @@ int main( int argc, char *argv[] )
   /* Windows requires the "b" option for binary input. And force       */
   /* stdin to binary in case we need to read from that too.            */
   /*********************************************************************/
+  if (!inputFile && !useRDW)
+  {
+    printf("Cannot use NORDW format input via stdin piping\n");
+    exit(1);
+  }
+
   #ifdef _WIN32
   setmode(fileno(stdin), O_BINARY);
   #endif
@@ -319,6 +324,11 @@ int main( int argc, char *argv[] )
     printf(" Cannot open input file %s. Error \"%s\" (%d)\n",
       inputFile,strerror(errno),errno);
     goto mod_exit;
+  }
+  /* Make sure we've got a printable name */
+  if (!inputFile)
+  {
+    inputFile = "<<stdin>>";
   }
 
   fstat(fileno(fp),&statbuf);
@@ -361,9 +371,9 @@ int main( int argc, char *argv[] )
   /********************************************************************/
   currentOffset = startingOffset;
   totalRecords = startingRecords;
-  seekRc = fseeko(fp,currentOffset,SEEK_SET);
+  seekRc = (currentOffset!=0)?fseeko(fp,currentOffset,SEEK_SET):0;
   if (seekRc == -1) {
-    printf("Cannot move to correct offset for input file");
+    printf("Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
     goto mod_exit;
   }
 
@@ -451,7 +461,11 @@ int main( int argc, char *argv[] )
     }
     else
     {
-      fseeko(fp,currentOffset,SEEK_SET);
+      seekRc = fseeko(fp,currentOffset,SEEK_SET);
+      if (seekRc == -1) {
+        printf("Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
+        goto mod_exit;
+      }
       bytesRead = fread(&pSMFRecord->Header.SMFRECFLG,1,32768,fp);
       offset = bytesRead;
       offsetCorrection = 4;
@@ -529,7 +543,7 @@ int main( int argc, char *argv[] )
       time = time - (min * 60);
       sec = time % 60;
 
-      if (sqlMode)
+      if (outputFormat == OF_SQL)
         sep = "-";
       else
         sep = "/";

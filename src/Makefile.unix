@@ -4,6 +4,7 @@ CFLAGS= -I.
 PLATFLAGS=
 SRC = \
       smfDDL.c \
+      smfPrint.c \
       smfDate.c \
       smfConv.c \
       printDEBUG.c \

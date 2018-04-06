@@ -172,7 +172,7 @@ char *convSecUSec(unsigned long long s)
   }
 
   /* Separate fields by ',' for CSV formats */
-  if (sqlMode)
+  if (outputFormat == OF_SQL)
     sprintf(usecBuf,"%llu ",s);
   else
     sprintf(usecBuf,"%u, %u ",sec,usec);

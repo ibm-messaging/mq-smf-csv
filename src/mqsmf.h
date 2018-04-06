@@ -248,26 +248,24 @@ extern char *strCfStatType  (int v);
 /*     SMFPRINTSTOP;                                      */
 /*   }                                                    */
 /**********************************************************/
-#define ADDHEAD(h,type,len) \
-  if (first && h)  \
-  {                \
-    offsetH += snprintf(&headings[offsetH],HEADINGS_LEN - offsetH, "%s,", h); \
-    if (offsetH > HEADINGS_LEN) \
-    {                               \
-      printf("HEADINGS buffer needs to be bigger than %d bytes.\n",HEADINGS_LEN); \
-      exit(1);                      \
-    }                               \
-    if (sqlMode) \
-    printDDL(h,type,len); \
-  }
+extern FILE *smfPrintStart(char *,void *,size_t,BOOL *,BOOL *);
+extern void  smfPrintStop(FILE *,BOOL, BOOL *);
+extern void  smfAddHead(BOOL first,char *h,int type,int len);
+extern void  smfAddData(char *fmt,...);
 
-#define ADDDATA(fmt,...)  \
-  offsetD+=snprintf(&dataline[offsetD],DATA_LEN-offsetD,fmt,__VA_ARGS__); \
-  if (offsetD > DATA_LEN)                \
-  {                                      \
-      printf("DATA buffer needs to be bigger than %d bytes.\n",DATA_LEN); \
-      exit(1);                           \
-  }
+#define SMFPRINTGLOB \
+  static BOOL first = TRUE;\
+  static BOOL newFile = TRUE;\
+  static FILE *fp = NULL
+
+#define SMFPRINTSTART(n,p,l) \
+  fp = smfPrintStart(n,p,l,&first,&newFile);
+
+#define SMFPRINTSTOP \
+  smfPrintStop(fp, newFile, &first);
+
+#define ADDHEAD(a,b,c) smfAddHead(first,a,b,c)
+#define ADDDATA(f,...) smfAddData(f,__VA_ARGS__)
 
 #define ADDS64(h,v) \
   ADDHEAD(h,DDL_I64,0); \
@@ -332,7 +330,7 @@ extern char *strCfStatType  (int v);
   ADDDATA("%s,",convDate(v))
 
 #define ADDSTCK(h,v) \
-  if (sqlMode) \
+  if (outputFormat == OF_SQL) \
   sprintf(tmpHead,"%s(US)",h); \
   else\
   sprintf(tmpHead,"%s(S),%s(US)",h,h); \
@@ -340,7 +338,7 @@ extern char *strCfStatType  (int v);
   ADDDATA("%s,",convSecUSec(v))
 
 #define ADDSTCKIDX(h,idx,v) \
-  if (sqlMode) \
+  if (outputFormat == OF_SQL) \
   sprintf(tmpHead,"%s{%s}(US)",h,idx); \
   else \
   sprintf(tmpHead,"%s{%s}(S),%s{%s}(US)",h,idx,h,idx); \
@@ -349,11 +347,11 @@ extern char *strCfStatType  (int v);
 
 /* Add ASCII string, known length - underpins the other ADDSTRxx macros */
 #define ADDSTRN(h,v,l,maxlen) \
-  ADDHEAD(h,DDL_C,maxlen); \
-  { char *equ=""; \
-  if (looksLikeNum(l,v) && addEquals) equ="="; \
-  ADDDATA("%s\"%-*.*s\",",equ,l,l,v) \
-  }
+   ADDHEAD(h,DDL_C,maxlen); \
+   { char *equ=""; \
+     if (looksLikeNum(l,v) && addEquals) equ="="; \
+        ADDDATA("%s\"%-*.*s\",",equ,l,l,v);\
+   }
 
 #define ADDSTR(h,v,maxlen) \
   ADDSTRN(h,v,strlen(v),maxlen)             /* ASCII string null terminated*/
@@ -372,60 +370,11 @@ extern char *strCfStatType  (int v);
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDSTREN(tmpHead,v,l)                      /* EBCDIC string, known length*/
 
-#define COMMON_BLOCK \
-  ADDSTR ("Date",commonF.recordDate,8); \
-  ADDSTR ("Time",commonF.recordTime,16); \
-  ADDSTRN("LPAR",commonF.systemId,4,4); \
-  ADDSTRN("QMgr",commonF.qMgr,4,4); \
-  ADDSTRN("MQ_Version",commonF.mqVer,3,3) \
-  if (recordType == 115 && commonF.intstart != 0) { \
-    unsigned long long du = conv64(commonF.intduration)/1000000L; \
-    ADDTIME("Interval_Start",commonF.intstart) \
-    ADDHEAD("Interval_Duration",DDL_I,0); \
-    if (recordSubType == 231) { \
-    ADDDATA("%llu,",du/4096L); \
-    } else { \
-    ADDDATA("%llu,",du); \
-    } \
-  }
-
-#define SMFPRINTSTART(n,p,l) \
-  int offsetH=0;  \
-  int offsetD=0;  \
-  char *tableName = n; \
-  if (debugLevel >=1 ) printDEBUG(n,p,(l));\
-  if (first) {    \
-    fp = fopencsv(n,&newFile);\
-    if (sqlMode) \
-      openDDL(n);   \
-  } \
-  if (!fp)        \
-  {               \
-    exit(1);      \
-  } \
-  COMMON_BLOCK
 
 #define ADDINDEX(n) \
   if (first) { \
     addIndex(n); \
   }
-
-#define SMFPRINTSTOP \
-  if (first && newFile && printHeaders)             \
-  {                      \
-    fprintf(fp,"%s",headings);\
-    fprintf(fp,"\n");    \
-  }                      \
-  if(first && sqlMode) \
-    closeDDL(tableName); \
-  first=FALSE;         \
-  fprintf(fp,"%s",dataline);\
-  fprintf(fp,"\n")
-
-#define SMFPRINTGLOB \
-  static BOOL first = TRUE;\
-  static BOOL newFile = TRUE;\
-  static FILE *fp = NULL
 
 /*****************************************/
 /* This isn't currently used. But it was */
@@ -450,9 +399,11 @@ extern unsigned char  EBCDIC_TO_ASCII[];
 extern int  debugLevel;
 extern BOOL  addEquals;
 extern BOOL  printHeaders;
-extern BOOL  sqlMode;
 extern unsigned int   recordType;
 extern unsigned short recordSubType;
 extern commonFields_t commonF;
+
+enum outputFormat_e { OF_SQL, OF_JSON, OF_CSV };
+extern enum outputFormat_e outputFormat;
 
 #endif

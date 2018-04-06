@@ -79,7 +79,7 @@ char * convDate(unsigned long long stcki)
   char *emptyTime;
   size_t offset;
 
-  if (sqlMode)
+  if (outputFormat == OF_SQL)
   { 
     epochTime = sqlEpoch;
     emptyTime = sqlEpoch;
