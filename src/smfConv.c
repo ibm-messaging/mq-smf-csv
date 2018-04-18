@@ -76,12 +76,12 @@ void convInit()
   }
   else if (c == 0x44)
   {
-    printf("Swapping bytes in input records\n");
+    fprintf(infoStream,"Swapping bytes in input records\n");
     endian = LITTLE;
   }
   else
   {
-    printf("Can't work out endianness\n");
+    fprintf(infoStream,"Can't work out endianness\n");
   }
 
   return;
@@ -104,7 +104,7 @@ char *convStr(unsigned char *buf, int len)
 
   if (len > convStrMaxLen)
   {
-    convStrBuf = (char *)realloc(convStrBuf,len+1);
+    convStrBuf = (char *)realloc(convStrBuf,len+2);
     convStrMaxLen = len;
   }
 
@@ -141,7 +141,7 @@ char *convBin(unsigned char *inbuf, int origlen)
 
   for (i=0;i<origlen;i++)
     sprintf(&convBinBuf[i*2],"%02X",inbuf[i]);
-  convBinBuf[2*i+1] = 0;
+  convBinBuf[len] = 0;
   return convBinBuf;
 }
 
@@ -172,10 +172,18 @@ char *convSecUSec(unsigned long long s)
   }
 
   /* Separate fields by ',' for CSV formats */
-  if (outputFormat == OF_SQL)
+  switch (outputFormat)
+  {
+  case OF_SQL:
     sprintf(usecBuf,"%llu ",s);
-  else
+    break;
+  case OF_JSON:
+    sprintf(usecBuf,"%llu",s);
+    break;
+  default:
     sprintf(usecBuf,"%u, %u ",sec,usec);
+    break;
+  }
 
   return usecBuf;
 }

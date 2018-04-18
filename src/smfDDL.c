@@ -20,12 +20,8 @@ char *comma = "";
 char *schema = "MQSMF";
 
 #define INDEXSETSIZE 128
-char *indexSet[INDEXSETSIZE] = {0};  
+char *indexSet[INDEXSETSIZE] = {0};
 int   nextIndex = 0;
-
-#define COL_HEAD_LEN (64)
-
-static char *format(char *);
 
 /*
  * The DDL generated here is very simple. The
@@ -69,7 +65,7 @@ void closeDDL(char *name)
     for (i=0;i<INDEXSETSIZE;i++)
     {
       char *c = indexSet[i];
-      if (c) { 
+      if (c) {
         fprintf(fp,"CREATE INDEX %s ON %s.%s(%s);\n",c,schema,name,c);
       }
     }
@@ -79,16 +75,16 @@ void closeDDL(char *name)
   return;
 }
 
-void addIndex(char *key) 
+void addIndex(char *key)
 {
   if (nextIndex <INDEXSETSIZE) {
     indexSet[nextIndex] = key;
     nextIndex++;
   }
-  else 
+  else
   {
     /* Extremely unlikely that we'll have this number of index columns for a table */
-    printf("Warning: Cannot add %s to table index. Need to increase INDEXSETSIZE\n",key);
+    fprintf(stderr,"Warning: Cannot add %s to table index. Need to increase INDEXSETSIZE\n",key);
   }
   return;
 }
@@ -110,41 +106,37 @@ void printDDL(char *name, int type, int len)
   case DDL_I:
     /* SQL Integer is a 'signed 32-bit' when sometimes we need unsigned */
     /* So make it a big int always                                      */
-    fprintf(fp,"%s %s \t BIGINT \n",comma,format(nameCopy));
+    fprintf(fp,"%s %s \t BIGINT \n",comma,formatDDL(nameCopy));
     break;
   case DDL_I64:
-    fprintf(fp,"%s %s \t BIGINT\n",comma,format(nameCopy));
+    fprintf(fp,"%s %s \t BIGINT\n",comma,formatDDL(nameCopy));
     break;
   case DDL_C:
     if (!strcmp(name,"Date"))        /* special case for CommonHeader field*/
     {
-      fprintf(fp,"%s %s \t DATE    \n",comma,format(nameCopy));
+      fprintf(fp,"%s %s \t DATE    \n",comma,formatDDL(nameCopy));
     }
     else
     {
-      fprintf(fp,"%s %s \t CHAR(%d)\n",comma,format(nameCopy),len);
+      fprintf(fp,"%s %s \t CHAR(%d)\n",comma,formatDDL(nameCopy),len);
     }
     break;
   case DDL_SUS: /* a seconds/microseconds field */
-    p2 = strstr(nameCopy,"(US)");
-    if (p2) *p2 = 0;
-    fprintf(fp,"%s %s_us \t BIGINT\n",comma,format(nameCopy));
+    p = strstr(nameCopy,"(US)");
+    if (p) *p = 0;
+    fprintf(fp,"%s %s_us \t BIGINT\n",comma,formatDDL(nameCopy));
     break;
 
-  case DDL_DATETIME:
-    /* Split a heading into data and time columns */
-    /* The CSV heading embeds a ',' to do that on the data */
-    p = strchr(nameCopy,',');
-    *p = 0;
-
-    p2 = strstr(nameCopy," (DATE)");
-    if (p2) *p2 = 0;
-    fprintf(fp,"%s %s_Date \t DATE\n",comma,format(nameCopy));
-
-    p = p+1;
-    if (p2) p2 = strstr(p," (TIME)");
-    *p2 = 0;
-    fprintf(fp,"%s %s_Time \t CHAR(19)\n",comma,format(p));
+  case DDL_DATE:
+    p = strstr(nameCopy," (DATE)");
+    if (p) *p = 0; /* remove the "(DATE)" bit */
+    fprintf(fp,"%s %s_Date \t DATE\n",comma,formatDDL(nameCopy));
+    break;
+  case DDL_TIME:
+    p = strstr(nameCopy," (TIME)");
+    if (p)
+      *p = 0;
+    fprintf(fp,"%s %s_Time \t CHAR(19)\n",comma,formatDDL(nameCopy));
     break;
   }
 
@@ -158,18 +150,17 @@ void printDDL(char *name, int type, int len)
  * So this function renames them in a simple way.
  */
 static char nameNoDup[COL_HEAD_LEN];
-static char *format(char *name)
+char *formatDDL(char *name)
+{
+  /* Leave room for _DATE etc as prefix */
+  return formatDDLMaxLength(name,27);
+}
+
+char *formatDDLMaxLength(char *name,int maxLength)
 { char *i = name;
   char *o = nameNoDup;
   char prev = '.';
   char c;
-
-  /* Start by stripping trailing spaces */
-  for (i = name + strlen(name) -1;
-      (i >= name) && (*i == ' ');
-      i--)
-    *i = 0;
-
 
   /* Copy the string, replacing problematic chars as we go */
   i = name;
@@ -209,10 +200,15 @@ static char *format(char *name)
       o--)
     *o = 0;
 
-  /* Check for column name length - I've seen this as a limit in some DBs */
-  /* Leave room for _DATE etc as prefix */
-  if (strlen(nameNoDup) > 27)
-    printf("Warning: Column %s may be too long\n",nameNoDup);
+  /*************************************************************************/
+  /* Check for column name length - I've seen this as a limit in some DBs. */
+  /* Will sometimes come into this function neeeding to account for adding */
+  /* the (DATE)/(TIME) component so modify the maxLength.                  */
+  /*************************************************************************/
+  if (!strstr(name,"(DATE)") || !strstr(name,"(TIME)"))
+    maxLength += 7;
+  if (strlen(nameNoDup) > maxLength)
+    fprintf(stderr,"Warning: Column %s may be too long\n",nameNoDup);
 
   return nameNoDup;
 }

@@ -50,20 +50,21 @@ void printQJST(qjst *p)
   if (conv16(p->qjstll)>=offsetof(qjst,qjstio))
   {
     /* Array of 1 entry! Reserved space follows for 2 more, but they   */
-    /* are not currently used.                                         */
+    /* are not currently used. If the others are ever used, change the */
+    /* macro to use ADDSxxIDX                                          */
     for (i=0;i<1;i++)
     {
       if (first)
         sprintf(index,"%d",i+1);
 
-      ADDS32IDX("Comp_Requests"            , index,p->qjstcompr[i].qjstcmpreq);
-      ADDS32IDX("Comp_Fail"                , index,p->qjstcompr[i].qjstcmpfail);
-      ADDS64IDX("Comp_Uncompressed_Bytes"  , index,p->qjstcompr[i].qjstcmpuncmp);
-      ADDS64IDX("Comp_Compressed_Bytes"    , index,p->qjstcompr[i].qjstcmpcomp);
-      ADDS32IDX("Decomp_Requests"          , index,p->qjstcompr[i].qjstdecreq);
-      ADDS32IDX("Decomp_Fail"              , index,p->qjstcompr[i].qjstdecfail);
-      ADDS64IDX("Decomp_Uncompressed_Bytes", index,p->qjstcompr[i].qjstdecuncmp);
-      ADDS64IDX("Decomp_Compressed_Bytes"   , index, p->qjstcompr[i].qjstdeccomp);
+      ADDS32("Comp_Requests"            , p->qjstcompr[i].qjstcmpreq);
+      ADDS32("Comp_Fail"                , p->qjstcompr[i].qjstcmpfail);
+      ADDS64("Comp_Uncompressed_Bytes"  , p->qjstcompr[i].qjstcmpuncmp);
+      ADDS64("Comp_Compressed_Bytes"    , p->qjstcompr[i].qjstcmpcomp);
+      ADDS32("Decomp_Requests"          , p->qjstcompr[i].qjstdecreq);
+      ADDS32("Decomp_Fail"              , p->qjstcompr[i].qjstdecfail);
+      ADDS64("Decomp_Uncompressed_Bytes", p->qjstcompr[i].qjstdecuncmp);
+      ADDS64("Decomp_Compressed_Bytes"  , p->qjstcompr[i].qjstdeccomp);
     }
   }
 

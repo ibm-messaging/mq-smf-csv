@@ -90,6 +90,13 @@ typedef struct
   triplet_t  s[12];
 } SMFRecord_t;
 
+typedef struct columnHeader_s {
+  char *name;
+  int   idx;
+  void *arrayLine;
+} columnHeader_t;
+
+
 /*********************************************************************/
 /* This is the largest that an SMF record can be.                    */
 /*********************************************************************/
@@ -117,7 +124,8 @@ typedef struct {
   char qMgr[4];
   char mqVer[3];
   char padding;
-  char stckFormat[64];                  /* STCK as string date/time */
+  char stckFormatDate[64];                  /* STCK as string date/time */
+  char stckFormatTime[64];                  /* STCK as string date/time */
 } commonFields_t;
 
 /********************************************************************/
@@ -154,8 +162,17 @@ extern void printWTID  (wtid *, unsigned char *);
 extern void openDDL    (char *);
 extern void closeDDL   (char *);
 extern void printDDL   (char *,int, int);
+extern char *formatDDL (char *);
+extern char *formatDDLMaxLength (char *,int);
 extern void addIndex   (char *);
 
+extern void  jsonNew(FILE *,char *);
+extern void  jsonDump(FILE *, columnHeader_t **);
+extern columnHeader_t *jsonFormatHeader(BOOL,char *);
+extern void  jsonAddInt(columnHeader_t *,int);
+extern void  jsonAddInt64(columnHeader_t *,long long);
+extern void  jsonAddString(columnHeader_t *,char *,int);
+extern void  jsonAddNumericString(columnHeader_t *,char *,int);
 
 /*******************************************************/
 /* Windows has some efficient macros to reverse bytes. */
@@ -177,7 +194,7 @@ extern void   convInit();              /* Initialise endianness            */
 extern char  *convBin(unsigned char *inbuf, int length );/* Print as hex string*/
 extern char  *convStr(unsigned char *,int);/* Convert EBCDIC string to ASCII*/
 extern char  *convSecUSec(unsigned long long s);/* Convert stck durations to string containing sec,usec*/
-extern char  *convDate(unsigned long long s);  /* Convert stck to date/time*/
+extern void   convDate(unsigned long long s,char *dt[2]);  /* Convert stck to date/time*/
 extern int    looksLikeNum(int l, char *c);
 
 extern char  *stckConv(unsigned long long stck, char * output);
@@ -200,17 +217,13 @@ extern char *strMQCHLD  (int v);
 extern char *strCfStatType  (int v);
 
 /**********************************************************/
-/* How long are the lines for data and headings.          */
+/* Information about the column headings.                 */
 /* These are fixed, and need to be long enough for        */
 /* the contents. We do check whether data has overflowed  */
-/* and abend if it has. It's not ideal but works well-    */
-/* enough. One table (WQ) has a lot of columns because    */
-/* of nested arrays, and it generates >10K chars for its  */
-/* headings - hence picking numbers here that are much    */
-/* more than that.                                        */
+/* and abend if it has.                                   */
 /**********************************************************/
-#define HEADINGS_LEN (20000)
-#define DATA_LEN     (20000)
+#define COL_HEAD_LEN (64)    /* Max len of a column name  */
+#define HEADINGS_COUNT (512) /* Max columns per table     */
 
 /**********************************************************/
 /* Datatypes that allow creation of SQL DDL statements    */
@@ -219,7 +232,20 @@ extern char *strCfStatType  (int v);
 #define DDL_I64      (2)
 #define DDL_C        (3)
 #define DDL_SUS      (4)
-#define DDL_DATETIME (5)
+#define DDL_DATE     (5)
+#define DDL_TIME     (6)
+
+/**********************************************************/
+/* Datatypes for formatting in JSON. keep them distinct   */
+/* from the DDL datatypes above as they have different    */
+/* reasons to be used.                                    */
+/**********************************************************/
+#define ODT_I        (21)
+#define ODT_I64      (22)
+#define ODT_C        (23)
+#define ODT_FIXEDC   (24)
+#define ODT_USEC     (25)
+#define ODT_VAR      (26)
 
 /************************************************************************/
 /* Some "unsigned 64-bit" in the SMF are really pointers or correlators */
@@ -248,110 +274,123 @@ extern char *strCfStatType  (int v);
 /*     SMFPRINTSTOP;                                      */
 /*   }                                                    */
 /**********************************************************/
-extern FILE *smfPrintStart(char *,void *,size_t,BOOL *,BOOL *);
-extern void  smfPrintStop(FILE *,BOOL, BOOL *);
-extern void  smfAddHead(BOOL first,char *h,int type,int len);
-extern void  smfAddData(char *fmt,...);
+extern FILE *smfPrintStart(FILE *,char *,void *,size_t,BOOL *,BOOL *,columnHeader_t **);
+extern void  smfPrintStop(FILE *,BOOL, BOOL *,columnHeader_t **);
+extern void  smfAddHead(BOOL first,BOOL,char *h,int type,int len);
+extern void  smfAddData(int datatype,char *fmt,...);
+extern void  smfAddString(int, char *);
 
 #define SMFPRINTGLOB \
   static BOOL first = TRUE;\
   static BOOL newFile = TRUE;\
-  static FILE *fp = NULL
+  static FILE *fp = NULL;\
+  static char *dt[2];\
+  static columnHeader_t *columns[HEADINGS_COUNT]
 
 #define SMFPRINTSTART(n,p,l) \
-  fp = smfPrintStart(n,p,l,&first,&newFile);
+  fp = smfPrintStart(fp,n,p,l,&first,&newFile,&columns[0]);
 
 #define SMFPRINTSTOP \
-  smfPrintStop(fp, newFile, &first);
+  smfPrintStop(fp, newFile, &first, &columns[0]);
 
-#define ADDHEAD(a,b,c) smfAddHead(first,a,b,c)
-#define ADDDATA(f,...) smfAddData(f,__VA_ARGS__)
+#define ADDHEAD(a,b,c) smfAddHead(first,FALSE,a,b,c)
+#define ADDHEADIDX(a,b,c) smfAddHead(first,TRUE,a,b,c)
+#define ADDDATA(t,f,...)    smfAddData(t,f,__VA_ARGS__)
 
 #define ADDS64(h,v) \
   ADDHEAD(h,DDL_I64,0); \
-  ADDDATA("%lld,",conv64(v))
+  ADDDATA(ODT_I64,"%lld,",conv64(v))
 
 #define ADDU64(h,v) \
   ADDHEAD(h,DDL_I64,0); \
-  ADDDATA("%lld,",(DROPSIGN & conv64(v)))
+  ADDDATA(ODT_I64,"%lld,",(DROPSIGN & conv64(v)))
 
 #define ADDS64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead,DDL_I64,0); \
-  ADDDATA("%lld,",conv64(v))
+  ADDHEADIDX(tmpHead,DDL_I64,0); \
+  ADDDATA(ODT_I64,"%lld,",conv64(v))
 
 #define ADDU64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead,DDL_I64,0); \
-  ADDDATA("%lld,",(DROPSIGN & conv64(v)))
+  ADDHEADIDX(tmpHead,DDL_I64,0); \
+  ADDDATA(ODT_I64,"%lld,",(DROPSIGN & conv64(v)))
 
 #define ADDS32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA("%d,",conv32(v))
+  ADDDATA(ODT_I,"%d,",conv32(v))
 
 #define ADDU32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA("%u,",conv32(v))
+  ADDDATA(ODT_I,"%u,",conv32(v))
 
 #define ADDX32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA("%X,",conv32(v))
+  ADDDATA(ODT_I,"%X,",conv32(v))
 
 #define ADDS32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead,DDL_I,0); \
-  ADDDATA("%d,",conv32(v))
+  ADDHEADIDX(tmpHead,DDL_I,0); \
+  ADDDATA(ODT_I,"%d,",conv32(v))
 
 #define ADDU32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDHEAD(tmpHead,DDL_I,0); \
-  ADDDATA("%u,",conv32(v))
+  ADDHEADIDX(tmpHead,DDL_I,0); \
+  ADDDATA(ODT_I,"%u,",conv32(v))
 
 #define ADDS16(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA("%hd,",conv16(v))
+  ADDDATA(ODT_I,"%hd,",conv16(v))
 
 #define ADDU16(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA("%hu,",conv16(v))
+  ADDDATA(ODT_I,"%hu,",conv16(v))
 
 #define ADDBYTE(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA("%u,",(v))
+  ADDDATA(ODT_I,"%u,",(v))
 
 #define ADDTIME(h,v) \
-  sprintf(tmpHead,"%s (DATE),%s (TIME)",h,h); \
-  ADDHEAD(tmpHead,DDL_DATETIME,0); \
-  ADDDATA("%s,",convDate(v))
+  convDate(v,dt); \
+  sprintf(tmpHead,"%s (DATE)",h); \
+  ADDHEAD(tmpHead,DDL_DATE,0); \
+  ADDDATA(ODT_C,"%s,",dt[0]);\
+  sprintf(tmpHead,"%s (TIME)",h); \
+  ADDHEAD(tmpHead,DDL_TIME,0); \
+  ADDDATA(ODT_C,"%s,",dt[1])
 
 #define ADDTIMEIDX(h,idx,v) \
-  sprintf(tmpHead,"%s{%s} (DATE),%s{%s} (TIME)",h,idx,h,idx); \
-  ADDHEAD(tmpHead,DDL_DATETIME,0); \
-  ADDDATA("%s,",convDate(v))
+  convDate(v,dt); \
+  sprintf(tmpHead,"%s{%s} (DATE)",h,idx); \
+  ADDHEADIDX(tmpHead,DDL_DATE,0); \
+  ADDDATA(ODT_C,"%s,",dt[0]); \
+  sprintf(tmpHead,"%s{%s} (TIME)",h,idx); \
+  ADDHEADIDX(tmpHead,DDL_TIME,0); \
+  ADDDATA(ODT_C,"%s,",dt[1])
 
 #define ADDSTCK(h,v) \
-  if (outputFormat == OF_SQL) \
-  sprintf(tmpHead,"%s(US)",h); \
-  else\
-  sprintf(tmpHead,"%s(S),%s(US)",h,h); \
-  ADDHEAD(tmpHead,DDL_SUS,0); \
-  ADDDATA("%s,",convSecUSec(v))
+  if (outputFormat == OF_CSV) {\
+    sprintf(tmpHead,"%s(S)",h); \
+    ADDHEAD(tmpHead,DDL_C,0); \
+    sprintf(tmpHead,"%s(US)",h); \
+    ADDHEAD(tmpHead,DDL_C,0); \
+  } else{ \
+   sprintf(tmpHead,"%s(US)",h); \
+    ADDHEAD(tmpHead,DDL_SUS,0); \
+  } \
+  ADDDATA(ODT_USEC,"%s,",convSecUSec(v))
 
 #define ADDSTCKIDX(h,idx,v) \
-  if (outputFormat == OF_SQL) \
+  if (outputFormat != OF_CSV) \
   sprintf(tmpHead,"%s{%s}(US)",h,idx); \
   else \
   sprintf(tmpHead,"%s{%s}(S),%s{%s}(US)",h,idx,h,idx); \
-  ADDHEAD(tmpHead,DDL_SUS,0); \
-  ADDDATA("%s,",convSecUSec(v))
+  ADDHEADIDX(tmpHead,DDL_SUS,0); \
+  ADDDATA(ODT_USEC,"%s,",convSecUSec(v))
 
 /* Add ASCII string, known length - underpins the other ADDSTRxx macros */
 #define ADDSTRN(h,v,l,maxlen) \
    ADDHEAD(h,DDL_C,maxlen); \
-   { char *equ=""; \
-     if (looksLikeNum(l,v) && addEquals) equ="="; \
-        ADDDATA("%s\"%-*.*s\",",equ,l,l,v);\
-   }
+   smfAddString(l,v)
 
 #define ADDSTR(h,v,maxlen) \
   ADDSTRN(h,v,strlen(v),maxlen)             /* ASCII string null terminated*/
@@ -359,17 +398,13 @@ extern void  smfAddData(char *fmt,...);
 #define ADDSTRB(h,v,len) \
   ADDSTR(h,convBin(v,len),len*2+1)                         /* Binary string*/
 
-#define ADDSTRIDX(h,idx, v) \
-  if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDSTRN(tmpHead,v,strlen(v),)
-
 #define ADDSTREN(h,v,l) \
   ADDSTRN(h,convStr(v,l),l,l)                /* EBCDIC string, known length*/
 
 #define ADDSTRENIDX(h,idx, v,l) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
-  ADDSTREN(tmpHead,v,l)                      /* EBCDIC string, known length*/
-
+  ADDHEADIDX(tmpHead,DDL_C,l);\
+  smfAddString(l,convStr(v,l))               /* EBCDIC string, known length*/
 
 #define ADDINDEX(n) \
   if (first) { \
@@ -381,7 +416,7 @@ extern void  smfAddData(char *fmt,...);
 /* useful during initial debug.          */
 /*****************************************/
 #define CHECKEYE(ptr,e) \
-  { \
+   \
     if (ptr && memcmp(e,convStr(ptr,4),4)) \
     { \
       printf("Bad eyecatcher for %s\n",e); \
@@ -392,9 +427,6 @@ extern void  smfAddData(char *fmt,...);
 /*****************************************/
 /* Global variables - defined in mqsmf.c */
 /*****************************************/
-extern char headings[];
-extern char tmpHead[];
-extern char dataline[];
 extern unsigned char  EBCDIC_TO_ASCII[];
 extern int  debugLevel;
 extern BOOL  addEquals;
@@ -402,8 +434,10 @@ extern BOOL  printHeaders;
 extern unsigned int   recordType;
 extern unsigned short recordSubType;
 extern commonFields_t commonF;
+extern char tmpHead[];
+extern FILE *infoStream;
 
-enum outputFormat_e { OF_SQL, OF_JSON, OF_CSV };
+enum outputFormat_e { OF_CSV=0, OF_SQL=1, OF_JSON=2 };
 extern enum outputFormat_e outputFormat;
 
 #endif

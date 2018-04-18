@@ -64,3 +64,9 @@ Mar 2018
 * Add code to help add INDEX to columns in the SQL DDL output
 * Add optimisation to Makefiles
 * Even 64-bit values may be too large when they are not really counters
+
+Apr 2018
+* Add -f option to generate JSON output format
+* Allow -o to specify stdout for output. Modify printf to select stdout/stderr
+as appropriate
+* Add processing rate (MB/sec) to output

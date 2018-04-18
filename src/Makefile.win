@@ -1,9 +1,10 @@
 CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J /O2
-VERS=904
+VERS=905
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
       smfConv.c \
+      smfJson.c \
       smfPrint.c \
       printDEBUG.c \
       printQ5ST.c    \

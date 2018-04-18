@@ -1,12 +1,13 @@
 
 CC=i686-w64-mingw32-gcc
-CFLAGS= -I. -m32
+CFLAGS= -I. -m32 -O2
 PLATFLAGS=
-VERS=904
+VERS=905
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
       smfConv.c \
+      smfJson.c \
       smfPrint.c \
       printDEBUG.c \
       printQ5ST.c    \

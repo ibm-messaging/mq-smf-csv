@@ -42,13 +42,13 @@ void printQMAC(qmac *p, qwhc *pqwhc)
 
   ADDSTCK("CPU_Time", p->qmaccput);
 
-  ADDU32("Puts_Len_0_99"      , p->qmacputl.qmacputa);
-  ADDU32("Puts_Len_100_999"   , p->qmacputl.qmacputb);
-  ADDU32("Puts_Len_1000_9999" , p->qmacputl.qmacputc);
+  ADDU32("Puts_Len_0to99"      , p->qmacputl.qmacputa);
+  ADDU32("Puts_Len_100to999"   , p->qmacputl.qmacputb);
+  ADDU32("Puts_Len_1000to9999" , p->qmacputl.qmacputc);
   ADDU32("Puts_Len_10000"     , p->qmacputl.qmacputd);
-  ADDU32("Gets_Len_0_99"      , p->qmacgetl.qmacgeta);
-  ADDU32("Gets_Len_100_999"   , p->qmacgetl.qmacgetb);
-  ADDU32("Gets_Len_1000_9999" , p->qmacgetl.qmacgetc);
+  ADDU32("Gets_Len_0to99"      , p->qmacgetl.qmacgeta);
+  ADDU32("Gets_Len_100to999"   , p->qmacgetl.qmacgetb);
+  ADDU32("Gets_Len_1000to9999" , p->qmacgetl.qmacgetc);
   ADDU32("Gets_Len_10000"     , p->qmacgetl.qmacgetd);
 
   SMFPRINTSTOP;

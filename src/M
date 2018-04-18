@@ -4,22 +4,29 @@ plat=`uname`
 
 if [ "$plat" = "AIX" ]
 then
-  flags="-q32 -qmaxmem=-1"
+  flags="-q32 -qmaxmem=-1 $CCEXTRAFLAGS"
   cc="xlc"
   targdir="../bin/aix"
+  optim="-O3"
 else
-  flags="-m32 "
+  flags="-m32 $CCEXTRAFLAGS"
   cc="gcc"
   targdir="../bin/linux"
+  optim="-O3"
 fi
 if [ "$CCDEBUG" != "" ]
 then
-  flags="$flags -g"
+  if [ "$plat" = "AIX" ]
+  then
+    flags="$flags -g "
+  else
+    flags="$flags -g -fsanitize=address,leak,undefined "
+  fi
 else
-  flags="$flags -O"
+  flags="$flags $optim"
 fi
 
-export PLATFLAGS=$flags CC=$cc VERS=904
+export PLATFLAGS=$flags CC=$cc VERS=905
 make -e -f Makefile.unix $*
 
 rm -f $targdir/convH $targdir/mqsmfcsv

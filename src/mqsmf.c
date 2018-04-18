@@ -103,6 +103,7 @@ typedef struct stat mystat_t;
 static void Usage();
 void takeCheckPoint(char *,myoff_t);
 myoff_t readCheckPoint(FILE *);
+static char *getFormatRate(myoff_t pos);
 
 #define DEFAULT_TICKER   10000         /* Print out status every N records */
 
@@ -113,8 +114,10 @@ int   debugLevel = 0;
 BOOL  addEquals = TRUE;
 BOOL  printHeaders = TRUE;
 BOOL  useRDW = TRUE;
+BOOL  streamOutput = FALSE;
 commonFields_t commonF = {0};
 enum outputFormat_e outputFormat = OF_CSV;
+FILE *infoStream;
 
 unsigned int   recordType;
 unsigned short   recordSubType;
@@ -143,6 +146,10 @@ static BOOL  resumeCheckPoint = FALSE;
 static char *directory = NULL;
 static unsigned int totalRecords = 0;
 static unsigned int startingRecords = 0;
+static myoff_t pos;
+
+static time_t startTime = 0;
+static char *formatRate;
 
 static unsigned int Count115[256] = {0};             /* Max subtype is 255 */
 static unsigned int Count116[256] = {0};
@@ -173,7 +180,7 @@ int main( int argc, char *argv[] )
   int   offset;                        /* total number of bytes in a record*/
   unsigned int d[3];                   /* used in date conversion          */
   unsigned int ddd,year;               /* day number and year number       */
-  unsigned int time;                   /* Copied from the SMF header       */
+  unsigned int smfTime;                   /* Copied from the SMF header       */
 
   char *inputFile = NULL;
   FILE *fp;
@@ -215,20 +222,21 @@ int main( int argc, char *argv[] )
       (sizeof(long long) != 8) ||
       (sizeof(int) != 4))
   {
-    printf("Data type sizes do not match requirements.\n");
-    printf("Need to rebuild program with correct options.\n");
-    printf("Here: short=%d int=%d long=%d long long=%d bytes\n",
+    fprintf(stderr,"Data type sizes do not match requirements.\n");
+    fprintf(stderr,"Need to rebuild program with correct options.\n");
+    fprintf(stderr,"Here: short=%d int=%d long=%d long long=%d bytes\n",
        sizeof(short), sizeof(int), sizeof(long), sizeof(long long));
-    printf("Need: short=%d int=%d long=%d long long=%d bytes\n",2,4,4,8);
+    fprintf(stderr,"Need: short=%d int=%d long=%d long long=%d bytes\n",2,4,4,8);
     exit(1);
   }
 
-  /*printf("Sizeof qwhs = %d\n",sizeof(qwhs));*/
+  infoStream=stdout;
+
+  /*fprintf(infoStream,"Sizeof qwhs = %d\n",sizeof(qwhs));*/
 
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  printf("MQ SMF CSV - Build %s %s\n",__DATE__,__TIME__);
   while((c = mqgetopt(argc, argv, "acd:f:h:i:m:o:rst:")) != EOF)
   {
     switch(c)
@@ -254,6 +262,8 @@ int main( int argc, char *argv[] )
           outputFormat = OF_JSON;
         else if (strstr(mqoptarg,"SQL"))
           outputFormat = OF_SQL;
+        else if (strstr(mqoptarg,"CSV"))
+          outputFormat = OF_CSV;
         break;
       case 'h':
         for (i=0;i<strlen(mqoptarg);i++)
@@ -269,6 +279,11 @@ int main( int argc, char *argv[] )
         break;
       case 'o':
         directory = mqoptarg;
+        if (!strcmp(directory,"-"))
+        {
+          infoStream = stderr;
+          streamOutput=TRUE;
+        }
         break;
       case 'r':
         addEquals = 0;
@@ -277,6 +292,7 @@ int main( int argc, char *argv[] )
         outputFormat = OF_SQL;
         printHeaders = FALSE;
         addEquals = 0;
+        fprintf(stderr,"The -s option is now deprecated. Please use '-f sql' in future.\n");
         break;
       case 't':
         ticker     = atoi(mqoptarg);
@@ -286,6 +302,8 @@ int main( int argc, char *argv[] )
         break;
     }
   }
+
+  fprintf(infoStream,"MQ SMF CSV - Build %s %s\n",__DATE__,__TIME__);
 
   /******************************************************************/
   /* Were there any problems parsing the parameters.                */
@@ -311,7 +329,7 @@ int main( int argc, char *argv[] )
   /*********************************************************************/
   if (!inputFile && !useRDW)
   {
-    printf("Cannot use NORDW format input via stdin piping\n");
+    fprintf(stderr,"Cannot use NORDW format input via stdin piping\n");
     exit(1);
   }
 
@@ -321,7 +339,7 @@ int main( int argc, char *argv[] )
   fp = inputFile?fopen(inputFile, "rb" ):stdin;
   if (!fp)
   {
-    printf(" Cannot open input file %s. Error \"%s\" (%d)\n",
+    fprintf(stderr," Cannot open input file %s. Error \"%s\" (%d)\n",
       inputFile,strerror(errno),errno);
     goto mod_exit;
   }
@@ -334,7 +352,7 @@ int main( int argc, char *argv[] )
   fstat(fileno(fp),&statbuf);
   totalFileSize = statbuf.st_size;
   if (debugLevel >=3 )
-    printf("Total File Size = %lld\n",totalFileSize);
+    fprintf(infoStream,"Total File Size = %lld\n",totalFileSize);
 
   convInit();      /* Decide whether this is a big or little endian machine*/
 
@@ -345,7 +363,7 @@ int main( int argc, char *argv[] )
     basename = inputFile;
   else
     basename = b+1;
-  printf("Input file: %s. Format: %s.\n",basename, useRDW?"RDW":"Without RDW");
+  fprintf(infoStream,"Input file: %s. Format: %s.\n",basename, useRDW?"RDW":"Without RDW");
 
   /********************************************************************/
   /* Open the checkpoint file for reading if we have been asked to do */
@@ -358,7 +376,7 @@ int main( int argc, char *argv[] )
     FILE *checkPointFP = fopen(checkPointFileName,"r");
     if (!checkPointFP)
     {
-      printf(" Cannot open checkpoint file %s. Error \"%s\" (%d)\n",
+      fprintf(stderr," Cannot open checkpoint file %s. Error \"%s\" (%d)\n",
         checkPointFileBaseName,strerror(errno),errno);
       goto mod_exit;
     }
@@ -369,11 +387,12 @@ int main( int argc, char *argv[] )
   /********************************************************************/
   /* Loop until we have no more data or enough records have been read */
   /********************************************************************/
+  startTime = time(&startTime);
   currentOffset = startingOffset;
   totalRecords = startingRecords;
   seekRc = (currentOffset!=0)?fseeko(fp,currentOffset,SEEK_SET):0;
   if (seekRc == -1) {
-    printf("Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
+    fprintf(stderr,"Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
     goto mod_exit;
   }
 
@@ -413,12 +432,12 @@ int main( int argc, char *argv[] )
       /********************************************************************/
       nextLength = conv16(pSMFRecord->Header.SMFLEN) - 4;
       if (debugLevel >=3)
-        printf("   NextLen = %d bytes \n",nextLength);
+        fprintf(infoStream,"   NextLen = %d bytes \n",nextLength);
 
       bytesRead = fread(&pSMFRecord->Header.SMFRECFLG, 1, nextLength , fp);
       if (bytesRead != nextLength)
       {
-        printf("Error reading full record from input file\n");
+        fprintf(stderr,"Error reading full record from input file\n");
         goto mod_exit;
       }
       offset = bytesRead + 4;
@@ -444,11 +463,11 @@ int main( int argc, char *argv[] )
           fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
 
           if (debugLevel >=3)
-            printf("   NextLen = %d bytes \n",nextLength);
+            fprintf(infoStream,"   NextLen = %d bytes \n",nextLength);
 
           if (offset+nextLength > sizeof(dataBuf))
           {
-            printf("SMF record appears to be too large for buffer\n");
+            fprintf(stderr,"SMF record appears to be too large for buffer\n");
             goto mod_exit;
           }
 
@@ -463,7 +482,7 @@ int main( int argc, char *argv[] )
     {
       seekRc = fseeko(fp,currentOffset,SEEK_SET);
       if (seekRc == -1) {
-        printf("Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
+        fprintf(stderr,"Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
         goto mod_exit;
       }
       bytesRead = fread(&pSMFRecord->Header.SMFRECFLG,1,32768,fp);
@@ -526,22 +545,22 @@ int main( int argc, char *argv[] )
     /* hundredths of a second past midnight.  Need to convert to correct */
     /* endianness first.                                                 */
     /*********************************************************************/
-    memcpy(&time,&(pSMFRecord->Header.SMFRECTME),4);
-    time=conv32(time);
+    memcpy(&smfTime,&(pSMFRecord->Header.SMFRECTME),4);
+    smfTime=conv32(smfTime);
     {
       int mon, day;
       int hour, min,sec,hund;
       char *sep;
       calcYMD(year, ddd, &mon, &day);
 
-      hund = time % 100;
-      time = time / 100;
+      hund = smfTime % 100;
+      smfTime = smfTime / 100;
 
-      hour = (time / (60 * 60)) % 24;
-      time = time - (hour * 60 * 60);
-      min = (time / 60) % 60;
-      time = time - (min * 60);
-      sec = time % 60;
+      hour = (smfTime / (60 * 60)) % 24;
+      smfTime = smfTime - (hour * 60 * 60);
+      min = (smfTime / 60) % 60;
+      smfTime = smfTime - (min * 60);
+      sec = smfTime % 60;
 
       if (outputFormat == OF_SQL)
         sep = "-";
@@ -561,10 +580,11 @@ int main( int argc, char *argv[] )
       /* sorts that out, as well as looking consistent with other places */
       /* where a full STCK is formatted.                                 */
       /*******************************************************************/
-      sprintf(commonF.recordTime,"%02.2d:%02.2d:%02.2d,%02.2d0000",
+      sprintf(commonF.recordTime,"%02.2d:%02.2d:%02.2d%s%02.2d0000",
         hour,
         min,
         sec,
+        (outputFormat==OF_JSON)?".":",",
         hund);
     }
 
@@ -593,9 +613,12 @@ int main( int argc, char *argv[] )
       }
       else
       {
+        char *dt[2];
         pqwhs = (qwhs *)p;
         sectionCount =  pqwhs->qwhsnsda[0];
-        strcpy(commonF.stckFormat,convDate(pqwhs->qwhsstck));
+        convDate(pqwhs->qwhsstck,dt);
+        strcpy(commonF.stckFormatDate,dt[0]);
+        strcpy(commonF.stckFormatDate,dt[1]);
         if (recordType == 115)
         {
           if (conv16(pqwhs->qwhslen) >= 52)
@@ -625,7 +648,7 @@ int main( int argc, char *argv[] )
     }
 
     if (debugLevel >=3 && pqwhs != NULL)
-       printf("Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
+       fprintf(infoStream,"Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
 
     /*********************************************************************/
     /* One we know how many sections there are, copy the triplet values  */
@@ -669,7 +692,7 @@ int main( int argc, char *argv[] )
 
       if (debugLevel >= 3)
       {
-        printf("Highest triple = %d RecLength = %d New Offset = %lld\n",
+        fprintf(infoStream,"Highest triple = %d RecLength = %d New Offset = %lld\n",
           h, recLength,currentOffset);
       }
 
@@ -841,7 +864,7 @@ int main( int argc, char *argv[] )
         knownSubType = FALSE;
         sprintf(tmpHead,"Unknown SMF 115 subtype %d",recordSubType);
         printDEBUG(tmpHead, dataBuf,offset);
-        printf("%s\n",tmpHead);
+        fprintf(infoStream,"%s\n",tmpHead);
         break;
       }
       if (knownSubType)
@@ -927,7 +950,7 @@ int main( int argc, char *argv[] )
         knownSubType = FALSE;
         sprintf(tmpHead, "Unknown subtype %d for 116 records");
         printDEBUG(tmpHead, dataBuf,offset);
-        printf("%s\n",tmpHead);
+        fprintf(infoStream,"%s\n",tmpHead);
         break;
       }
       if (knownSubType)
@@ -943,15 +966,16 @@ int main( int argc, char *argv[] )
       unknownCount++;
       sprintf(tmpHead,"Unknown SMF record type %d at record %u",recordType,totalRecords);
       printDEBUG(tmpHead, dataBuf,offset);
-      printf("%s\n",tmpHead);
+      fprintf(infoStream,"%s\n",tmpHead);
     }
 
     if (totalRecords % ticker == 0 && totalRecords > startingRecords)
     {
-      myoff_t     pos;
       pos = ftello(fp);
-      printf("Processed %u records [%5.2f%%]\n",totalRecords,(totalFileSize > 0)?((float)(100.0*pos)/totalFileSize):(float)0);
-      takeCheckPoint(checkPointFileName,pos);
+      formatRate = getFormatRate(pos);
+      fprintf(infoStream,"Processed %u records [%5.2f%%] %s\n",totalRecords,(totalFileSize > 0)?((float)(100.0*pos)/totalFileSize):(float)0,formatRate);
+      if (!streamOutput && outputFormat != OF_JSON)
+        takeCheckPoint(checkPointFileName,pos);
     }
 
     if (debugBREAK) /* for testing purposes */
@@ -959,7 +983,7 @@ int main( int argc, char *argv[] )
       /* Want to force an abend at some point after a checkpoint */
       if (totalRecords % ticker == 3 && checkPointTaken)
       {
-        printf("Testing: Exiting after %d records processed\n",totalRecords);
+        fprintf(infoStream,"Testing: Exiting after %d records processed\n",totalRecords);
         exit(0);
       }
     }
@@ -970,9 +994,10 @@ int main( int argc, char *argv[] )
   /* file is not needed any more, so it is deleted.                      */
   /***********************************************************************/
   if (debugLevel >= 1) {
-    printf("Removing checkpoint file\n");
+    fprintf(infoStream,"Removing checkpoint file\n");
   }
   remove(checkPointFileName);
+  pos = ftello(fp);
 
 mod_exit:
 
@@ -984,7 +1009,9 @@ mod_exit:
     }
   }
 
-  printf("Processed %u records total\n",totalRecords);
+  formatRate = getFormatRate(pos);
+  fprintf(infoStream,"Processed %u records total %s\n",totalRecords,formatRate);
+
 
   /**********************************************************************/
   /* If the program has been restarted via checkpoint, these counts are */
@@ -992,18 +1019,18 @@ mod_exit:
   /**********************************************************************/
   if (!resumeCheckPoint) {
     if (unknownCount >0)
-      printf("  Unknown                   record count: %u\n",unknownCount);
+      fprintf(infoStream,"  Unknown                   record count: %u\n",unknownCount);
     if (ignoredCount >0)
-      printf("  Ignored                   record count: %u\n",ignoredCount);
+      fprintf(infoStream,"  Ignored                   record count: %u\n",ignoredCount);
     for (i=0;i<256;i++)
     {
       if (Count115[i] > 0)
-        printf("  Formatted 115 subtype %3d record count: %u\n",i,Count115[i]);
+        fprintf(infoStream,"  Formatted 115 subtype %3d record count: %u\n",i,Count115[i]);
     }
     for (i=0;i<256;i++)
     {
       if (Count116[i] > 0)
-        printf("  Formatted 116 subtype %3d record count: %u\n",i,Count116[i]);
+        fprintf(infoStream,"  Formatted 116 subtype %3d record count: %u\n",i,Count116[i]);
     }
   }
   exit(0);
@@ -1031,31 +1058,34 @@ FILE * fopencsv(const char * basename, BOOL *newFile)
   int seekRc;
 
   FILE * fp = fopenext(basename,"csv",newFile);
-  for (i=0; i<MAXCP;i++) {
-    if (checkPoint[i].name != NULL && strcmp(checkPoint[i].name,basename)==0) {
-       checkPoint[i].fp = fp;
-       seekRc = fseeko(fp,checkPoint[i].offset,SEEK_SET);
-       if (seekRc == -1) {
-         printf("Cannot set recovery location for file %s",basename);
-         exit(1);
-       }
-       return fp;
-    }
-  }
 
-  /* Get here if we've not read an offset from the checkpoint recovery file */
-  for (i=0;i<MAXCP;i++) {
-    if (checkPoint[i].name == NULL) {
-      checkPoint[i].name = strdup(basename);
-      checkPoint[i].fp = fp;
-      checkPoint[i].offset = 0;
-      foundGap = TRUE;
-      break;
+  if (!streamOutput) {
+    for (i=0; i<MAXCP;i++) {
+      if (checkPoint[i].name != NULL && strcmp(checkPoint[i].name,basename)==0) {
+         checkPoint[i].fp = fp;
+         seekRc = fseeko(fp,checkPoint[i].offset,SEEK_SET);
+         if (seekRc == -1) {
+           fprintf(stderr,"Cannot set recovery location for file %s",basename);
+           exit(1);
+         }
+         return fp;
+      }
     }
-  }
-  if (!foundGap) {
-    printf("Need to increase MAXCP and rebuild.\n");
-    exit(1);
+
+    /* Get here if we've not read an offset from the checkpoint recovery file */
+    for (i=0;i<MAXCP;i++) {
+      if (checkPoint[i].name == NULL) {
+        checkPoint[i].name = strdup(basename);
+        checkPoint[i].fp = fp;
+        checkPoint[i].offset = 0;
+        foundGap = TRUE;
+        break;
+      }
+    }
+    if (!foundGap) {
+      fprintf(stderr,"Need to increase MAXCP and rebuild.\n");
+      exit(1);
+    }
   }
   return fp;
 }
@@ -1065,6 +1095,10 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
   FILE  * fp = NULL;
   char filename[PATH_MAX] = {0};
   char *mode = (append)?"a":"w";
+
+  if (streamOutput)
+    return stdout;
+
   if (resumeCheckPoint && append && !strcmp(ext,"csv"))
     mode = "r+";
 
@@ -1089,7 +1123,7 @@ FILE * fopenext(const char * basename, const char *ext, BOOL *newFile)
   }
   else
   {
-    printf(" Cannot open file %s. Error \"%s\" (%d) \n",
+    fprintf(stderr," Cannot open file %s. Error \"%s\" (%d) \n",
       filename, strerror(errno),errno);
   }
   return (fp);
@@ -1107,7 +1141,7 @@ void takeCheckPoint(char *f, myoff_t pos) {
   FILE *fp;
 
   if (debugLevel >=1) {
-    printf("Taking checkpoint\n");
+    fprintf(infoStream,"Taking checkpoint\n");
   }
 
   /********************************************************************/
@@ -1116,7 +1150,7 @@ void takeCheckPoint(char *f, myoff_t pos) {
   fp = fopen(f,"w+");
   if (!fp)
   {
-    printf(" Cannot open checkpoint file %s. Error \"%s\" (%d)\n",
+    fprintf(stderr," Cannot open checkpoint file %s. Error \"%s\" (%d)\n",
        f,strerror(errno),errno);
     exit(1);
   }
@@ -1155,7 +1189,7 @@ myoff_t readCheckPoint(FILE *fp) {
   memset(line,0,sizeof(line));
   c = fgets(line,sizeof(line)-1,fp);
   if (!c) {
-    printf("Error reading from recovery checkpoint file\n");
+    fprintf(stderr,"Error reading from recovery checkpoint file\n");
     exit(1);
   }
 
@@ -1163,10 +1197,10 @@ myoff_t readCheckPoint(FILE *fp) {
   /* First line has two fields for the input file starting state          */
   /************************************************************************/
   sscanf(line,"%d %lld",&startingRecords,&inputOffset);
-  printf("Reading from recovery checkpoint.\n");
+  fprintf(infoStream,"Reading from recovery checkpoint.\n");
 
   if (debugLevel >=1) {
-    printf("InputOffset: %lld Processed records: %d\n",inputOffset, startingRecords);
+    fprintf(infoStream,"InputOffset: %lld Processed records: %d\n",inputOffset, startingRecords);
   }
 
   /************************************************************************/
@@ -1183,7 +1217,7 @@ myoff_t readCheckPoint(FILE *fp) {
       checkPoint[i].name = strdup(field);
       checkPoint[i].offset = offset;
       if (debugLevel >=2) {
-        printf("Loaded status[%d] for %s as offset %lld\n",i,field,offset);
+        fprintf(infoStream,"Loaded status[%d] for %s as offset %lld\n",i,field,offset);
       }
       i++;
     }
@@ -1256,19 +1290,47 @@ int mqgetopt(int argc, char *argv[], char *opts)
 /*****************************************************************/
 static void Usage(void)
 {
-  printf("Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
-  printf("         [-h yes|no] [ -i <input file> [-m <max records>]\n");
-  printf("         [-f RDW | NORDW] [-r ] [-c] [-t <ticker>]\n");
-  printf("  -a               Append to files if they exist. Default is overwrite.\n");
-  printf("  -c               Recover after aborted run by using the checkpoint.\n");
-  printf("  -d <Level>       Debug by dumping binary records (Level = 1 or 2).\n");
-  printf("  -f RDW | NORDW   Input file format. Default is RDW.\n");
-  printf("  -h yes|no        Print column headers for new output files. Default is yes.\n");
-  printf("  -i <Input file>  Default is to read from stdin.\n");
-  printf("  -m <Max records> End after formatting M records. Default to process all.\n");
-  printf("  -o <Directory>   Where to put output files. Default to current directory.\n");
-  printf("  -r               Do not print '=' on numeric-looking strings.\n");
-  printf("  -s               SQL mode - generate DDL for tables.\n");
-  printf("  -t <Ticker>      Print progress message every T records.\n");
+  fprintf(infoStream,"Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
+  fprintf(infoStream,"         [-h yes|no] [ -i <input file> [-m <max records>]\n");
+  fprintf(infoStream,"         [-f RDW | NORDW | JSON | SQL | CSV ] \n");
+  fprintf(infoStream,"         [-r] [-c] [-t <ticker>]\n");
+  fprintf(infoStream,"  -a               Append to files if they exist. Default is overwrite.\n");
+  fprintf(infoStream,"  -c               Recover after aborted run by using the checkpoint.\n");
+  fprintf(infoStream,"  -d <Level>       Debug by dumping binary records (Level = 1 or 2).\n");
+  fprintf(infoStream,"  -f               File formats. Default to RDW for input, CSV for output.\n");
+  fprintf(infoStream,"  -h yes|no        Print column headers for new output files. Default is yes.\n");
+  fprintf(infoStream,"  -i <Input file>  Default is to read from stdin.\n");
+  fprintf(infoStream,"  -m <Max records> End after formatting M records. Default to process all.\n");
+  fprintf(infoStream,"  -o <Directory>   Where to put output files. Default to current directory.\n");
+  fprintf(infoStream,"                   Use '-' to send output to stdout.\n");
+  fprintf(infoStream,"  -r               Do not print '=' on numeric-looking strings.\n");
+  fprintf(infoStream,"  -s               (Deprecated) SQL mode - generate DDL for tables.\n");
+  fprintf(infoStream,"  -t <Ticker>      Print progress message every T records.\n");
   return;
+}
+
+static char formatRateString[64];
+static char *getFormatRate(myoff_t pos)
+{
+   time_t currentTime = time(NULL);
+   time_t elapsedTime = currentTime - startTime;
+   char *units;
+
+   if (elapsedTime == 0)
+     strcpy(formatRateString,"at too fast to count");
+   else {
+     long long formatRate = pos / elapsedTime;
+     if (formatRate > (1024 * 1024))
+     {
+       units="MB";
+       sprintf(formatRateString, "at %lld %s/sec",formatRate/(1024*1024),units);
+     } else if (formatRate > 1024) {
+       units="kB";
+       sprintf(formatRateString, "at %lld %s/sec",formatRate/(1024),units);
+     } else {
+       units="bytes";
+       sprintf(formatRateString, "at %lld %s/sec",formatRate,units);
+     }
+   }
+   return formatRateString;
 }

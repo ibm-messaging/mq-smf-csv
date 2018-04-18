@@ -50,47 +50,70 @@ static int days[12] =
 static unsigned long long int EPOCH1970 = (STCK1972 - (2*STCKYR365));
 
 /********************************************************************/
-/* This formatter for strftime                                      */
+/* Formatters for strftime and some fixed styles depending on       */
+/* output format.                                                   */
 /********************************************************************/
-static char *sqlFmt = "\"%Y-%m-%d\",\"%H:%M:%S";
-static char *csvFmt = "\"%Y/%m/%d\",\"%H:%M:%S";
-static char *sqlEpoch = "\"1970-01-01\",\"00:00:00,000000\"";
-static char *csvEpoch = "\"1970/01/01\",\"00:00:00,000000\"";
-static char *csvEmpty = "\"\",\"\"";
+struct timeFormats_s {
+  char *fmtDate;
+  char *fmtTime;
+  char *epochDate;
+  char *epochTime;
+  char *emptyDate;
+  char *emptyTime;
+  char *decimal;
+} timeFormats[OF_JSON+1] =
+ {
+   { /* CSV */
+     "\"%Y/%m/%d\"",
+     "\"%H:%M:%S",    /* no closing quote on this as it's added later */
+     "\"1970/01/01\"",
+     "\"00:00:00,000000\"",
+     "\"\"",
+     "\"\"",
+     ","
+   },
+   { /* SQL */
+     "\"%Y-%m-%d\"",
+     "\"%H:%M:%S",    /* no closing quote on this as it's added later */
+     "\"1970-01-01\"",
+     "\"00:00:00,000000\"",
+     "\"1970-01-01\"",
+     "\"00:00:00,000000\"",
+     ","
+   },
+   { /* JSON - no embedded quotes in the strings */
+     "%Y-%m-%d",
+     "%H:%M:%S",
+     "1970-01-01",
+     "00:00:00.000000",
+     "1970-01-01",
+     "00:00:00.000000",
+     "."
+   }
+ };
+static char stckDate[64] = {0};
 static char stckTime[64] = {0};
 
 /********************************************************************/
 /* FUNCTION: convDate                                               */
 /* DESCRIPTION:                                                     */
 /*    Convert a STCK value into a formatted timestamp suitable      */
-/*    for the CSV printing. Timestamp is returned in a fixed buffer.*/
+/*    for the printing. Timestamp is returned in a fixed buffer.    */
 /*    This routine does not cope with dates before 1970, but        */
 /*    that's not likely to be a concern for processing MQ SMF.      */
 /********************************************************************/
-char * convDate(unsigned long long stcki)
+void convDate(unsigned long long stcki, char *dt[2])
 {
   time_t sec;
   unsigned long long stck;
   unsigned int usec;
   unsigned long long int s;
   struct tm *t;
-  char *fmt;
-  char *epochTime;
-  char *emptyTime;
-  size_t offset;
+  size_t offset1;
+  size_t offset2;
+  struct timeFormats_s tf;
 
-  if (outputFormat == OF_SQL)
-  { 
-    epochTime = sqlEpoch;
-    emptyTime = sqlEpoch;
-    fmt = sqlFmt;
-  }
-  else
-  {
-    epochTime = csvEpoch;
-    emptyTime = csvEmpty; 
-    fmt = csvFmt;
-  }
+  tf = timeFormats[outputFormat];
 
   stck = conv64(stcki);   /* Always passed in z/OS endian; ensure converted */
 
@@ -99,7 +122,8 @@ char * convDate(unsigned long long stcki)
     /***********************************************************************/
     /* Put a hardcoded value                                               */
     /***********************************************************************/
-    strcpy(stckTime,emptyTime);
+    strcpy(stckTime,tf.emptyTime);
+    strcpy(stckDate,tf.emptyDate);
   }
   else
   {
@@ -110,8 +134,9 @@ char * convDate(unsigned long long stcki)
 
   t = localtime(&sec);                 /* Turn seconds into tm structure...*/
 
-  offset = strftime(stckTime,sizeof(stckTime)-1,fmt,t); /* ...and format it*/
-  if (offset == 0 || stck < EPOCH1970)
+  offset1 = strftime(stckDate,sizeof(stckDate)-1,tf.fmtDate,t); /* ...and format it*/
+  offset2 = strftime(stckTime,sizeof(stckTime)-1,tf.fmtTime,t); /* ...and format it*/
+  if (offset1 == 0 || offset2 == 0 || stck < EPOCH1970)
   {
     /***********************************************************************/
     /* There seem to be occasions where the timestamp is not a proper      */
@@ -119,12 +144,15 @@ char * convDate(unsigned long long stcki)
     /* being recorded. So we put a hardcoded value into the string to make */
     /* those times (MQ bugs?) easy to recognise.                           */
     /***********************************************************************/
-    strcpy(stckTime,epochTime);
+    strcpy(stckTime,tf.epochTime);
+    strcpy(stckDate,tf.epochDate);
   }
   else
-    sprintf(&stckTime[offset],",%6.6d\"",usec);          /* Add on usec value*/
+    sprintf(&stckTime[offset2],"%s%6.6d%s",tf.decimal,usec,(outputFormat==OF_JSON)?"":"\"");          /* Add on usec value*/
   }
-  return stckTime;
+  dt[0] = stckDate;
+  dt[1] = stckTime;
+  return;
 }
 
 /********************************************************************/
