@@ -104,6 +104,7 @@ static void Usage();
 void takeCheckPoint(char *,myoff_t);
 myoff_t readCheckPoint(FILE *);
 static char *getFormatRate(myoff_t pos);
+static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos);
 
 #define DEFAULT_TICKER   10000         /* Print out status every N records */
 
@@ -115,6 +116,7 @@ BOOL  addEquals = TRUE;
 BOOL  printHeaders = TRUE;
 BOOL  useRDW = TRUE;
 BOOL  streamOutput = FALSE;
+BOOL  streamInput = TRUE;
 commonFields_t commonF = {0};
 enum outputFormat_e outputFormat = OF_CSV;
 FILE *infoStream;
@@ -273,6 +275,7 @@ int main( int argc, char *argv[] )
         break;
       case 'i':
         inputFile = mqoptarg;
+        streamInput = FALSE;
         break;
       case 'm':
         maxRecords = atoi(mqoptarg);
@@ -971,9 +974,8 @@ int main( int argc, char *argv[] )
 
     if (totalRecords % ticker == 0 && totalRecords > startingRecords)
     {
-      pos = ftello(fp);
-      formatRate = getFormatRate(pos);
-      fprintf(infoStream,"Processed %u records [%5.2f%%] %s\n",totalRecords,(totalFileSize > 0)?((float)(100.0*pos)/totalFileSize):(float)0,formatRate);
+        fprintf(infoStream,"Processed %u records %s %s\n",totalRecords,
+        getFormatPercent(totalFileSize,pos), getFormatRate(pos));
       if (!streamOutput && outputFormat != OF_JSON)
         takeCheckPoint(checkPointFileName,pos);
     }
@@ -1316,12 +1318,13 @@ static char *getFormatRate(myoff_t pos)
    time_t elapsedTime = currentTime - startTime;
    char *units;
 
-   if (elapsedTime == 0)
+   if (streamInput) {
+     strcpy(formatRateString,"");
+   } else if (elapsedTime == 0) {
      strcpy(formatRateString,"at too fast to count");
-   else {
+   } else {
      long long formatRate = pos / elapsedTime;
-     if (formatRate > (1024 * 1024))
-     {
+     if (formatRate > (1024 * 1024)) {
        units="MB";
        sprintf(formatRateString, "at %lld %s/sec",formatRate/(1024*1024),units);
      } else if (formatRate > 1024) {
@@ -1333,4 +1336,14 @@ static char *getFormatRate(myoff_t pos)
      }
    }
    return formatRateString;
+}
+static char formatPercentString[10];
+static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos)
+{
+  if (streamInput) {
+    strcpy(formatPercentString,"");
+  } else {
+    sprintf(formatPercentString,"[%5.2f%%]", (float)(100.0*pos)/totalFileSize);
+  }
+  return formatPercentString;
 }
