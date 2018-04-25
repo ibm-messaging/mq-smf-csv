@@ -974,7 +974,8 @@ int main( int argc, char *argv[] )
 
     if (totalRecords % ticker == 0 && totalRecords > startingRecords)
     {
-        fprintf(infoStream,"Processed %u records %s %s\n",totalRecords,
+      pos = ftello(fp);
+      fprintf(infoStream,"Processed %u records %s %s\n",totalRecords,
         getFormatPercent(totalFileSize,pos), getFormatRate(pos));
       if (!streamOutput && outputFormat != OF_JSON)
         takeCheckPoint(checkPointFileName,pos);
