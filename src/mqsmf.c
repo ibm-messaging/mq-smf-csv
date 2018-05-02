@@ -117,6 +117,8 @@ BOOL  printHeaders = TRUE;
 BOOL  useRDW = TRUE;
 BOOL  streamOutput = FALSE;
 BOOL  streamInput = TRUE;
+char *ddlTemplateOpen = NULL;
+char *ddlTemplateClose = NULL;
 commonFields_t commonF = {0};
 enum outputFormat_e outputFormat = OF_CSV;
 FILE *infoStream;
@@ -239,7 +241,7 @@ int main( int argc, char *argv[] )
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  while((c = mqgetopt(argc, argv, "acd:f:h:i:m:o:rst:")) != EOF)
+  while((c = mqgetopt(argc, argv, "acd:e:f:h:i:m:o:p:rst:")) != EOF)
   {
     switch(c)
     {
@@ -253,6 +255,9 @@ int main( int argc, char *argv[] )
       case 'd':
         debugLevel = atoi(mqoptarg);
         break;
+      case 'e':
+         ddlTemplateClose = mqoptarg;
+         break;
       case 'f':
         for (i=0;i<strlen(mqoptarg);i++)
           mqoptarg[i] = toupper(mqoptarg[i]);
@@ -287,6 +292,9 @@ int main( int argc, char *argv[] )
           infoStream = stderr;
           streamOutput=TRUE;
         }
+        break;
+      case 'p': /* 'p' for Pool ... "create bufferpool" is default cmd */
+        ddlTemplateOpen = mqoptarg;
         break;
       case 'r':
         addEquals = 0;
@@ -1002,6 +1010,10 @@ int main( int argc, char *argv[] )
   remove(checkPointFileName);
   pos = ftello(fp);
 
+  if (outputFormat == OF_SQL && ddlTemplateClose != NULL) {
+       closeFinalDDL();
+  }
+
 mod_exit:
 
   fflush(NULL); /* Ensure all streams flushed if possible */
@@ -1296,6 +1308,8 @@ static void Usage(void)
   fprintf(infoStream,"Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
   fprintf(infoStream,"         [-h yes|no] [ -i <input file> [-m <max records>]\n");
   fprintf(infoStream,"         [-f RDW | NORDW | JSON | SQL | CSV ] \n");
+  fprintf(infoStream,"         [-p <template DDL file prefix>  ] \n");
+  fprintf(infoStream,"         [-e <template DDL file ending>  ] \n");
   fprintf(infoStream,"         [-r] [-c] [-t <ticker>]\n");
   fprintf(infoStream,"  -a               Append to files if they exist. Default is overwrite.\n");
   fprintf(infoStream,"  -c               Recover after aborted run by using the checkpoint.\n");
@@ -1306,6 +1320,9 @@ static void Usage(void)
   fprintf(infoStream,"  -m <Max records> End after formatting M records. Default to process all.\n");
   fprintf(infoStream,"  -o <Directory>   Where to put output files. Default to current directory.\n");
   fprintf(infoStream,"                   Use '-' to send output to stdout.\n");
+  fprintf(infoStream,"  -p <file>        Add contents of <file> to start of generated DDL.\n");
+  fprintf(infoStream,"                   Set to '-' to bypass default commands.\n");
+  fprintf(infoStream,"  -e <file>        Add contents of <file> to end of generated DDL.\n");
   fprintf(infoStream,"  -r               Do not print '=' on numeric-looking strings.\n");
   fprintf(infoStream,"  -s               (Deprecated) SQL mode - generate DDL for tables.\n");
   fprintf(infoStream,"  -t <Ticker>      Print progress message every T records.\n");

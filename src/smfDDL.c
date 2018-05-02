@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 #include "mqsmf.h"
 
 static FILE *fp = NULL;
@@ -22,6 +23,9 @@ char *schema = "MQSMF";
 #define INDEXSETSIZE 128
 char *indexSet[INDEXSETSIZE] = {0};
 int   nextIndex = 0;
+
+char templateLine[1024];
+FILE *templateCloseFp = NULL;
 
 /*
  * The DDL generated here is very simple. The
@@ -44,10 +48,51 @@ void openDDL(char *name)
 
    if (!fp)
    {
+     char *c = NULL;
      fp = fopenext("MQTABLES","ddl", &newFile);
      if (!fp) /* fopenext will print detailed error message */
        exit(1);
+
+     /******************************************************************/
+     /* Add some template DDL commands to the output. By default some  */
+     /* commands to create large pagesize items are written. If the    */
+     /* specified template file is called "-" then nothing is written. */
+     /* Otherwise copy from the template to the real DDL               */
+     /******************************************************************/
+     if (ddlTemplateOpen) {
+       if (strcmp(ddlTemplateOpen,"-")) {
+         FILE *templateOpenFp;
+         templateOpenFp = fopen(ddlTemplateOpen,"r");
+         if (!templateOpenFp) {
+          fprintf(stderr," Cannot open file %s. Error \"%s\" (%d) \n",
+            ddlTemplateOpen, strerror(errno),errno);
+            exit(1);
+         }
+         do {
+           c = fgets(templateLine,sizeof(templateLine)-1,templateOpenFp);
+           if (c)
+             fprintf(fp,"%s",templateLine);
+         } while(c);
+         fprintf(fp,"\n");
+       }
+     } else {
+       /* These are some default commands */
+       fprintf(fp,"CREATE BUFFERPOOL MQP8K IMMEDIATE ALL DBPARTITIONNUMS SIZE 1000 AUTOMATIC PAGESIZE 8192;\n");
+       fprintf(fp,"CREATE TABLESPACE MQP8K PAGESIZE 8192 BUFFERPOOL MQP8K;\n");
+       fprintf(fp,"\n");
+
+     }
+  }
+
+  if (ddlTemplateClose && !templateCloseFp) {
+    templateCloseFp = fopen(ddlTemplateClose,"r");
+    if (!templateCloseFp) {
+      fprintf(stderr, " Cannot open file %s. Error \"%s\" (%d) \n",
+         ddlTemplateClose,strerror(errno),errno);
+    }
+
    }
+
    fprintf(fp,"DROP   TABLE %s.%s;  \n",schema,name);
 
    /* If you want more sophisticated SQL, then you could change this */
@@ -72,6 +117,28 @@ void closeDDL(char *name)
     fprintf(fp,"\n");
     fflush(fp);
   }
+  return;
+}
+
+void closeFinalDDL(void) {
+
+  char *c;
+  if (!templateCloseFp)
+    return;
+
+  do {
+    c = fgets(templateLine,sizeof(templateLine)-1,templateCloseFp);
+    if (c)
+       fprintf(fp,"%s",templateLine);
+  } while(c);
+  fprintf(fp,"\n");
+
+  fclose(fp);
+  fclose(templateCloseFp);
+
+  fp = NULL;
+  templateCloseFp = NULL;
+
   return;
 }
 

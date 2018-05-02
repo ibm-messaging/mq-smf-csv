@@ -161,6 +161,7 @@ extern void printWTID  (wtid *, unsigned char *);
 
 extern void openDDL    (char *);
 extern void closeDDL   (char *);
+extern void closeFinalDDL   (void);
 extern void printDDL   (char *,int, int);
 extern char *formatDDL (char *);
 extern char *formatDDLMaxLength (char *,int);
@@ -436,6 +437,8 @@ extern unsigned short recordSubType;
 extern commonFields_t commonF;
 extern char tmpHead[];
 extern FILE *infoStream;
+extern char *ddlTemplateOpen;
+extern char *ddlTemplateClose;
 
 enum outputFormat_e { OF_CSV=0, OF_SQL=1, OF_JSON=2 };
 extern enum outputFormat_e outputFormat;

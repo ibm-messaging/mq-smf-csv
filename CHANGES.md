@@ -14,14 +14,14 @@ June 2016 (v1.1.1)
 * Print the buildtime to help know what version is in use
 * Clearer printing of which records were unrecognised
 
-June 2016 (v1.1.2)
+June 2016 (v1.2)
 * Add SQL mode to generate DDL corresponding to column headings
 * printWQ now has more descriptive column names
 
 July 2016
 * Add progress indicator
 
-August 2016
+August 2016 (v1.2.1)
 * Add correlator field to better link WQ/WTID/WTAS
 * Add user-written content in docs directory. How to use SQL.
 
@@ -34,22 +34,22 @@ February 2017
 * STCK durations printed as just microseconds value when in SQL mode. Still
 split as seconds/microseconds otherwise.
 
-May 2017
+May 2017 (v2.0.0)
 * Added support for the 903 SMF extensions
 * Using a VERS flag during the build to select correct base header file
 and features
 
-Oct 2017
+Oct 2017 (v2.0.1)
 * Found that some 115 subtypes do not have a QWHS structure correctly
 created; cannot rely on it being there
 
-Jan 2018
+Jan 2018 (v3.0.0)
 * QCTDNS structure is not initialised when there has been no activity
 * Can now process files that have not been downloaded with the RDW option,
 as some sites do not have suitable ftp package available. New option
 is "-f NORDW".
 
-Feb 2018
+Feb 2018 (v3.1.0)
 * Added a simple "checkpoint" manager to recover after failures of the
 formatter. This may help when you run out of disk space while formatting
 very large output - the program may be able to restart from a more recent
@@ -57,16 +57,19 @@ checkpoint.
 * Discovered a few fields in the WTAS structure are not used in the way
 the documentation and product header files claim.
 * Some SMF integers are too large for the INTEGER datatype. The unsigned
-32-bits compared to the SQL which is signed 32-bit, So switching
+32-bits compared to the SQL which is signed 32-bit. So switching
 to always use BIGINT.
 
-Mar 2018
+Mar 2018 (v3.2.0)
 * Add code to help add INDEX to columns in the SQL DDL output
 * Add optimisation to Makefiles
 * Even 64-bit values may be too large when they are not really counters
 
-Apr 2018
+Apr 2018 (v4.0)
 * Add -f option to generate JSON output format
 * Allow -o to specify stdout for output. Modify printf to select stdout/stderr
 as appropriate
-* Add processing rate (MB/sec) to output
+* Add data processing rate (MB/sec) to output
+
+May 2018 (v4.1.0)
+* Ability to add SQL/DDL commands to generated DDL file from templates.
