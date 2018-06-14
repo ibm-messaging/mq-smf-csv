@@ -73,3 +73,7 @@ as appropriate
 
 May 2018 (v4.1.0)
 * Ability to add SQL/DDL commands to generated DDL file from templates.
+
+Jun 2018 (v4.2.0)
+* Visual Studio 2017 compiler warnings fixed
+* -f sql was not setting correct internal flags

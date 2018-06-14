@@ -105,6 +105,7 @@ void takeCheckPoint(char *,myoff_t);
 myoff_t readCheckPoint(FILE *);
 static char *getFormatRate(myoff_t pos);
 static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos);
+static BOOL inconsistentVersions(char *v1,char *v2,int l);
 
 #define DEFAULT_TICKER   10000         /* Print out status every N records */
 
@@ -185,6 +186,7 @@ int main( int argc, char *argv[] )
   unsigned int d[3];                   /* used in date conversion          */
   unsigned int ddd,year;               /* day number and year number       */
   unsigned int smfTime;                   /* Copied from the SMF header       */
+  char savedMqVer[3] = {0};
 
   char *inputFile = NULL;
   FILE *fp;
@@ -208,6 +210,7 @@ int main( int argc, char *argv[] )
 
   BOOL error = FALSE;
   BOOL knownSubType = TRUE;
+  BOOL formatWarning = FALSE;
   int c;
 
   int sectionCount;
@@ -229,7 +232,7 @@ int main( int argc, char *argv[] )
     fprintf(stderr,"Data type sizes do not match requirements.\n");
     fprintf(stderr,"Need to rebuild program with correct options.\n");
     fprintf(stderr,"Here: short=%d int=%d long=%d long long=%d bytes\n",
-       sizeof(short), sizeof(int), sizeof(long), sizeof(long long));
+       (int)sizeof(short), (int)sizeof(int), (int)sizeof(long), (int)sizeof(long long));
     fprintf(stderr,"Need: short=%d int=%d long=%d long long=%d bytes\n",2,4,4,8);
     exit(1);
   }
@@ -267,9 +270,11 @@ int main( int argc, char *argv[] )
           useRDW = TRUE;
         if (strstr(mqoptarg,"JSON"))
           outputFormat = OF_JSON;
-        else if (strstr(mqoptarg,"SQL"))
+        else if (strstr(mqoptarg,"SQL")) {
           outputFormat = OF_SQL;
-        else if (strstr(mqoptarg,"CSV"))
+          printHeaders = FALSE;
+          addEquals=0;
+        } else if (strstr(mqoptarg,"CSV"))
           outputFormat = OF_CSV;
         break;
       case 'h':
@@ -530,6 +535,7 @@ int main( int argc, char *argv[] )
     memcpy(commonF.systemId,convStr(pSMFRecord->Header.SMFRECSID,4),4);
     memcpy(commonF.mqVer,convStr(pSMFRecord->Header.SMFRECREL,3),3);
 
+
     /*********************************************************************/
     /* The SMF header contains a date formatted as 0x0cyydddF The "ddd"  */
     /* is the day-of-the-year (1-365).  Extract the digits and convert   */
@@ -601,6 +607,13 @@ int main( int argc, char *argv[] )
 
     if (recordType == 116 || recordType == 115)
     {
+      if (savedMqVer[0] == 0)
+        memcpy(savedMqVer,commonF.mqVer,3);
+
+      if (inconsistentVersions(commonF.mqVer,savedMqVer,3)) {
+        fprintf(stderr,"Warning: Data contains records from multiple versions of MQ - %3.3s and %3.3s\n",commonF.mqVer,savedMqVer);
+      }
+
       /*******************************************************************/
       /* The first triplet past the standard header usually points at a  */
       /* QWHS structure.                                                 */
@@ -959,7 +972,7 @@ int main( int argc, char *argv[] )
 
       default:
         knownSubType = FALSE;
-        sprintf(tmpHead, "Unknown subtype %d for 116 records");
+        sprintf(tmpHead, "Unknown subtype %d for 116 records",recordSubType);
         printDEBUG(tmpHead, dataBuf,offset);
         fprintf(infoStream,"%s\n",tmpHead);
         break;
@@ -978,6 +991,10 @@ int main( int argc, char *argv[] )
       sprintf(tmpHead,"Unknown SMF record type %d at record %u",recordType,totalRecords);
       printDEBUG(tmpHead, dataBuf,offset);
       fprintf(infoStream,"%s\n",tmpHead);
+      if (offset > 32768 && !formatWarning) {
+        fprintf(infoStream,"WARNING: Possible incorrect input format. Check use of RDW/NORDW flag.\n");
+        formatWarning = TRUE;
+      }
     }
 
     if (totalRecords % ticker == 0 && totalRecords > startingRecords)
@@ -1365,3 +1382,23 @@ static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos)
   }
   return formatPercentString;
 }
+
+/*****************************************************************/
+/* FUNCTION: inconsistentVersions                                */
+/* PURPOSE:                                                      */
+/*   There may be times where the MQ versions in the data would  */
+/*   cause problems with missing header or columns (eg fields    */
+/*   put into a later version, when we have already printed the  */
+/*   headers for an older version). So this test will be able    */
+/*   to look for that.                                           */
+/*                                                               */
+/*   But for now, always return FALSE.                           */
+/*****************************************************************/
+static BOOL inconsistentVersions(char *v1,char *v2,int l)
+{
+  BOOL rc = FALSE;
+  if (memcmp(v1,v2,l) != 0) /* Maybe need to do more about specific version comparisons */
+    rc= TRUE;
+  return FALSE;
+}
+

@@ -19,6 +19,7 @@ void printWTID(wtid *p, unsigned char *correlid)
   SMFPRINTSTART("WTID", p, conv16(p->wtidlen));
 
   ADDSTRB ("WTAS_Correlator",correlid,16);
+  ADDINDEX("WTAS_Correlator");
   ADDSTR  ("Appl_Type", strConnType(conv32(p->wtidatyp)),16);
   ADDSTREN("Connection_Name", p->wtidccn, 8);
   ADDSTREN("Operator_ID", p->wtidopid,8);

@@ -32,6 +32,7 @@ void printWTAS(wtas *p)
 
   ADDS32 ("Record_Version" , p->wtasver);
   ADDSTRB("Correl", (char *)&p->wtasstrt,16);
+  ADDINDEX("Correl");
   ADDTIME("Start_Time", p->wtasstrt);
   ADDS32 ("Block_Count", p->wtaswqct);
 

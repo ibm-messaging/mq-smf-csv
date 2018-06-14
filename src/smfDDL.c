@@ -111,7 +111,7 @@ void closeDDL(char *name)
     {
       char *c = indexSet[i];
       if (c) {
-        fprintf(fp,"CREATE INDEX %s ON %s.%s(%s);\n",c,schema,name,c);
+        fprintf(fp,"CREATE INDEX %s_%s ON %s.%s(%s);\n",name,c,schema,name,c);
       }
     }
     fprintf(fp,"\n");

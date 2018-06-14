@@ -205,7 +205,7 @@ static void jsonAddLine(columnHeader_t *h ,int type, const char *fmt,...)
   if (offset > (jsonOutputSize * 90 /100)) {
     jsonOutputSize = jsonOutputSize*2;
     if (debugLevel > 0)
-       fprintf(infoStream,"Resizing JSON output buffer to %d\n",jsonOutputSize);
+       fprintf(infoStream,"Resizing JSON output buffer to %ld\n",(long)jsonOutputSize);
     jsonOutputStart = realloc(jsonOutputStart,jsonOutputSize);
     jsonPtr = jsonOutputStart + offset;
   }

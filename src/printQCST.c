@@ -57,7 +57,7 @@ void printQCST(qcst *p)
   ADDU32  ("Net_Time_Min"    ,p->qcstntmn);
   ADDU32  ("Net_Time_Max"    ,p->qcstntmx);
   ADDTIME ("Net_Time_Max_Date",p->qcstntdt);
-  ADDSTREN("Remote_QMgr"     ,p->qcstrqmn,48);
+  ADDSTREN("Remote_QMgr_Or_App"     ,p->qcstrqmn,48);
   ADDSTRB ("SSL_Peer_Serial",p->qcstslsn,8);
   ADDSTREN("SSL_CERTI"       ,p->qcstslcn,16);
   ADDX32  ("SSL_CipherSuite" ,p->qcstslcs);

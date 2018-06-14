@@ -36,6 +36,7 @@ void printWQ(wq *p)
   SMFPRINTSTART("WQ", p, conv16(p->wqll));
 
   ADDSTRB ("Correlation"    ,p->correl, 16);
+  ADDINDEX("Correlation");
   ADDSTREN("Open_Name",p->objname,48);
   ADDSTREN("Base_Name",p->basename,48);
   ADDINDEX("Base_Name");

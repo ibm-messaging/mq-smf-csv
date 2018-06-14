@@ -136,7 +136,7 @@ void smfAddData(int datatype,char *fmt,...)
       jsonAddString(h,c,l);
       break;
     default:
-      fprintf(stderr,"Found unknown datatype %d for \"%s\"\n",datatype,h);
+      fprintf(stderr,"Found unknown datatype %d for \"%s\"\n",datatype,h->name);
       break;
     }
     columnCount++;
@@ -241,7 +241,7 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
   return fpNew;
 }
 
-void smfPrintStop(FILE *fp, BOOL newFile, BOOL *first,columnHeader_t **h)
+void smfPrintStop(FILE *fp, BOOL newFile, BOOL *first, columnHeader_t **h)
 {
   int i;
   if (*first && newFile && printHeaders && outputFormat != OF_JSON)
