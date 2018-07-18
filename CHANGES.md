@@ -77,3 +77,6 @@ May 2018 (v4.1.0)
 Jun 2018 (v4.2.0)
 * Visual Studio 2017 compiler warnings fixed
 * -f sql was not setting correct internal flags
+
+Jul 2018 (v4.3.0)
+* Add command for converting VBS dataset to USS on z/OS
