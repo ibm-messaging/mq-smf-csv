@@ -83,5 +83,4 @@ Jul 2018 (v4.3.0)
 
 Oct 2018 (v5.0.0)
 * Add instructions for MySQL importing
-* (Breaking) Modify a few column names for MySQL compatibility
 * Update for MQ V9.1.1
