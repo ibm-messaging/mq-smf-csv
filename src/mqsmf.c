@@ -120,6 +120,7 @@ BOOL  streamOutput = FALSE;
 BOOL  streamInput = TRUE;
 char *ddlTemplateOpen = NULL;
 char *ddlTemplateClose = NULL;
+char *ddlQuote = "";
 commonFields_t commonF = {0};
 enum outputFormat_e outputFormat = OF_CSV;
 FILE *infoStream;
@@ -244,12 +245,24 @@ int main( int argc, char *argv[] )
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  while((c = mqgetopt(argc, argv, "acd:e:f:h:i:m:o:p:rst:")) != EOF)
+  while((c = mqgetopt(argc, argv, "ab:cd:e:f:h:i:m:o:p:rst:")) != EOF)
   {
     switch(c)
     {
       case 'a':
         append = TRUE;
+        break;
+      case 'b': /* 'b' for dataBase */
+        for (i=0;i<strlen(mqoptarg);i++)
+          mqoptarg[i] = toupper(mqoptarg[i]);
+        if (!strcmp(mqoptarg,"MYSQL")) {
+          ddlQuote="`";
+          ddlTemplateOpen = "-";
+        } else if (!strcmp(mqoptarg,"DB2")) {
+          ddlQuote="";
+        } else {
+          error = TRUE;
+        }
         break;
       case 'c':
         resumeCheckPoint = TRUE;
@@ -1325,10 +1338,12 @@ static void Usage(void)
   fprintf(infoStream,"Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
   fprintf(infoStream,"         [-h yes|no] [ -i <input file> [-m <max records>]\n");
   fprintf(infoStream,"         [-f RDW | NORDW | JSON | SQL | CSV ] \n");
+  fprintf(infoStream,"         [-b Db2 | MySQL ] \n");
   fprintf(infoStream,"         [-p <template DDL file prefix>  ] \n");
   fprintf(infoStream,"         [-e <template DDL file ending>  ] \n");
   fprintf(infoStream,"         [-r] [-c] [-t <ticker>]\n");
   fprintf(infoStream,"  -a               Append to files if they exist. Default is overwrite.\n");
+  fprintf(infoStream,"  -b <Database>    Database DDL format can be Db2 or MySQL. Default is Db2.\n");
   fprintf(infoStream,"  -c               Recover after aborted run by using the checkpoint.\n");
   fprintf(infoStream,"  -d <Level>       Debug by dumping binary records (Level = 1 or 2).\n");
   fprintf(infoStream,"  -f               File formats. Default to RDW for input, CSV for output.\n");

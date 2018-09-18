@@ -46,8 +46,8 @@ void printWQ(wq *p)
   /*--------------------------------------------------------*/
   /* Object information                                     */
   /*--------------------------------------------------------*/
-  ADDSTR("QueueType" ,strMQQT(conv32(p->qtype)),16);
-  ADDSTR("IndexType",strMQIT(conv32(p->indxtype)),16);
+  ADDSTR("Queue" ,strMQQT(conv32(p->qtype)),16);
+  ADDSTR("Index",strMQIT(conv32(p->indxtype)),16);
   ADDSTR("Scope",strMQQSGD(conv32(p->qsgdisp)),16);
 
   /*--------------------------------------------------------*/

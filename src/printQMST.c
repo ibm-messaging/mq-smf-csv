@@ -19,23 +19,23 @@ void printQMST(qmst *p)
 {
   SMFPRINTSTART("QMST", p, conv16(p->qmstll));
 
-  ADDS32("MQOpen",p->qmstopen);
-  ADDS32("MQClose",p->qmstclos);
-  ADDS32("MQGet ",p->qmstget );
-  ADDS32("MQPut" ,p->qmstput );
-  ADDS32("MQPut1",p->qmstput1);
-  ADDS32("MQInq ",p->qmstinq );
+  ADDS32("Open",p->qmstopen);
+  ADDS32("Close",p->qmstclos);
+  ADDS32("Get ",p->qmstget );
+  ADDS32("Put" ,p->qmstput );
+  ADDS32("Put1",p->qmstput1);
+  ADDS32("Inq ",p->qmstinq );
   ADDS32("Inql",p->qmstinql);
-  ADDS32("MQSet ",p->qmstset );
+  ADDS32("Set ",p->qmstset );
   ADDS32("Endw",p->qmstendw);
   ADDS32("Close_Handles",p->qmstcalh);
   if (conv16(p->qmstll) >  offsetof(qmst,  qmstsub))/* Fields added for V7.0 API calls*/
   {
-    ADDS32("MQSub"   ,p->qmstsub);
-    ADDS32("MQSubReq",p->qmstsubr);
-    ADDS32("MQCB  "  ,p->qmstcb);
-    ADDS32("MQCTL "  ,p->qmstctl);
-    ADDS32("MQStatus",p->qmststus);
+    ADDS32("Sub"   ,p->qmstsub);
+    ADDS32("SubReq",p->qmstsubr);
+    ADDS32("CB  "  ,p->qmstcb);
+    ADDS32("CTL "  ,p->qmstctl);
+    ADDS32("Status",p->qmststus);
     ADDS32("Pubs"  ,p->qmstpubs);
   }
 #if CSQDSMF_VERSION >= 903

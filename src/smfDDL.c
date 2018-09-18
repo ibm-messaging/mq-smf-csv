@@ -173,37 +173,37 @@ void printDDL(char *name, int type, int len)
   case DDL_I:
     /* SQL Integer is a 'signed 32-bit' when sometimes we need unsigned */
     /* So make it a big int always                                      */
-    fprintf(fp,"%s %s \t BIGINT \n",comma,formatDDL(nameCopy));
+    fprintf(fp,"%s %s%s%s \t BIGINT \n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote);
     break;
   case DDL_I64:
-    fprintf(fp,"%s %s \t BIGINT\n",comma,formatDDL(nameCopy));
+    fprintf(fp,"%s %s%s%s \t BIGINT\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote);
     break;
   case DDL_C:
     if (!strcmp(name,"Date"))        /* special case for CommonHeader field*/
     {
-      fprintf(fp,"%s %s \t DATE    \n",comma,formatDDL(nameCopy));
+      fprintf(fp,"%s %s%s%s \t DATE    \n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote);
     }
     else
     {
-      fprintf(fp,"%s %s \t CHAR(%d)\n",comma,formatDDL(nameCopy),len);
+      fprintf(fp,"%s %s%s%s \t CHAR(%d)\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote,len);
     }
     break;
   case DDL_SUS: /* a seconds/microseconds field */
     p = strstr(nameCopy,"(US)");
     if (p) *p = 0;
-    fprintf(fp,"%s %s_us \t BIGINT\n",comma,formatDDL(nameCopy));
+    fprintf(fp,"%s %s%s_us%s \t BIGINT\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote);
     break;
 
   case DDL_DATE:
     p = strstr(nameCopy," (DATE)");
     if (p) *p = 0; /* remove the "(DATE)" bit */
-    fprintf(fp,"%s %s_Date \t DATE\n",comma,formatDDL(nameCopy));
+    fprintf(fp,"%s %s%s_Date%s \t DATE\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote);
     break;
   case DDL_TIME:
     p = strstr(nameCopy," (TIME)");
     if (p)
       *p = 0;
-    fprintf(fp,"%s %s_Time \t CHAR(19)\n",comma,formatDDL(nameCopy));
+    fprintf(fp,"%s %s%s_Time%s \t CHAR(19)\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote);
     break;
   }
 
@@ -220,7 +220,7 @@ static char nameNoDup[COL_HEAD_LEN];
 char *formatDDL(char *name)
 {
   /* Leave room for _DATE etc as prefix */
-  return formatDDLMaxLength(name,27);
+   return formatDDLMaxLength(name,27);
 }
 
 char *formatDDLMaxLength(char *name,int maxLength)
