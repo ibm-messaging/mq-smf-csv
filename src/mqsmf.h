@@ -440,6 +440,7 @@ extern FILE *infoStream;
 extern char *ddlTemplateOpen;
 extern char *ddlTemplateClose;
 extern char *ddlQuote;
+extern BOOL  ddlFold;
 
 enum outputFormat_e { OF_CSV=0, OF_SQL=1, OF_JSON=2 };
 extern enum outputFormat_e outputFormat;

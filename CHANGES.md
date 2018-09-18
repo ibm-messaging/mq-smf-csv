@@ -81,6 +81,5 @@ Jun 2018 (v4.2.0)
 Jul 2018 (v4.3.0)
 * Add command for converting VBS dataset to USS on z/OS
 
-Oct 2018 (v5.0.0)
-* Add instructions for MySQL importing
-* Update for MQ V9.1.1
+Sep 2018 (v5.0.0)
+* Add support for MySQL imports
