@@ -120,8 +120,7 @@ BOOL  streamOutput = FALSE;
 BOOL  streamInput = TRUE;
 char *ddlTemplateOpen = NULL;
 char *ddlTemplateClose = NULL;
-char *ddlQuote = "";
-BOOL  ddlFold = FALSE;
+char *ddlQuote = "\"";
 commonFields_t commonF = {0};
 enum outputFormat_e outputFormat = OF_CSV;
 FILE *infoStream;
@@ -259,10 +258,8 @@ int main( int argc, char *argv[] )
         if (!strcmp(mqoptarg,"MYSQL")) {
           ddlQuote="`";
           ddlTemplateOpen = "-";
-          ddlFold = TRUE;
         } else if (!strcmp(mqoptarg,"DB2")) {
-          ddlQuote="";
-          ddlFold = FALSE;
+          ddlQuote="\"";
         } else {
           error = TRUE;
         }

@@ -191,19 +191,19 @@ void printDDL(char *name, int type, int len)
   case DDL_SUS: /* a seconds/microseconds field */
     p = strstr(nameCopy,"(US)");
     if (p) *p = 0;
-    fprintf(fp,"%s %s%s_%s%s \t BIGINT\n",comma,ddlQuote,formatDDL(nameCopy),ddlFold?"US":"us",ddlQuote);
+    fprintf(fp,"%s %s%s_%s%s \t BIGINT\n",comma,ddlQuote,formatDDL(nameCopy),"US",ddlQuote);
     break;
 
   case DDL_DATE:
     p = strstr(nameCopy," (DATE)");
     if (p) *p = 0; /* remove the "(DATE)" bit */
-    fprintf(fp,"%s %s%s_%s%s \t DATE\n",comma,ddlQuote,formatDDL(nameCopy),ddlFold?"DATE":"Date",ddlQuote);
+    fprintf(fp,"%s %s%s_%s%s \t DATE\n",comma,ddlQuote,formatDDL(nameCopy),"DATE",ddlQuote);
     break;
   case DDL_TIME:
     p = strstr(nameCopy," (TIME)");
     if (p)
       *p = 0;
-    fprintf(fp,"%s %s%s_%s%s \t CHAR(19)\n",comma,ddlQuote,formatDDL(nameCopy),ddlFold?"TIME":"Time",ddlQuote);
+    fprintf(fp,"%s %s%s_%s%s \t CHAR(19)\n",comma,ddlQuote,formatDDL(nameCopy),"TIME",ddlQuote);
     break;
   }
 
@@ -252,10 +252,7 @@ char *formatDDLMaxLength(char *name,int maxLength)
     /* Get rid of repeated '_' characters */
     if (c != prev || prev != '_')
     {
-      if (ddlFold)
-        *o = toupper(c);
-      else
-        *o = c;
+      *o = toupper(c);
       o++;
     }
     i++;

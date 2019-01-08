@@ -97,6 +97,15 @@ void printQJST(qjst *p)
   ADDU64 ("IO_Time_Sum_Squares_2", p->qjstiosqu[1]);
   }
 
+  /* MQ 9.1.2 added support for zHyperwrite logging */
+  if (conv16(p->qjstll)>=offsetof(qjst,qjstcp1n))
+  {
+      ADDS32("Copy1_New_Logs"           , p->qjstcp1n);
+      ADDS32("Copy2_New_Logs"           , p->qjstcp2n);
+      ADDS32("New_Logs_ZHW_Capable"     , p->qjsthwc);
+      ADDS32("New_Logs_ZHW_Enabled"     , p->qjsthwe);
+  }
+
   SMFPRINTSTOP;
 
   return;
