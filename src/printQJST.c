@@ -68,7 +68,7 @@ void printQJST(qjst *p)
     }
   }
 
-  if (conv16(p->qjstll)>=sizeof(qjst))
+  if (conv16(p->qjstll)>=offsetof(qjst,qjstio[0]))
   {
     for (i=0;i<2;i++)
     {

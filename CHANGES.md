@@ -86,3 +86,6 @@ Sep 2018 (v5.0.0)
 
 Mar 2019 (v5.1.0)
 * Add support for MQ 9.1.2 zHyperWrite
+
+Apr 2019 (v5.1.1)
+* The 912 changes broke QJST printing

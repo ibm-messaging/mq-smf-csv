@@ -65,7 +65,7 @@ void printQCST(qcst *p)
   ADDU32  ("XmitQ_Empty_Count",p->qcstqetc);
   ADDU32  ("Batch_Interval"  ,p->qcstcbit);
   ADDU32  ("Batch_Data_Limit",p->qcstcbdl);
-  ADDU32  ("Dispatcher_Numer",p->qcstdspn);
+  ADDU16  ("Dispatcher_Numer",p->qcstdspn);
 
   SMFPRINTSTOP;
   return;
