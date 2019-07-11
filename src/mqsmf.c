@@ -228,13 +228,14 @@ int main( int argc, char *argv[] )
   if ((sizeof(short) != 2)     ||
       (sizeof(long) != 4)      ||
       (sizeof(long long) != 8) ||
+      (sizeof(int *) != 4) ||
       (sizeof(int) != 4))
   {
     fprintf(stderr,"Data type sizes do not match requirements.\n");
     fprintf(stderr,"Need to rebuild program with correct options.\n");
-    fprintf(stderr,"Here: short=%d int=%d long=%d long long=%d bytes\n",
-       (int)sizeof(short), (int)sizeof(int), (int)sizeof(long), (int)sizeof(long long));
-    fprintf(stderr,"Need: short=%d int=%d long=%d long long=%d bytes\n",2,4,4,8);
+    fprintf(stderr,"Here: short=%d int=%d long=%d long long=%d ptr=%d bytes\n",
+       (int)sizeof(short), (int)sizeof(int), (int)sizeof(long), (int)sizeof(long long),(int)sizeof(int *));
+    fprintf(stderr,"Need: short=%d int=%d long=%d long long=%d ptr=%d bytes\n",2,4,4,8,4);
     exit(1);
   }
 
@@ -947,6 +948,8 @@ int main( int argc, char *argv[] )
         {
           p = &dataBuf[triplet[2].offset  ];
           printWTAS((wtas *)p);
+          /* The wtasstrt is 8 bytes but the following fields combine to */
+          /* make a default correlation token.                           */
           memcpy(correlid,&((wtas *)p)->wtasstrt,16);
 
           if (conv32(((wtas *)p)->wtaswqct) > 0)

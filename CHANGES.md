@@ -89,3 +89,6 @@ Mar 2019 (v5.1.0)
 
 Apr 2019 (v5.1.1)
 * The 912 changes broke QJST printing
+
+Jul 2019 (v5.1.2)
+* Make sure Windows program pointer sizes are correct
