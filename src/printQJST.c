@@ -47,7 +47,7 @@ void printQJST(qjst *p)
   ADDS32("Log_Write_Threshold"   ,p->qjstthrw);
   ADDS32("Log_Write_Buffer_Paged",p->qjstbpag);
 
-  if (conv16(p->qjstll)>=offsetof(qjst,qjstio))
+  if (conv16(p->qjstll)>offsetof(qjst,qjstio))
   {
     /* Array of 1 entry! Reserved space follows for 2 more, but they   */
     /* are not currently used. If the others are ever used, change the */
@@ -68,7 +68,7 @@ void printQJST(qjst *p)
     }
   }
 
-  if (conv16(p->qjstll)>=offsetof(qjst,qjstio[0]))
+  if (conv16(p->qjstll)>offsetof(qjst,qjstio[0]))
   {
     for (i=0;i<2;i++)
     {
@@ -92,13 +92,13 @@ void printQJST(qjst *p)
       }
     }
 
-  ADDTIME("Writer_Idle_Time"     , p->qjstslptu);
-  ADDU64 ("IO_Time_Sum_Squares_1", p->qjstiosqu[0]);
-  ADDU64 ("IO_Time_Sum_Squares_2", p->qjstiosqu[1]);
+    ADDU64 ("Writer_Idle_Time"     , p->qjstslptu);
+    ADDU64 ("IO_Time_Sum_Squares_1", p->qjstiosqu[0]);
+    ADDU64 ("IO_Time_Sum_Squares_2", p->qjstiosqu[1]);
   }
 
   /* MQ 9.1.2 added support for zHyperwrite logging */
-  if (conv16(p->qjstll)>=offsetof(qjst,qjstcp1n))
+  if (conv16(p->qjstll)>offsetof(qjst,qjstcp1n))
   {
       ADDS32("Copy1_New_Logs"           , p->qjstcp1n);
       ADDS32("Copy2_New_Logs"           , p->qjstcp2n);
@@ -110,3 +110,8 @@ void printQJST(qjst *p)
 
   return;
 }
+
+
+/*
+    double loggerTaskPercentBusy =  100.0 * (1 - (double)pQJST->qjstslptu /(double)(statsDuration * 1000000 ));
+*/

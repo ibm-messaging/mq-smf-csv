@@ -92,3 +92,6 @@ Apr 2019 (v5.1.1)
 
 Jul 2019 (v5.1.2)
 * Make sure Windows program pointer sizes are correct
+
+Aug 2019 (v5.1.3)
+* Print QJST SLPTU as number not timestamp
