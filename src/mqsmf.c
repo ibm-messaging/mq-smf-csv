@@ -239,14 +239,14 @@ int main( int argc, char *argv[] )
     exit(1);
   }
 
+
   infoStream=stdout;
 
-  /*fprintf(infoStream,"Sizeof qwhs = %d\n",sizeof(qwhs));*/
 
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  while((c = mqgetopt(argc, argv, "ab:cd:e:f:h:i:m:o:p:rst:")) != EOF)
+  while((c = mqgetopt(argc, argv, "ab:cd:e:f:h:i:m:o:p:rst:v")) != EOF)
   {
     switch(c)
     {
@@ -327,6 +327,9 @@ int main( int argc, char *argv[] )
       case 't':
         ticker     = atoi(mqoptarg);
         break;
+      case 'v':
+         checkStructureSizes(infoStream);
+         exit(0);
       default:
         error = TRUE;
         break;

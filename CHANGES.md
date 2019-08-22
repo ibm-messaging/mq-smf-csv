@@ -95,3 +95,6 @@ Jul 2019 (v5.1.2)
 
 Aug 2019 (v5.1.3)
 * Print QJST SLPTU as number not timestamp
+
+Aug 2019 (v5.1.4)
+* Newer compilers have changed bitfield structure padding layouts

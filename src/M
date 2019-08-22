@@ -4,12 +4,12 @@ plat=`uname`
 
 if [ "$plat" = "AIX" ]
 then
-  flags="-q32 -qmaxmem=-1 $CCEXTRAFLAGS"
+  flags="-q32 -qmaxmem=-1 $CCEXTRAFLAGS -D PLATFORM_AIX"
   cc="xlc"
   targdir="../bin/aix"
   optim="-O3"
 else
-  flags="-m32 $CCEXTRAFLAGS"
+  flags="-m32 $CCEXTRAFLAGS -D PLATFORM_LINUX"
   cc="gcc"
   targdir="../bin/linux"
   optim="-O3"

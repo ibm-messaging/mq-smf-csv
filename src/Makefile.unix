@@ -8,6 +8,7 @@ SRC = \
       smfDate.c \
       smfConv.c \
       smfJson.c \
+      checkSize.c \
       printDEBUG.c \
       printQ5ST.c    \
       printQCST.c    \
@@ -37,6 +38,10 @@ SRC = \
 
 HDR = mqsmfstruc.h \
       mqsmf.h
+
+checkSize: mqsmfcsv
+	./mqsmfcsv -v > sizes.tmp
+	diff -b sizes.tmp sizes.master
 
 mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)

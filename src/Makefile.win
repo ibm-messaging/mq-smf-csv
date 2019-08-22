@@ -1,4 +1,4 @@
-CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J /O2
+CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J /O2 /DPLATFORM_WINDOWS
 VERS=913
 SRC = mqsmf.c \
       smfDDL.c \
@@ -6,6 +6,7 @@ SRC = mqsmf.c \
       smfConv.c \
       smfJson.c \
       smfPrint.c \
+      checkSize.c \
       printDEBUG.c \
       printQ5ST.c    \
       printQCST.c    \
@@ -35,6 +36,10 @@ SRC = mqsmf.c \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
+checkSize: mqsmfcsv.exe
+	mqsmfcsv.exe -v > sizes.tmp
+	diff -b sizes.master sizes.tmp
+
 mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win
 	rm -f $@
 	$(CC) $(SRC) -I. /Fe$@ $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
@@ -45,7 +50,7 @@ mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy
 	convH < csqdsmfc-$(VERS).h > $@
 
 convH.exe: convH.c
-	$(CC) /Fe$@ convH.c
+	$(CC) $(CFLAGS) /Fe$@ convH.c
 	copy $@ ..\bin\win
 
 

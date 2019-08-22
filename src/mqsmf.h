@@ -280,6 +280,7 @@ extern void  smfPrintStop(FILE *,BOOL, BOOL *,columnHeader_t **);
 extern void  smfAddHead(BOOL first,BOOL,char *h,int type,int len);
 extern void  smfAddData(int datatype,char *fmt,...);
 extern void  smfAddString(int, char *);
+extern void checkStructureSizes(FILE *);
 
 #define SMFPRINTGLOB \
   static BOOL first = TRUE;\

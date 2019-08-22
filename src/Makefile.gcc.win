@@ -1,6 +1,6 @@
 
 CC=i686-w64-mingw32-gcc
-CFLAGS= -I. -m32 -O2
+CFLAGS= -I. -m32 -fpack-struct=1 -DPLATFORM_WINDOWS
 PLATFLAGS=
 VERS=913
 SRC = mqsmf.c \
@@ -9,6 +9,7 @@ SRC = mqsmf.c \
       smfConv.c \
       smfJson.c \
       smfPrint.c \
+      checkSize.c \
       printDEBUG.c \
       printQ5ST.c    \
       printQCST.c    \
@@ -38,6 +39,11 @@ SRC = mqsmf.c \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
+checkSize: mqsmfcsv.exe
+	./mqsmfcsv.exe -v > sizes.tmp
+	diff -b sizes.tmp sizes.master
+
+
 mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
 	-rm -f $@
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
@@ -48,7 +54,7 @@ mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy
 	./convH.exe < csqdsmfc-$(VERS).h > $@
 
 convH.exe: convH.c
-	$(CC) -o $@ convH.c
+	$(CC) $(CFLAGS) -o $@ convH.c
 	cp $@ ../bin/win
 
 
