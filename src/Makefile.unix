@@ -39,9 +39,17 @@ SRC = \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
-checkSize: mqsmfcsv
+default: mqsmfcsv
+
+all: sizeTest shipTest
+tests: all
+
+sizeTest: mqsmfcsv
 	./mqsmfcsv -v > sizes.tmp
 	diff -b sizes.tmp sizes.master
+
+shipTest: mqsmfcsv
+	cd ../testing/shipTest;./shipTest.sh
 
 mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)

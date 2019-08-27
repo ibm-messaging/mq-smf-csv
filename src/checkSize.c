@@ -1,6 +1,6 @@
 #include "stdio.h"
 #include "stddef.h"
-#include "../src/mqsmfstruc.h"
+#include "mqsmfstruc.h"
 
 void checkStructureSizes(FILE *fp) {
 

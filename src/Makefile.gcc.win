@@ -39,10 +39,16 @@ SRC = mqsmf.c \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
-checkSize: mqsmfcsv.exe
+default: mqsmfcsv.exe 
+
+all: sizeTest shipTest
+
+sizeTest: mqsmfcsv.exe
 	./mqsmfcsv.exe -v > sizes.tmp
 	diff -b sizes.tmp sizes.master
 
+shipTest: mqsmfcsv.exe
+	cd ../testing/shipTest;./shipTest.sh
 
 mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
 	-rm -f $@
@@ -56,6 +62,5 @@ mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy
 convH.exe: convH.c
 	$(CC) $(CFLAGS) -o $@ convH.c
 	cp $@ ../bin/win
-
 
 dummy:
