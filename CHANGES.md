@@ -98,3 +98,6 @@ Aug 2019 (v5.1.3)
 
 Aug 2019 (v5.1.4)
 * Newer compilers have changed bitfield structure padding layouts
+
+Sep 2019 (v5.1.5)
+* Percentage processed was not showing correctly for very large files on Windows

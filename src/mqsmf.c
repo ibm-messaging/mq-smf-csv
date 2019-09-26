@@ -1396,10 +1396,13 @@ static char *getFormatRate(myoff_t pos)
 static char formatPercentString[10];
 static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos)
 {
+  float f;
   if (streamInput) {
     strcpy(formatPercentString,"");
-  } else {
-    sprintf(formatPercentString,"[%5.2f%%]", (float)(100.0*pos)/totalFileSize);
+  } else { 
+    f = (float)((100.0*pos)/totalFileSize);
+    if (f==0) f = +0.00; /* To deal with calculation sometimes returning -0.0 */
+    sprintf(formatPercentString,"[%5.2f%%]", f);
   }
   return formatPercentString;
 }
