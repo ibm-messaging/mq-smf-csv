@@ -39,7 +39,7 @@ SRC = \
 HDR = mqsmfstruc.h \
       mqsmf.h
 
-default: mqsmfcsv
+default: sizeTest
 
 all: sizeTest shipTest
 tests: all
@@ -57,8 +57,8 @@ mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 mqsmfstruc.h: csqdsmfc-$(VERS).h convH dummy
 	convH < csqdsmfc-$(VERS).h > $@
 
-convH: convH.c dummy
-	$(CC) -o $@ convH.c
+convH: convH64.c dummy
+	$(CC) -o $@ convH64.c
 
 
 dummy:

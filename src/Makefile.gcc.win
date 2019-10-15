@@ -60,8 +60,8 @@ mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
 mqsmfstruc.h: csqdsmfc-$(VERS).h convH.exe dummy	
 	./convH.exe < csqdsmfc-$(VERS).h > $@
 
-convH.exe: convH.c
-	$(CC) $(CFLAGS) -o $@ convH.c
+convH.exe: convH64.c
+	$(CC) $(CFLAGS) -o $@ convH64.c
 	cp $@ ../bin/win
 
 dummy:

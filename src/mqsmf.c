@@ -217,6 +217,13 @@ int main( int argc, char *argv[] )
   int sectionCount;
   triplet_t triplet[12];
 
+#if 0
+  /*
+  This is no longer needed as the header file HAS been converted
+  to use uint32_t etc. Instead, we rely on the "make sizeTest" to
+  validate datatype sizes.
+  */
+
   /******************************************************************/
   /* Make sure program was correctly compiled. These datatypes must */
   /* match the standard z/OS sizes. Generally this will mean        */
@@ -238,7 +245,7 @@ int main( int argc, char *argv[] )
     fprintf(stderr,"Need: short=%d int=%d long=%d long long=%d ptr=%d bytes\n",2,4,4,8,4);
     exit(1);
   }
-
+#endif
 
   infoStream=stdout;
 
@@ -1399,7 +1406,7 @@ static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos)
   float f;
   if (streamInput) {
     strcpy(formatPercentString,"");
-  } else { 
+  } else {
     f = (float)((100.0*pos)/totalFileSize);
     if (f==0) f = +0.00; /* To deal with calculation sometimes returning -0.0 */
     sprintf(formatPercentString,"[%5.2f%%]", f);
