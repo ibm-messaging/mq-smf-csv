@@ -26,7 +26,7 @@ else
   flags="$flags $optim"
 fi
 
-export PLATFLAGS=$flags CC=$cc VERS=913
+export PLATFLAGS=$flags CC=$cc VERS=914
 make -e -f Makefile.unix $*
 
 rm -f $targdir/convH $targdir/mqsmfcsv

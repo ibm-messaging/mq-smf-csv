@@ -20,6 +20,7 @@
 /* flags in that order.                                            */
 /*******************************************************************/
 #define QIS1EXPF (0x80000000)
+#define QIS1ENCF (0x40000000)
 
 SMFPRINTGLOB;
 
@@ -72,7 +73,16 @@ void printQIS1(qis1 *p)
   {
     ADDSTR("Expand","No",3);
   }
-
+#if CSQDSMF_VERSION >= 914
+  if(flags & QIS1ENCF)
+  {
+    ADDSTR("Encrypted","Yes",3);
+  }
+  else
+  {
+    ADDSTR("Encrypted","No",3);
+  }
+#endif
   SMFPRINTSTOP;
 
   return;

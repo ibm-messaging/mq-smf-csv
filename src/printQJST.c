@@ -97,6 +97,7 @@ void printQJST(qjst *p)
     ADDU64 ("IO_Time_Sum_Squares_2", p->qjstiosqu[1]);
   }
 
+#if CSQDSMF_VERSION >= 912
   /* MQ 9.1.2 added support for zHyperwrite logging */
   if (conv16(p->qjstll)>offsetof(qjst,qjstcp1n))
   {
@@ -105,6 +106,14 @@ void printQJST(qjst *p)
       ADDS32("New_Logs_ZHW_Capable"     , p->qjsthwc);
       ADDS32("New_Logs_ZHW_Enabled"     , p->qjsthwe);
   }
+#endif
+
+#if CSQDSMF_VERSION >= 914
+  /* MQ 9.1.4 added support for encrypted datasets */
+  if (conv16(p->qjstll)>offsetof(qjst,qjstencr)) {
+      ADDS32("New_Logs_Encrypted",p->qjstencr);
+  }
+#endif
 
   SMFPRINTSTOP;
 

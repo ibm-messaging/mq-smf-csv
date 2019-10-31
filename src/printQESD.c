@@ -13,10 +13,21 @@
 #include <stdio.h>
 #include "mqsmf.h"
 
+/*******************************************************************/
+/* Bitfields on z/OS are implemented in the compiler with the      */
+/* first bit being the top bit of a word. So we refer to           */
+/* flags in that order.                                            */
+/*******************************************************************/
+#define QESDENCF (0x80000000)
+
 SMFPRINTGLOB;
 
 void printQESD(qesd *p)
 {
+  unsigned int  flags;
+  unsigned int  *u;
+
+
       SMFPRINTSTART("QESD",p,conv16(p->qesdll));
 
       ADDSTREN("Structure"        , p -> qesdstr,12);
@@ -91,6 +102,21 @@ void printQESD(qesd *p)
       ADDU32  ("Other_Read_Total_Pages", p -> qesdioop);
       ADDSTCK ("Other_Read_IO_Time", p -> qesdioot);
       ADDSTCK ("Other_Read_IO_Wait", p -> qesdioow);
+
+#if CSQDSMF_VERSION >= 914
+      if (conv16(p->qesdll)>offsetof(qesd,qesdflag)) {
+        u = (unsigned int *)&p->qesdflag;
+        flags = conv32(*(u+1));
+
+        if(flags & QESDENCF) {
+          ADDSTR("Encrypted","Yes",3);
+        }
+        else
+        {
+          ADDSTR("Encrypted","No",3);
+        }
+      }
+#endif
 
       SMFPRINTSTOP;
       return;

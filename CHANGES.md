@@ -2,7 +2,8 @@
 History (newest at top)
 =======================
 
-xxxx 2019 (vX.X.X)
+Dec 2019 (v5.2.0)
+* Add support for MQ 9.1.4 encrypted datasets and logs
 * Update the header filter to force C99 standardised types internally (eg uint32_t)
 
 Sep 2019 (v5.1.5)
