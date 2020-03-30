@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2019 IBM Corporation and other Contributors.
+ * Copyright (c) 2016, 2020 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <fcntl.h>
 
 
 /**********************************************************************/
@@ -77,6 +78,9 @@
 #define REPLACE_UINT16   "uint16_t      "
 #define REPLACE_EXTRAINT "        "
 
+#define BITFIELD_ACCT (1)
+#define BITFIELD_QWHS (2)
+
 /**********************************************************************/
 /* Newer compiler versions on some platforms have also                */
 /* affected how bitfields are laid out. This program now              */
@@ -95,11 +99,27 @@
 int inBitfieldReplace = 0;
 void bitfieldReprint(int c);
 void datatypeReplace(char *);
+char *stripLine(char *);
+void printHeader(char *);
 
 int main(int argc, char **argv)
 {
   char line[256] = {0};
   char *c;
+  char *p;
+  char *v;
+
+  if (argc > 1) {
+    v = argv[1];
+  } else {
+    v = "UNKNOWN";
+  }
+
+#if defined(PLATFORM_WINDOWS)
+   setmode(fileno(stdout),O_BINARY);
+#endif
+
+   printHeader(v);
 
   /******************************************************/
   /* Need a portable pragma that works on all platforms */
@@ -123,14 +143,16 @@ int main(int argc, char **argv)
        /****************************************************/
        else if (strstr(line,"\?\?="))
          continue;
+       else if (strncmp(line," /*",3) == 0)
+         continue;
        else
        {
           if (BITFIELDREPRINTNEEDED) {
             if (strstr(line,"fNoAcctg")) {
-              bitfieldReprint(1);
+              bitfieldReprint(BITFIELD_ACCT);
             }
             if (strstr(line,"qwhssmfc")) {
-              bitfieldReprint(2);
+              bitfieldReprint(BITFIELD_QWHS);
             }
           }
 
@@ -142,10 +164,12 @@ int main(int argc, char **argv)
 
           if (!inBitfieldReplace) {
             datatypeReplace(line);
-
-            printf("%s",line);
-            if (line[strlen(line)-1] != '\n')
-              printf("\n");
+            p = stripLine(line);
+            if (strlen(p) > 1) {
+              printf("%s",p);
+              if (p[strlen(p)-1] != '\n')
+                printf("\n");
+            }
           }
 
        }
@@ -156,19 +180,46 @@ int main(int argc, char **argv)
   return 0;
 }
 
+/* Remove trailing comments and leading spaces */
+char *stripLine(char *l) {
+  char *p = l;
+  char *e;
+  char *cmtStart;
+  char *cmtEnd;
+
+  while (*p == ' ') p++;
+
+  cmtStart = strstr(p,"/*");
+  cmtEnd  = strstr(p,"*/\n");
+
+  /* There are a few multi-line macros that have comments embedded
+   * so we can't just strip to end of line ... if the line ends in 
+   * a continuation marker then leave the comments alone
+   */
+  if (cmtStart != NULL && cmtEnd != NULL && p[strlen(p)-2] != '\\') {
+    *cmtStart = 0;
+  }
+  e = &p[strlen(p) -1];
+  while (*e == ' ' && e > p) {
+    *e = 0;
+    e--;
+  }
+  return p;
+}
+
 void bitfieldReprint(int c) {
   inBitfieldReplace = 1;
   switch (c) {
-  case 1:
-    printf("  unsigned char fNoAcctg : 1;\n");
-    printf("  unsigned char fTopic   : 1;\n");
-    printf("  unsigned char fAcctqC  : 1;\n");
-    printf("  unsigned char spare    : 5;\n");
-    printf("  unsigned char spare2   : 8;\n");
+  case BITFIELD_ACCT:
+    printf("unsigned char fNoAcctg : 1;\n");
+    printf("unsigned char fTopic   : 1;\n");
+    printf("unsigned char fAcctqC  : 1;\n");
+    printf("unsigned char spare    : 5;\n");
+    printf("unsigned char spare2   : 8;\n");
     break;
-  case 2:
-    printf("  unsigned char qwhssmfc : 1;\n");
-    printf("  unsigned char qwhspad1 : 7;\n");
+  case BITFIELD_QWHS:
+    printf("unsigned char qwhssmfc : 1;\n");
+    printf("unsigned char qwhspad1 : 7;\n");
     break;
   default:
     break;
@@ -308,4 +359,16 @@ void datatypeReplace(char *line) {
   /* 'char' datatypes can be left alone */
 
   return;
+}
+
+void printHeader(char *version) 
+{
+  printf("/*\n");
+  printf(" * This file was generated from cqsdsmfc.h version %s\n",version);
+  printf(" * by the convH program (convH64.c) in the src directory\n");
+  printf(" * Do not try to edit this header manually.\n");
+  printf(" * \n");
+  printf(" * (C) Copyright IBM Corp. 1993, 2020 All Rights Reserved.\n");
+  printf(" * \n");
+  printf(" */\n");
 }

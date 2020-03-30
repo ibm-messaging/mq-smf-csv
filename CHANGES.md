@@ -1,6 +1,9 @@
 
 History (newest at top)
 =======================
+Apr 2020 (v5.2.1)
+* Update for MQ V9.1.5
+* Include mqsmfstruc.h so you can build without copying a header from z/OS
 
 Dec 2019 (v5.2.0)
 * Add support for MQ 9.1.4 encrypted datasets and logs

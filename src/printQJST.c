@@ -47,7 +47,7 @@ void printQJST(qjst *p)
   ADDS32("Log_Write_Threshold"   ,p->qjstthrw);
   ADDS32("Log_Write_Buffer_Paged",p->qjstbpag);
 
-  if (conv16(p->qjstll)>offsetof(qjst,qjstio))
+  if (conv16(p->qjstll)>offsetof(qjst,qjstcompr))
   {
     /* Array of 1 entry! Reserved space follows for 2 more, but they   */
     /* are not currently used. If the others are ever used, change the */
@@ -120,7 +120,3 @@ void printQJST(qjst *p)
   return;
 }
 
-
-/*
-    double loggerTaskPercentBusy =  100.0 * (1 - (double)pQJST->qjstslptu /(double)(statsDuration * 1000000 ));
-*/

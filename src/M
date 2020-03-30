@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/sh
 
 plat=`uname`
 
@@ -26,7 +26,7 @@ else
   flags="$flags $optim"
 fi
 
-export PLATFLAGS=$flags CC=$cc VERS=914
+export PLATFLAGS=$flags CC=$cc VERS=915
 make -e -f Makefile.unix $*
 
 rm -f $targdir/convH $targdir/mqsmfcsv

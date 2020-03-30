@@ -49,15 +49,15 @@ sizeTest: mqsmfcsv
 	diff -b sizes.tmp sizes.master
 
 shipTest: mqsmfcsv
-	cd ../testing/shipTest;./shipTest.sh
+	cd ../testing/shipTest;./shipTest.sh csv sql json
 
 mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 
-mqsmfstruc.h: csqdsmfc-$(VERS).h convH dummy
-	convH < csqdsmfc-$(VERS).h > $@
+mqsmfstruc.h: convH csqdsmfc-$(VERS).h  
+	convH $(VERS) < csqdsmfc-$(VERS).h > $@
 
-convH: convH64.c dummy
+convH: convH64.c  dummy
 	$(CC) -o $@ convH64.c
 
 
