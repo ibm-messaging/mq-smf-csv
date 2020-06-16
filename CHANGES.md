@@ -1,6 +1,11 @@
 
 History (newest at top)
 =======================
+July 2020 (v5.3)
+* Update for MQ V9.2
+* Support for AMS SMF type 180 (thanks to Andrew Mattingly)
+* Experimental support for z/OS Connect EE type 123 (subtype version 1)
+
 Apr 2020 (v5.2.1)
 * Update for MQ V9.1.5
 * Include mqsmfstruc.h so you can build without copying a header from z/OS

@@ -26,6 +26,10 @@ structures in the SMF records are printed directly.
 See mqsmfcsv.doc for more information on using or building this code, and
 thoughts on possible enhancements to the code or this repository.
 
+Recent enhancements to the package have gone beyond the primary SMF
+formatters for the MQ 115 and 116 records. The program can now also
+format MQ AMS (180) and z/OS Connect EE (123) records. But the name
+of the program is not changing to reflect that broader scope.
 
 Pull requests
 =============

@@ -155,7 +155,6 @@ static void jsonAddLine(columnHeader_t *h ,int type, const char *fmt,...)
   size_t offset;
   va_list args;
   int l;
-  long long ll;
 
   /*
    * Trying to avoid printf variants as much as possible to
@@ -213,7 +212,6 @@ static void jsonAddLine(columnHeader_t *h ,int type, const char *fmt,...)
 
 static void jsonAddElement(columnHeader_t *h, char *fmt, ...)
 {
-  size_t offset;
   va_list args;
   /*
    * Array element processing is a lot less common than adding separate lines
@@ -325,7 +323,7 @@ void jsonDump(FILE *fp, columnHeader_t **columnHeaders)
       /* Trim the line removing trailing spaces and any final comma, to make valid JSON */
       j = (jsonArrayElement_t *)h->arrayLine;
       p = &j->line[j->offsetD-1];
-      while (*p == ' ' || *p == ',' && j->offsetD >0)
+      while ((*p == ' ' || *p == ',') && j->offsetD >0)
       {
         *p=0;
         j->offsetD--;
@@ -358,17 +356,25 @@ static char *jsonEscape(char *s, size_t l)
 
   for (i=0,j=0;i<l;i++)
   {
-    switch (s[i])
+    if (isprint(s[i]))
     {
-    case '\"':
-    case '\\':
-      jsonEscBuf[j++]='\\';
-      break;
-    default:
-      break;
-    }
+      switch (s[i])
+      {
+      case '\"':
+      case '\\':
+        jsonEscBuf[j++]='\\';
+        break;
+      default:
+        break;
+      }
 
-    jsonEscBuf[j++] = s[i];
+      jsonEscBuf[j++] = s[i];
+    }
+    else
+    {
+       sprintf(&jsonEscBuf[j],"\\u%04X",s[i]);
+       j+=6;
+    }
   }
   jsonEscBuf[j] = 0;
   return jsonEscBuf;
@@ -425,4 +431,3 @@ static int removeIndex(char *s) {
 
   return idx;
 }
-

@@ -53,7 +53,6 @@ static char dataline[DATA_LEN];
 
 void smfAddHead(BOOL first,BOOL idx, char *h,int type,int len)
 {
-  char *c;
   columnHeader_t *ch;
   if (first && h)
   {
@@ -93,7 +92,7 @@ void smfAddData(int datatype,char *fmt,...)
 {
   long long ll;
   long      l;
-  char *    c;
+  char *c;
   columnHeader_t *    h;
 
   va_list args;
@@ -198,14 +197,16 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
       }
       break;
     case OF_JSON:
-      if (!fpNew)
+      /* Only want a single output file for all the JSON */
+      if (!fpJson)
       {
-        fpNew = fopenext("MQSMF","json",newFile);
-        if (!fpNew)
+        fpJson = fopenext("MQSMF","json",newFile);
+        if (!fpJson)
         {
           exit(1);
         }
       }
+      fpNew = fpJson;
       break;
     }
     for(i=0;i<HEADINGS_COUNT;i++) {
@@ -218,23 +219,28 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
   ADDSTR ("Date",commonF.recordDate,8);
   ADDSTR ("Time",commonF.recordTime,16);
   ADDSTRN("LPAR",commonF.systemId,4,4);
-  ADDSTRN("QMgr",commonF.qMgr,4,4);
-  ADDSTRN("MQ_Version",commonF.mqVer,3,3);
-
-  if (recordType == 115 && commonF.intstart != 0)
+  if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT)
   {
-    char *dt[2];
-    unsigned long long du = conv64(commonF.intduration)/1000000L;
-    ADDTIME("Interval_Start",commonF.intstart);
-    ADDHEAD("Interval_Duration",DDL_I,0);
-    /* Not documented, but this subtype uses a different scale for */
-    /* measuring the duration.                                     */
-    if (recordSubType == 231)
+    ADDSTRN("QMgr",commonF.qMgr,4,4);
+    ADDSTRN("MQ_Version",commonF.mqVer,3,3);
+
+    if (recordType == SMFTYPE_MQ_STAT && commonF.intstart != 0)
     {
-      ADDDATA(ODT_I64,"%llu,",du/4096L);
-    } else {
-      ADDDATA(ODT_I64,"%llu,",du);
+      char *dt[2];
+      unsigned long long du = conv64(commonF.intduration)/1000000L;
+      ADDTIME("Interval_Start",commonF.intstart);
+      ADDHEAD("Interval_Duration",DDL_I,0);
+      /* Not documented, but this subtype uses a different scale for */
+      /* measuring the duration.                                     */
+      if (recordSubType == 231)
+      {
+        ADDDATA(ODT_I64,"%llu,",du/4096L);
+      } else {
+        ADDDATA(ODT_I64,"%llu,",du);
+      }
     }
+  } else {
+    ADDSTRN("SubsystemID",commonF.qMgr,4,4);
   }
   *f = first;
 
@@ -243,7 +249,6 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
 
 void smfPrintStop(FILE *fp, BOOL newFile, BOOL *first, columnHeader_t **h)
 {
-  int i;
   if (*first && newFile && printHeaders && outputFormat != OF_JSON)
   {
     fprintf(fp,"%s",headings);

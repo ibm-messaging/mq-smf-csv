@@ -26,7 +26,6 @@ typedef      unsigned int BOOL;
 #define FALSE           0
 #endif
 
-
 /********************************************************************/
 /* Some platform-specific definitions                               */
 /********************************************************************/
@@ -43,17 +42,38 @@ typedef      unsigned int BOOL;
 /********************************************************************/
 /* Include the base header for all the MQ SMF structures            */
 /********************************************************************/
-#include "mqsmfstruc.h"
+#if defined(PLATFORM_WINDOWS)
+#include "mqsmfstrucW.h"
+#else
+#include "mqsmfstrucU.h"
+#endif
 
 #pragma pack(1)
 
+/*********************************************************************/
+/* This is the largest that an SMF record can be.                    */
+/*********************************************************************/
+#define MAX_SMF_DATA (32768)
+
+/********************************************************************/
+/* Records we know how to format                                    */
+/********************************************************************/
+#define SMFTYPE_START (2)
+#define SMFTYPE_STOP  (3)
+#define SMFTYPE_MQ_STAT (115)
+#define SMFTYPE_MQ_ACCT (116)
+#define SMFTYPE_ZCEE    (123)     /* z/OS Connect EE                */
+#define SMFTYPE_MQ_AMS  (180)     /* The default but can be changed */
 
 /********************************************************************/
 /* Layout of the SMF records. Standard header for all types of SMF. */
+/* The SMFRECREL is not necessarily standard usage so we overlay it */
+/* with another int32 that can be used for whatever a record has    */
+/* in there.                                                        */
 /********************************************************************/
 typedef struct                         /* Layout of the SMF record header  */
 {
-  unsigned short SMFLEN;
+  uint16_t      SMFLEN;
   unsigned char SMFSEG[2];
   unsigned char SMFRECFLG;             /* Flags                            */
   unsigned char SMFRECRTY;             /* Record Type                      */
@@ -61,20 +81,36 @@ typedef struct                         /* Layout of the SMF record header  */
   unsigned char SMFRECDTE[4];          /* Date record produced             */
   unsigned char SMFRECSID[4];          /* MVS System ID                    */
   unsigned char SMFRECSSID[4];         /* Subsystem ID                     */
-  unsigned short SMFRECSTY;            /* Record Subtype                   */
-  unsigned char SMFRECREL[3];          /* WMQ Release                      */
-  char reserved[1];                    /* Padding                          */
+  uint16_t      SMFRECSTY;             /* Record Subtype                   */
+  union {
+    struct {
+      unsigned char SMFRECREL[3];          /* MQ Release                       */
+      char reserved[1];                    /* Padding                          */
+    }s;
+    uint32_t v;
+  } u;
 } SMFHeader_t;
+
 
 /********************************************************************/
 /* SMF uses these triplet blocks a lot to say where each element is,*/
 /* and how many repeats there are.                                  */
 /********************************************************************/
 typedef struct {
-  unsigned int   offset;
-  unsigned short l;
-  unsigned short n;
+  uint32_t  offset;
+  uint16_t  l;
+  uint16_t  n;
 } triplet_t;
+
+typedef struct {
+  uint32_t  offset;
+  uint32_t  l;
+  uint32_t  n;
+} widetriplet_t;
+
+#define BT_TRIPLET (0)     /* Standard 4/2/2 byte layout */
+#define BT_WIDETRIPLET (1) /* A 4/4/4 byte layout */
+#define BT_DOUBLET (2)     /* Used by AMS */
 
 /*********************************************************************/
 /* The MQ SMF records contain the standard SMF header, and the usual */
@@ -87,22 +123,12 @@ typedef struct {
 /*********************************************************************/
 typedef struct
 {
-  SMFHeader_t      Header;       /* SMF record header                */
+  SMFHeader_t   Header;       /* SMF record header                */
   triplet_t  s[12];
-} SMFRecord_t;
+} SMFMQRecord_t;
 
-typedef struct columnHeader_s {
-  char *name;
-  int   idx;
-  void *arrayLine;
-} columnHeader_t;
-
-
-/*********************************************************************/
-/* This is the largest that an SMF record can be.                    */
-/*********************************************************************/
-#define MAX_SMF_DATA (32768)
-
+/*#include "t123/smf123.h"*/
+#include "t180/smf180.h"
 
 /*********************************************************************/
 /* Don't care about structure packing from here on - not referencing */
@@ -128,6 +154,13 @@ typedef struct {
   char stckFormatDate[64];                  /* STCK as string date/time */
   char stckFormatTime[64];                  /* STCK as string date/time */
 } commonFields_t;
+
+
+typedef struct columnHeader_s {
+  char *name;
+  int   idx;
+  void *arrayLine;
+} columnHeader_t;
 
 /********************************************************************/
 /* Formatting functions - one for each element type                 */
@@ -288,6 +321,7 @@ extern void checkStructureSizes(FILE *);
   static BOOL newFile = TRUE;\
   static FILE *fp = NULL;\
   static char *dt[2];\
+  static uint64_t tmpStck;\
   static columnHeader_t *columns[HEADINGS_COUNT]
 
 #define SMFPRINTSTART(n,p,l) \
@@ -352,6 +386,10 @@ extern void checkStructureSizes(FILE *);
   ADDHEAD(h,DDL_I,0); \
   ADDDATA(ODT_I,"%u,",(v))
 
+#define ADDBYTEX(h,v) \
+    ADDHEAD(h,DDL_I,0); \
+    ADDDATA(ODT_I,"%02X,",(v))
+
 #define ADDTIME(h,v) \
   convDate(v,dt); \
   sprintf(tmpHead,"%s (DATE)",h); \
@@ -382,6 +420,18 @@ extern void checkStructureSizes(FILE *);
   } \
   ADDDATA(ODT_USEC,"%s,",convSecUSec(v))
 
+/* STCKE values are 16 bytes wide but               */
+/* - the first byte is always 0                     */
+/* - the next 8 bytes are traditional STCK          */
+/* - the extra resolution is not really needed here */
+#define ADDTIMESTCKE(h,v) \
+  memcpy(&tmpStck,&v[1],8); \
+  ADDTIME(h,tmpStck)
+
+#define ADDSTCKE(h,v) \
+  memcpy(&tmpStck,&v[1],8); \
+  ADDSTCK(h,tmpStck)
+
 #define ADDSTCKIDX(h,idx,v) \
   if (outputFormat != OF_CSV) \
   sprintf(tmpHead,"%s{%s}(US)",h,idx); \
@@ -401,8 +451,18 @@ extern void checkStructureSizes(FILE *);
 #define ADDSTRB(h,v,len) \
   ADDSTR(h,convBin(v,len),len*2+1)                         /* Binary string*/
 
+#define ADDSTRBN(h,v,len,maxlen) \
+    ADDSTR(h,convBin(v,len),maxlen)  /* Binary string with known max length*/
+
 #define ADDSTREN(h,v,l) \
   ADDSTRN(h,convStr(v,l),l,l)                /* EBCDIC string, known length*/
+
+#define ADDSTRENS(h,v) \
+  ADDSTREN(h,v,sizeof(v))     /* EBCDIC string, length grabbed from sizeof */
+
+
+#define ADDSTRENM(h,v,l,maxlen) \
+  ADDSTRN(h,convStr(v,l),l,maxlen)    /* EBCDIC string, known length, fix max*/
 
 #define ADDSTRENIDX(h,idx, v,l) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
@@ -439,6 +499,7 @@ extern unsigned short recordSubType;
 extern commonFields_t commonF;
 extern char tmpHead[];
 extern FILE *infoStream;
+extern FILE *fpJson;
 extern char *ddlTemplateOpen;
 extern char *ddlTemplateClose;
 extern char *ddlQuote;

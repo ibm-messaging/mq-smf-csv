@@ -26,8 +26,12 @@
  * to an explicitly-sized standard datatype (eg uint64). This
  * is needed if the program is compiled in 64-bit mode. We also
  * rewrite bitfield elements in structures.
+ * 
+ * Two variants of the output are created, one for Windows
+ * and one for Unix, based on the PLATFORM_* definitions because
+ * of different paddings done for bitfields.
  *
- * NOTE: If the contents of the header file change, this
+ * NOTE: If the contents of the product header file change, this
  * filter may need to be updated to match.
  *
  */
@@ -85,7 +89,7 @@
 /* Newer compiler versions on some platforms have also                */
 /* affected how bitfields are laid out. This program now              */
 /* rewrites bitfield structures that have been found to be a problem. */
-/* The changes have to be explicitly for each issue, but the build    */
+/* The changes have to be explicit for each issue, but the build      */
 /* does now check if the structure sizes are unexpectedly different.  */
 /* The AIX compiler seems to give the same sizes as z/OS so that's the*/
 /* master we will drive the comparison from.                          */

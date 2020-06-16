@@ -3,7 +3,7 @@ CC=i686-w64-mingw32-gcc
 # CFLAGS= -I. -m32 -fpack-struct=8 -DPLATFORM_WINDOWS 
 CFLAGS= -I. -m32  -DPLATFORM_WINDOWS 
 PLATFLAGS=
-VERS=915
+VERS=920
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
@@ -12,32 +12,39 @@ SRC = mqsmf.c \
       smfPrint.c \
       checkSize.c \
       printDEBUG.c \
-      printQ5ST.c    \
-      printQCST.c    \
-      printQCTADP.c  \
-      printQCTDNS.c  \
-      printQCTDSP.c  \
-      printQCTSSL.c  \
-      printQCCT.c  \
-      printQESD.c  \
-      printQEST.c  \
-      printQIS1.c  \
-      printQIST.c  \
-      printQJST.c  \
-      printQLST.c  \
-      printQMAC.c  \
-      printQMST.c  \
-      printQPST.c  \
-      printQSGM.c  \
-      printQSPH.c  \
-      printQSRS.c  \
-      printQSST.c  \
-      printQTST.c  \
-      printWQ.c    \
-      printWTAS.c  \
-      printWTID.c
+      t115/printQ5ST.c    \
+      t115/printQCTADP.c  \
+      t115/printQCTDNS.c  \
+      t115/printQCTDSP.c  \
+      t115/printQCTSSL.c  \
+      t115/printQCCT.c  \
+      t115/printQESD.c  \
+      t115/printQEST.c  \
+      t115/printQIS1.c  \
+      t115/printQIST.c  \
+      t115/printQJST.c  \
+      t115/printQLST.c  \
+      t115/printQMST.c  \
+      t115/printQPST.c  \
+      t115/printQSGM.c  \
+      t115/printQSPH.c  \
+      t115/printQSRS.c  \
+      t115/printQSST.c  \
+      t115/printQTST.c  \
+      t116/printQCST.c    \
+      t116/printQMAC.c  \
+      t116/printWQ.c    \
+      t116/printWTAS.c  \
+      t116/printWTID.c \
+      t123/printDataV1.c   \
+      t123/printDataV2.c   \
+      t123/printServerV1.c   \
+      t123/printServerV2.c   \
+      t180/printAMS.c  
 
-HDR = mqsmfstruc.h \
+HDR = mqsmfstrucW.h \
+      t180/smf180.h \
+      t123/smf123.h \
       mqsmf.h
 
 default: mqsmfcsv.exe 
@@ -57,8 +64,8 @@ mqsmfcsv.exe: $(SRC) $(HDR) Makefile.gcc.win dummy
 	-mkdir out >/dev/null 2>&1 || true
 	cp $@ ../bin/win
 
-mqsmfstruc.h: convH.exe  dummy
-	./convH.exe $(VERS) < csqdsmfc-$(VERS).h > $@
+mqsmfstrucW.h: convH.exe  dummy
+	(test -s csqdsmfc-$(VERS).h && ./convH.exe $(VERS) < csqdsmfc-$(VERS).h > $@) || exit 0
 
 convH.exe: convH64.c
 	$(CC) $(CFLAGS) -o $@ convH64.c

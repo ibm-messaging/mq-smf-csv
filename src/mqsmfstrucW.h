@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 915
+ * This file was generated from cqsdsmfc.h version 920
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -876,8 +876,8 @@ uint64_t      qwhsstck;
 char     qwhsiseq[4];
 char     qwhswseq[4];
 struct {
-int qwhssmfc : 1;
-int qshspad1 : 7;
+unsigned char qwhssmfc : 1;
+unsigned char qwhspad1 : 7;
 } qwhsflag1;
 char     qwhsflag2;
 char     qwhsflag3;
@@ -1001,10 +1001,11 @@ int32_t   putpmsg;
 int32_t   put1pmsg;
 int32_t   maxqdpth;
 struct {
-int fNoAcctg : 1;
-int fTopic   : 1;
-int fAcctqC  : 1;
-int spare    : 13;
+unsigned char fNoAcctg : 1;
+unsigned char fTopic   : 1;
+unsigned char fAcctqC  : 1;
+unsigned char spare    : 5;
+unsigned char spare2   : 8;
 } flags;
 int16_t   z__001;
 uint32_t  getdval;

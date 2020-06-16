@@ -160,7 +160,6 @@ void addIndex(char *key)
 void printDDL(char *name, int type, int len)
 {
   char *p;
-  char *p2;
   char nameCopy[COL_HEAD_LEN] = {0};  /* Cannot modify fixed strings, have to copy input*/
 
   if (!fp)
@@ -185,7 +184,13 @@ void printDDL(char *name, int type, int len)
     }
     else
     {
-      fprintf(fp,"%s %s%s%s \t CHAR(%d)\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote,len);
+      char *datatype= "CHAR";
+      if (len == 0) {
+       len = 128;
+      } else if (len > 255) {
+       datatype = "VARCHAR";
+      }
+      fprintf(fp,"%s %s%s%s \t %s(%d)\n",comma,ddlQuote,formatDDL(nameCopy),ddlQuote,datatype,len);
     }
     break;
   case DDL_SUS: /* a seconds/microseconds field */

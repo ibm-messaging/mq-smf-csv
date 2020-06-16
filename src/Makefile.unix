@@ -10,33 +10,40 @@ SRC = \
       smfJson.c \
       checkSize.c \
       printDEBUG.c \
-      printQ5ST.c    \
-      printQCST.c    \
-      printQCTADP.c  \
-      printQCTDNS.c  \
-      printQCTDSP.c  \
-      printQCTSSL.c  \
-      printQCCT.c  \
-      printQESD.c  \
-      printQEST.c  \
-      printQIS1.c  \
-      printQIST.c  \
-      printQJST.c  \
-      printQLST.c  \
-      printQMAC.c  \
-      printQMST.c  \
-      printQPST.c  \
-      printQSGM.c  \
-      printQSPH.c  \
-      printQSRS.c  \
-      printQSST.c  \
-      printQTST.c  \
-      printWQ.c    \
-      printWTAS.c  \
-      printWTID.c  \
+      t115/printQ5ST.c    \
+      t115/printQCTADP.c  \
+      t115/printQCTDNS.c  \
+      t115/printQCTDSP.c  \
+      t115/printQCTSSL.c  \
+      t115/printQCCT.c  \
+      t115/printQESD.c  \
+      t115/printQEST.c  \
+      t115/printQIS1.c  \
+      t115/printQIST.c  \
+      t115/printQJST.c  \
+      t115/printQLST.c  \
+      t115/printQMST.c  \
+      t115/printQPST.c  \
+      t115/printQSGM.c  \
+      t115/printQSPH.c  \
+      t115/printQSRS.c  \
+      t115/printQSST.c  \
+      t115/printQTST.c  \
+      t116/printQCST.c    \
+      t116/printQMAC.c  \
+      t116/printWQ.c    \
+      t116/printWTAS.c  \
+      t116/printWTID.c  \
+      t123/printDataV1.c   \
+      t123/printDataV2.c   \
+      t123/printServerV1.c   \
+      t123/printServerV2.c   \
+      t180/printAMS.c   \
       mqsmf.c
 
-HDR = mqsmfstruc.h \
+HDR = mqsmfstrucU.h \
+      t123/smf123.h \
+      t180/smf180.h \
       mqsmf.h
 
 default: sizeTest
@@ -54,8 +61,8 @@ shipTest: mqsmfcsv
 mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 
-mqsmfstruc.h: convH csqdsmfc-$(VERS).h  
-	convH $(VERS) < csqdsmfc-$(VERS).h > $@
+mqsmfstrucU.h: convH dummy # csqdsmfc-$(VERS).h  
+	(test -s csqdsmfc-$(VERS).h && convH $(VERS) < csqdsmfc-$(VERS).h > $@) || exit 0
 
 convH: convH64.c  dummy
 	$(CC) -o $@ convH64.c

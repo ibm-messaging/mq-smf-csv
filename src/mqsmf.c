@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2018 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2020 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -99,6 +99,8 @@ typedef struct stat mystat_t;
 #endif
 
 #include "mqsmf.h"
+#include "t180/smf180.h"
+#include "t123/smf123.h"
 
 static void Usage();
 void takeCheckPoint(char *,myoff_t);
@@ -106,6 +108,7 @@ myoff_t readCheckPoint(FILE *);
 static char *getFormatRate(myoff_t pos);
 static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos);
 static BOOL inconsistentVersions(char *v1,char *v2,int l);
+int getOffsets(int sectionCount,void *offsetBlockStart,int offsetBlockType, int recordType,BOOL subTypesValid, myoff_t currentOffset);
 
 #define DEFAULT_TICKER   10000         /* Print out status every N records */
 
@@ -123,7 +126,8 @@ char *ddlTemplateClose = NULL;
 char *ddlQuote = "\"";
 commonFields_t commonF = {0};
 enum outputFormat_e outputFormat = OF_CSV;
-FILE *infoStream;
+FILE *infoStream = NULL;
+FILE *fpJson = NULL;
 
 unsigned int   recordType;
 unsigned short   recordSubType;
@@ -153,12 +157,28 @@ static char *directory = NULL;
 static unsigned int totalRecords = 0;
 static unsigned int startingRecords = 0;
 static myoff_t pos;
+static int offsetCorrection = 0;
 
 static time_t startTime = 0;
 static char *formatRate;
 
-static unsigned int Count115[256] = {0};             /* Max subtype is 255 */
-static unsigned int Count116[256] = {0};
+static int amsType = SMFTYPE_MQ_AMS;
+static AMSProduct_t *pAMSProduct = NULL;
+static AMSData_t   *pAMSData = NULL;
+static int amsRecLength = 0;
+
+static SMF123V1_t *r123_v1;
+static SMF123V2_t *r123_v2;
+
+static triplet_t triplet[12];
+static doublet_t doublet[2];
+static void * offsetBlockStart;
+static int offsetBlockType;
+
+static unsigned int processedCount[256][256] = {0};
+
+static SMFMQRecord_t *pSMFMQRecord;
+static AMSRecord_t *pAMSRecord;
 
 /********************************************************************/
 /* Not all platforms have getopt, so use our own version. Prefix    */
@@ -178,7 +198,8 @@ static BOOL debugBREAK = FALSE;
 int main( int argc, char *argv[] )
 {
 
-  SMFRecord_t *pSMFRecord;
+
+
   int ticker = DEFAULT_TICKER;
   int i,j;                             /* loop counters                    */
   char  dataBuf[MAX_SMF_DATA];         /* Contains the SMF data            */
@@ -195,6 +216,7 @@ int main( int argc, char *argv[] )
   char *basename;
   myoff_t currentOffset = 0;
   myoff_t startingOffset = 0;
+  int recLength;
   myoff_t totalFileSize = 0;
   int     seekRc = 0;
   mystat_t statbuf;
@@ -205,9 +227,9 @@ int main( int argc, char *argv[] )
   int subTypesValid = 0;
   int qTriplet;
   char *p;
-  qwhs *pqwhs;
+  qwhs *pqwhs = NULL;
   unsigned char correlid[16];
-  int offsetCorrection;
+  unsigned char tempVer[3];
 
   BOOL error = FALSE;
   BOOL knownSubType = TRUE;
@@ -215,45 +237,14 @@ int main( int argc, char *argv[] )
   int c;
 
   int sectionCount;
-  triplet_t triplet[12];
-
-#if 0
-  /*
-  This is no longer needed as the header file HAS been converted
-  to use uint32_t etc. Instead, we rely on the "make sizeTest" to
-  validate datatype sizes.
-  */
-
-  /******************************************************************/
-  /* Make sure program was correctly compiled. These datatypes must */
-  /* match the standard z/OS sizes. Generally this will mean        */
-  /* compiling this code as a 32-bit program. We don't want to have */
-  /* to change the product-provided header file excessively to      */
-  /* convert it to use types like uint_32, so are stuck with        */
-  /* dealing with it like this.                                     */
-  /******************************************************************/
-  if ((sizeof(short) != 2)     ||
-      (sizeof(long) != 4)      ||
-      (sizeof(long long) != 8) ||
-      (sizeof(int *) != 4) ||
-      (sizeof(int) != 4))
-  {
-    fprintf(stderr,"Data type sizes do not match requirements.\n");
-    fprintf(stderr,"Need to rebuild program with correct options.\n");
-    fprintf(stderr,"Here: short=%d int=%d long=%d long long=%d ptr=%d bytes\n",
-       (int)sizeof(short), (int)sizeof(int), (int)sizeof(long), (int)sizeof(long long),(int)sizeof(int *));
-    fprintf(stderr,"Need: short=%d int=%d long=%d long long=%d ptr=%d bytes\n",2,4,4,8,4);
-    exit(1);
-  }
-#endif
+  int recordSubTypeVersion;
 
   infoStream=stdout;
-
 
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  while((c = mqgetopt(argc, argv, "ab:cd:e:f:h:i:m:o:p:rst:v")) != EOF)
+  while((c = mqgetopt(argc, argv, "ab:cd:e:f:h:i:m:o:p:rst:vy:")) != EOF)
   {
     switch(c)
     {
@@ -335,8 +326,11 @@ int main( int argc, char *argv[] )
         ticker     = atoi(mqoptarg);
         break;
       case 'v':
-         checkStructureSizes(infoStream);
-         exit(0);
+        checkStructureSizes(infoStream);
+        exit(0);
+      case 'y':
+        amsType = atoi(mqoptarg);
+        break;
       default:
         error = TRUE;
         break;
@@ -358,6 +352,11 @@ int main( int argc, char *argv[] )
   /* Set up any special debug processing */
   if (getenv("MQSMFCSV_BREAK")) {
     debugBREAK=TRUE;
+  }
+
+  if (debugLevel >= 0) {
+    setbuf(stdout,0);
+    setbuf(stderr,0);
   }
 
   /*********************************************************************/
@@ -436,7 +435,9 @@ int main( int argc, char *argv[] )
     goto mod_exit;
   }
 
-  pSMFRecord = (SMFRecord_t *)&dataBuf;
+  pSMFMQRecord = (SMFMQRecord_t *)&dataBuf;
+  pAMSRecord = (AMSRecord_t *)&dataBuf;
+
   do
   {
     /**********************************************************************/
@@ -455,14 +456,14 @@ int main( int argc, char *argv[] )
       /* bytes of the Record Descriptor Word (RDW).                       */
       /********************************************************************/
 
-      bytesRead = fread(&pSMFRecord->Header.SMFLEN,1,2,fp);
+      bytesRead = fread(&pSMFMQRecord->Header.SMFLEN,1,2,fp);
       if (bytesRead < 2)
         continue;
 
       /********************************************************************/
       /* The second half-word is the segment indicator.                   */
       /********************************************************************/
-      fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
+      fread(&pSMFMQRecord->Header.SMFSEG ,1,2,fp);
 
       /********************************************************************/
       /* And then read the actual data, starting at the RECFLG field in   */
@@ -470,11 +471,11 @@ int main( int argc, char *argv[] )
       /* minus the 4 bytes of the RDW. Check that we have read the right  */
       /* amount.                                                          */
       /********************************************************************/
-      nextLength = conv16(pSMFRecord->Header.SMFLEN) - 4;
+      nextLength = conv16(pSMFMQRecord->Header.SMFLEN) - 4;
       if (debugLevel >=3)
         fprintf(infoStream,"   NextLen = %d bytes \n",nextLength);
 
-      bytesRead = fread(&pSMFRecord->Header.SMFRECFLG, 1, nextLength , fp);
+      bytesRead = fread(&pSMFMQRecord->Header.SMFRECFLG, 1, nextLength , fp);
       if (bytesRead != nextLength)
       {
         fprintf(stderr,"Error reading full record from input file\n");
@@ -493,14 +494,14 @@ int main( int argc, char *argv[] )
       /* need to check that.  Once again, ignore the RDW when working     */
       /* out how much real data there is.                                 */
       /********************************************************************/
-      if (pSMFRecord->Header.SMFSEG[0] != 0)
+      if (pSMFMQRecord->Header.SMFSEG[0] != 0)
       {
         do
         {
 
           fread(&nextLength ,1,2,fp);
           nextLength = conv16(nextLength);
-          fread(&pSMFRecord->Header.SMFSEG ,1,2,fp);
+          fread(&pSMFMQRecord->Header.SMFSEG ,1,2,fp);
 
           if (debugLevel >=3)
             fprintf(infoStream,"   NextLen = %d bytes \n",nextLength);
@@ -513,7 +514,7 @@ int main( int argc, char *argv[] )
 
           bytesRead = fread(&dataBuf[offset], 1, nextLength-4 , fp );
           offset += bytesRead;
-        } while (pSMFRecord->Header.SMFSEG[0] != 0x02);/* end of record indicator*/
+        } while (pSMFMQRecord->Header.SMFSEG[0] != 0x02);/* end of record indicator*/
 
       }
       offsetCorrection = 0;
@@ -525,7 +526,7 @@ int main( int argc, char *argv[] )
         fprintf(stderr,"Cannot move to correct offset for input file - error %s (%d)\n",strerror(errno),errno);
         goto mod_exit;
       }
-      bytesRead = fread(&pSMFRecord->Header.SMFRECFLG,1,32768,fp);
+      bytesRead = fread(&pSMFMQRecord->Header.SMFRECFLG,1,32768,fp);
       offset = bytesRead;
       offsetCorrection = 4;
       if (bytesRead <= 0)
@@ -539,15 +540,15 @@ int main( int argc, char *argv[] )
     /* these always have subtypes, but assign a value even for           */
     /* unexpected types for debug purposes.                              */
     /*********************************************************************/
-    recordType    = pSMFRecord->Header.SMFRECRTY;
+    recordType    = pSMFMQRecord->Header.SMFRECRTY;
 
     /*********************************************************************/
     /* zOS refers to bits from the left - reversed from what you might   */
     /* expect. So "bit 1" indicating subtypes is '0100 0000' == 0x40     */
     /*********************************************************************/
-    subTypesValid = ((pSMFRecord->Header.SMFRECFLG & 0x40) == 0x40);
+    subTypesValid = ((pSMFMQRecord->Header.SMFRECFLG & 0x40) == 0x40);
     if (subTypesValid)
-      recordSubType = conv16(pSMFRecord->Header.SMFRECSTY);
+      recordSubType = conv16(pSMFMQRecord->Header.SMFRECSTY);
     else
       recordSubType = 0xFF;
 
@@ -555,9 +556,11 @@ int main( int argc, char *argv[] )
     /* Some items from the record need to be shown for all types         */
     /* of structure. Save them into a shared block available for all.    */
     /*********************************************************************/
-    memcpy(commonF.qMgr,convStr(pSMFRecord->Header.SMFRECSSID,4),4);
-    memcpy(commonF.systemId,convStr(pSMFRecord->Header.SMFRECSID,4),4);
-    memcpy(commonF.mqVer,convStr(pSMFRecord->Header.SMFRECREL,3),3);
+    memcpy(commonF.qMgr,convStr(pSMFMQRecord->Header.SMFRECSSID,4),4);
+    memcpy(commonF.systemId,convStr(pSMFMQRecord->Header.SMFRECSID,4),4);
+    if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT) {
+      memcpy(commonF.mqVer,convStr(pSMFMQRecord->Header.u.s.SMFRECREL,3),3);
+    }
 
 
     /*********************************************************************/
@@ -565,9 +568,9 @@ int main( int argc, char *argv[] )
     /* is the day-of-the-year (1-365).  Extract the digits and convert   */
     /* into a decimal.                                                   */
     /*********************************************************************/
-    d[0] = (pSMFRecord->Header.SMFRECDTE[2] & 0xF0) /16;
-    d[1] = (pSMFRecord->Header.SMFRECDTE[2] & 0x0F);
-    d[2] = (pSMFRecord->Header.SMFRECDTE[3] & 0xF0) /16;
+    d[0] = (pSMFMQRecord->Header.SMFRECDTE[2] & 0xF0) /16;
+    d[1] = (pSMFMQRecord->Header.SMFRECDTE[2] & 0x0F);
+    d[2] = (pSMFMQRecord->Header.SMFRECDTE[3] & 0xF0) /16;
 
     ddd= d[0]*100 + d[1]*10 + d[2];
 
@@ -575,9 +578,9 @@ int main( int argc, char *argv[] )
     /* Similarly extract the 3 digits that indicate year and century to  */
     /* get the actual year, counting from 1900.                          */
     /*********************************************************************/
-    d[0] = (pSMFRecord->Header.SMFRECDTE[0] & 0x0F);
-    d[1] = (pSMFRecord->Header.SMFRECDTE[1] & 0xF0) /16;
-    d[2] = (pSMFRecord->Header.SMFRECDTE[1] & 0x0F);
+    d[0] = (pSMFMQRecord->Header.SMFRECDTE[0] & 0x0F);
+    d[1] = (pSMFMQRecord->Header.SMFRECDTE[1] & 0xF0) /16;
+    d[2] = (pSMFMQRecord->Header.SMFRECDTE[1] & 0x0F);
 
     year = 1900 + 10*d[1] + d[2] + (d[0]*100);  /* d1 is 1 if > 2000*/
 
@@ -586,7 +589,7 @@ int main( int argc, char *argv[] )
     /* hundredths of a second past midnight.  Need to convert to correct */
     /* endianness first.                                                 */
     /*********************************************************************/
-    memcpy(&smfTime,&(pSMFRecord->Header.SMFRECTME),4);
+    memcpy(&smfTime,&(pSMFMQRecord->Header.SMFRECTME),4);
     smfTime=conv32(smfTime);
     {
       int mon, day;
@@ -629,8 +632,10 @@ int main( int argc, char *argv[] )
         hund);
     }
 
-    if (recordType == 116 || recordType == 115)
+    switch (recordType)
     {
+    case SMFTYPE_MQ_STAT:
+    case SMFTYPE_MQ_ACCT:
       if (savedMqVer[0] == 0)
         memcpy(savedMqVer,commonF.mqVer,3);
 
@@ -651,8 +656,10 @@ int main( int argc, char *argv[] )
       /* Also pick up the STCK value that may be useful                  */
       /* for sorting.                                                    */
       /*******************************************************************/
-      p = &dataBuf[conv32(pSMFRecord->s[0].offset)];
-      if (conv16(pSMFRecord->s[0].l) == 4)           /* There is no QWHS */
+      offsetBlockStart = &pSMFMQRecord->s[0];
+      offsetBlockType = BT_TRIPLET;
+      p = &dataBuf[conv32(pSMFMQRecord->s[0].offset)];
+      if (conv16(pSMFMQRecord->s[0].l) == 4)           /* There is no QWHS */
       {
         sectionCount = 2;    /* 1 extra triplet beyond the QWHS location */
         pqwhs = NULL;
@@ -688,11 +695,43 @@ int main( int argc, char *argv[] )
           }
         }
       }
-    }
-    else
-    {
-      sectionCount = 0;
-      pqwhs = NULL;
+      break;
+
+   case SMFTYPE_ZCEE:
+      recordSubTypeVersion = conv32(pSMFMQRecord->Header.u.v);
+
+      switch (recordSubTypeVersion)
+      {
+      case 1:
+        r123_v1 = (SMF123V1_t *)pSMFMQRecord;
+        sectionCount = conv32(r123_v1->tripletCount);
+        offsetBlockStart = &(r123_v1->triplets[0]);
+        offsetBlockType = BT_WIDETRIPLET;
+        break;
+
+      case 2:
+      default:
+        r123_v2 = (SMF123V2_t *)pSMFMQRecord;
+        offsetBlockType = BT_TRIPLET;
+        sectionCount = r123_v2->sectionsCount; /* A single byte  - no conversion needed */
+        offsetBlockStart = ((char *)r123_v2) + r123_v2->sectionsOffset - offsetCorrection;
+        break;
+      }
+      break;
+
+    default:
+      if (recordType == amsType) {
+        offsetBlockStart = &pAMSRecord->s[0];
+        offsetBlockType = BT_DOUBLET;
+        sectionCount = 2;
+        pqwhs = NULL;
+      }
+      else
+      {
+        sectionCount = 0;
+        pqwhs = NULL;
+        break;
+      }
     }
 
     if (debugLevel >=3 && pqwhs != NULL)
@@ -706,47 +745,10 @@ int main( int argc, char *argv[] )
     /* We do not need to correct for the offset in non-RDW files as that */
     /* space is still allocated at the front of the buffer.              */
     /*********************************************************************/
-    {
-      int highestOffset = 0;
-      int h = -1;
-      int recLength = 0;
-      memset(triplet,0,sizeof(triplet));
-      for (i=0;i<sectionCount;i++)
-      {
-        triplet[i].offset  = conv32(pSMFRecord->s[i].offset);
-        triplet[i].l       = conv16(pSMFRecord->s[i].l);
-        triplet[i].n       = conv16(pSMFRecord->s[i].n);
-        if (triplet[i].offset > highestOffset &&
-           triplet[i].offset > 0 &&
-           triplet[i].n > 0)
-        {
-          highestOffset = triplet[i].offset;
-          h = i;
-        }
-      }
-      if (h < 0) {
-        if (subTypesValid)
-        {
-          recLength = sizeof(SMFHeader_t) - offsetCorrection;
-        }
-        else
-        {
-          recLength = offsetof(SMFHeader_t,SMFRECSSID) - offsetCorrection;
-        }
-      } else {
-        recLength = triplet[h].offset + triplet[h].l * triplet[h].n - offsetCorrection;
-      }
-      currentOffset += recLength;
-
-      if (debugLevel >= 3)
-      {
-        fprintf(infoStream,"Highest triple = %d RecLength = %d New Offset = %lld\n",
-          h, recLength,currentOffset);
-      }
-
-      if (debugLevel >= 2)
-        printDEBUG("FULL RECORD",dataBuf + offsetCorrection,recLength);
-    }
+    recLength = getOffsets(sectionCount,offsetBlockStart, offsetBlockType, recordType,subTypesValid, currentOffset);
+    currentOffset += recLength;
+    if (debugLevel >= 2)
+      printDEBUG("FULL RECORD",dataBuf + offsetCorrection,recLength);
 
 
     /*********************************************************************/
@@ -768,15 +770,15 @@ int main( int argc, char *argv[] )
     /*********************************************************************/
     /* Ignore these dump start/stop time records                         */
     /*********************************************************************/
-    case 2:
-    case 3:
+    case SMFTYPE_START:
+    case SMFTYPE_STOP:
       ignoredCount++;
       break;
 
     /*********************************************************************/
     /* Processing 115 records                                            */
     /*********************************************************************/
-    case 115:
+    case SMFTYPE_MQ_STAT:
       switch(recordSubType)
       {
       case 1:
@@ -910,19 +912,19 @@ int main( int argc, char *argv[] )
 
       default:
         knownSubType = FALSE;
-        sprintf(tmpHead,"Unknown SMF 115 subtype %d",recordSubType);
+        sprintf(tmpHead,"Unknown SMF %d subtype %d",SMFTYPE_MQ_STAT,recordSubType);
         printDEBUG(tmpHead, dataBuf,offset);
         fprintf(infoStream,"%s\n",tmpHead);
         break;
       }
       if (knownSubType)
-        Count115[recordSubType]++;
+        processedCount[SMFTYPE_MQ_STAT][recordSubType]++;
       break;
 
     /*********************************************************************/
     /* Processing 116 records                                            */
     /*********************************************************************/
-    case 116:
+    case SMFTYPE_MQ_ACCT:
       switch(recordSubType)
       {
       case 0:
@@ -998,29 +1000,108 @@ int main( int argc, char *argv[] )
 
       default:
         knownSubType = FALSE;
-        sprintf(tmpHead, "Unknown subtype %d for 116 records",recordSubType);
+        sprintf(tmpHead,"Unknown SMF %d subtype %d",SMFTYPE_MQ_ACCT,recordSubType);
         printDEBUG(tmpHead, dataBuf,offset);
         fprintf(infoStream,"%s\n",tmpHead);
         break;
       }
       if (knownSubType)
-        Count116[recordSubType]++;
+        processedCount[SMFTYPE_MQ_ACCT][recordSubType]++;
       break;
 
+    /*************************************************************************/
+    /* z/OS Connect EE has a single known subtype, but that has 2 variations */
+    /* represented by the subtypeVersion value.                              */
+    /*************************************************************************/
+    case SMFTYPE_ZCEE:
+      switch (recordSubType) {
+      case 1:
+        switch (recordSubTypeVersion)
+        {
+        case 1:
+          for (i = 0; i < triplet[0].n; i++)
+          {
+            p = &dataBuf[triplet[0].offset + triplet[0].l * i];
+            print123V1_Server((SMF123V1_Server_t *)p);
+          }
+          for (i = 0; i < triplet[1].n; i++)
+          {
+            p = &dataBuf[triplet[1].offset + triplet[1].l * i];
+            print123V1_Data((SMF123V1_Data_t *)p);
+          }
+          break;
+
+        case 2:
+          for (i = 0; i < triplet[0].n; i++)
+          {
+            p = &dataBuf[triplet[0].offset + triplet[0].l * i];
+            print123V2_Server((SMF123V2_Server_t *)p);
+          }
+          for (i = 0; i < triplet[1].n; i++)
+          {
+            p = &dataBuf[triplet[1].offset + triplet[1].l * i];
+            print123V2_Data((SMF123V2_Data_t *)p);
+          }
+          break;
+
+        default:
+          knownSubType = FALSE;
+          sprintf(tmpHead,"Unknown SMF %d subtype %d subtype version %d",SMFTYPE_ZCEE,recordSubType,recordSubTypeVersion);
+          printDEBUG(tmpHead, dataBuf,offset);
+          fprintf(infoStream,"%s\n",tmpHead);
+          break;
+        }
+        break;
+
+      default:
+        knownSubType = FALSE;
+        sprintf(tmpHead,"Unknown SMF %d subtype %d",SMFTYPE_ZCEE,recordSubType);
+        printDEBUG(tmpHead, dataBuf,offset);
+        fprintf(infoStream,"%s\n",tmpHead);
+        break;
+      }
+
+      if (knownSubType) {
+        processedCount[SMFTYPE_ZCEE][recordSubType]++;
+      }
+      break;
 
     /*********************************************************************/
+    /* The 'default' clause is where we have to process AMS records as   */
+    /* that record type can vary.                                        */
     /* Other types are unknown and unexpected, so dump them to a         */
     /* debug file for validation.                                        */
     /*********************************************************************/
     default:
-      unknownCount++;
-      sprintf(tmpHead,"Unknown SMF record type %d at record %u",recordType,totalRecords);
-      printDEBUG(tmpHead, dataBuf,offset);
-      fprintf(infoStream,"%s\n",tmpHead);
-      if (offset > 32768 && !formatWarning) {
-        fprintf(infoStream,"WARNING: Possible incorrect input format. Check use of RDW/NORDW flag.\n");
-        formatWarning = TRUE;
+      if (recordType == amsType)
+      {
+        /*******************************************************************/
+        /* Processing Advanced Message Security records                      */
+        /*********************************************************************/
+        processedCount[amsType][recordSubType]++;
+        /* KLUDGE: Grab V.R.M from Product section, but these values are     */
+        /* 1-byte binary, so add 0xF0 to each to make them EBCDIC digits.    */
+        memcpy(tempVer, &pAMSProduct->smfb4ver, 3);
+        for (i = 0; i < 3; i++) {
+          tempVer[i] += 0xF0;
+        }
+        memcpy(commonF.mqVer, convStr(tempVer, 3), 3);
+        /* UNKLUDGE: stating AMS v.r.m as the MQ version might mislead       */
+        memcpy(commonF.mqVer, "   ", 3);
+        printAMS(pAMSProduct, pAMSData, amsRecLength - sizeof(AMSRecord_t));
       }
+      else
+      {
+        unknownCount++;
+        sprintf(tmpHead,"Unknown SMF record type %d at record %u",recordType,totalRecords);
+        printDEBUG(tmpHead, dataBuf,offset);
+        fprintf(infoStream,"%s\n",tmpHead);
+        if (offset > 32768 && !formatWarning) {
+          fprintf(infoStream,"WARNING: Possible incorrect input format. Check use of RDW/NORDW flag.\n");
+          formatWarning = TRUE;
+        }
+      }
+      break;
     }
 
     if (totalRecords % ticker == 0 && totalRecords > startingRecords)
@@ -1067,6 +1148,10 @@ mod_exit:
     }
   }
 
+  if (fpJson != NULL) {
+    fclose(fpJson);
+  }
+
   formatRate = getFormatRate(pos);
   fprintf(infoStream,"Processed %u records total %s\n",totalRecords,formatRate);
 
@@ -1082,13 +1167,11 @@ mod_exit:
       fprintf(infoStream,"  Ignored                   record count: %u\n",ignoredCount);
     for (i=0;i<256;i++)
     {
-      if (Count115[i] > 0)
-        fprintf(infoStream,"  Formatted 115 subtype %3d record count: %u\n",i,Count115[i]);
-    }
-    for (i=0;i<256;i++)
-    {
-      if (Count116[i] > 0)
-        fprintf(infoStream,"  Formatted 116 subtype %3d record count: %u\n",i,Count116[i]);
+      for (j=0;j<256;j++)
+      {
+        if (processedCount[i][j] > 0)
+          fprintf(infoStream,"  Formatted %d subtype %3d record count: %u\n",i,j,processedCount[i][j]);
+      }
     }
   }
   exit(0);
@@ -1354,7 +1437,7 @@ static void Usage(void)
   fprintf(infoStream,"         [-b Db2 | MySQL ] \n");
   fprintf(infoStream,"         [-p <template DDL file prefix>  ] \n");
   fprintf(infoStream,"         [-e <template DDL file ending>  ] \n");
-  fprintf(infoStream,"         [-r] [-c] [-t <ticker>]\n");
+  fprintf(infoStream,"         [-r] [-c] [-t <ticker>] [-y AMS Record Type]\n");
   fprintf(infoStream,"  -a               Append to files if they exist. Default is overwrite.\n");
   fprintf(infoStream,"  -b <Database>    Database DDL format can be Db2 or MySQL. Default is Db2.\n");
   fprintf(infoStream,"  -c               Recover after aborted run by using the checkpoint.\n");
@@ -1371,6 +1454,8 @@ static void Usage(void)
   fprintf(infoStream,"  -r               Do not print '=' on numeric-looking strings.\n");
   fprintf(infoStream,"  -s               (Deprecated) SQL mode - generate DDL for tables.\n");
   fprintf(infoStream,"  -t <Ticker>      Print progress message every T records.\n");
+  fprintf(infoStream,"  -y <Record type> SMF record type for AMS records. Default is 180.\n");
+
   return;
 }
 
@@ -1433,3 +1518,180 @@ static BOOL inconsistentVersions(char *v1,char *v2,int l)
   return FALSE;
 }
 
+/*********************************************************************/
+/* One we know how many sections there are, copy the triplet values  */
+/* into a local array, doing the endianness conversion on the way.   */
+/* That makes it look a  bit easier rather than than having convxxx  */
+/* function calls everywhere else.                                   */
+/* We do not need to correct for the offset in non-RDW files as that */
+/* space is still allocated at the front of the buffer.              */
+/*                                                                   */
+/* AMS uses DOUBLETs, not TRIPLETs. So that has to be worked in a    */
+/* similar but different way. There are also record types that       */
+/* have 4-byte fields for all elements instead of 4/2/2 layout. I've */
+/* called that a WIDE TRIPLET. Though the values in there will fit   */
+/* into the regular 2-byte len/count fields.                         */
+/*********************************************************************/
+int getOffsets(int sectionCount,void *offsetBlockStart, int offsetBlockType, int recordType,BOOL subTypesValid, myoff_t currentOffset)
+{
+  int highestOffset = 0;
+  int h = -1;
+  int recLength = 0;
+  int i;
+  memset(triplet,0,sizeof(triplet));
+  memset(doublet,0,sizeof(doublet));
+
+  doublet_t *d = (doublet_t *)offsetBlockStart;
+  triplet_t *t = (triplet_t *)offsetBlockStart;
+  widetriplet_t *w = (widetriplet_t *)offsetBlockStart;
+
+  for (i=0;i<sectionCount;i++)
+  {
+    switch(offsetBlockType)
+    {
+    case BT_DOUBLET:
+      doublet[i].offset = conv32(d[i].offset);
+      doublet[i].l = conv32(d[i].l);
+      if (doublet[i].offset > highestOffset &&
+          doublet[i].offset > 0 &&
+          doublet[i].l > 0)
+      {
+          highestOffset = doublet[i].offset;
+          h = i;
+      }
+      break;
+    case BT_TRIPLET:
+      triplet[i].offset  = conv32(t[i].offset);
+      triplet[i].l       = conv16(t[i].l);
+      triplet[i].n       = conv16(t[i].n);
+      if (triplet[i].offset > highestOffset &&
+         triplet[i].offset > 0 &&
+         triplet[i].n > 0)
+      {
+        highestOffset = triplet[i].offset;
+        h = i;
+      }
+      break;
+
+    case BT_WIDETRIPLET:
+      triplet[i].offset  = conv32(w[i].offset);
+      triplet[i].l       = conv32(w[i].l);
+      triplet[i].n       = conv32(w[i].n);
+      if (triplet[i].offset > highestOffset &&
+       triplet[i].offset > 0 &&
+       triplet[i].n > 0)
+      {
+        highestOffset = triplet[i].offset;
+        h = i;
+      }
+      break;
+    }
+  }
+
+  if (h < 0)
+  {
+    if (subTypesValid)
+    {
+      recLength = sizeof(SMFHeader_t) - offsetCorrection;
+    }
+    else
+    {
+      recLength = offsetof(SMFHeader_t,SMFRECSSID) - offsetCorrection;
+    }
+  }
+  else
+  {
+    if (recordType == amsType) {
+      recLength = doublet[h].offset + doublet[h].l;
+      /* KLUDGE: The second (Data) section contains doublets with offset+length */
+      /* that extend beyond the Data section itself, so we need to test each of */
+      /* these doublets to make sure we catch the actual record length.         */
+      /* Note that the offsets in these doublets are relative to the start of   */
+      /* the Data section - not the start of the SMF record.                    */
+      pAMSProduct = (AMSProduct_t*)(((char*)pAMSRecord) + doublet[0].offset);
+      pAMSData = (AMSData_t*)(((char*)pAMSRecord) + doublet[1].offset);
+
+      pAMSData->rb41ob.offset = conv32(pAMSData->rb41ob.offset);
+      pAMSData->rb41ob.l      = conv32(pAMSData->rb41ob.l);
+      if (doublet[1].offset + pAMSData->rb41ob.offset + pAMSData->rb41ob.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41ob.offset + pAMSData->rb41ob.l;
+
+      pAMSData->rb41qn.offset = conv32(pAMSData->rb41qn.offset);
+      pAMSData->rb41qn.l = conv32(pAMSData->rb41qn.l);
+      if (doublet[1].offset + pAMSData->rb41qn.offset + pAMSData->rb41qn.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41qn.offset + pAMSData->rb41qn.l;
+      pAMSData->rb41qm.offset = conv32(pAMSData->rb41qm.offset);
+      pAMSData->rb41qm.l = conv32(pAMSData->rb41qm.l);
+      /* KLUDGE: Grab the queue manager name from the Data section since it is not */
+      /* written to the subsystem ID field of the standard header.                 */
+      memcpy(commonF.qMgr, convStr(((char *)pAMSData) + pAMSData->rb41qm.offset, 4), 4);
+      if (doublet[1].offset + pAMSData->rb41qm.offset + pAMSData->rb41qm.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41qm.offset + pAMSData->rb41qm.l;
+
+      pAMSData->rb41op.offset = conv32(pAMSData->rb41op.offset);
+      pAMSData->rb41op.l = conv32(pAMSData->rb41op.l);
+      if (doublet[1].offset + pAMSData->rb41op.offset + pAMSData->rb41op.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41op.offset + pAMSData->rb41op.l;
+
+      pAMSData->rb41id.offset = conv32(pAMSData->rb41id.offset);
+      pAMSData->rb41id.l = conv32(pAMSData->rb41id.l);
+      if (doublet[1].offset + pAMSData->rb41id.offset + pAMSData->rb41id.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41id.offset + pAMSData->rb41id.l;
+
+      pAMSData->rb41rc.offset = conv32(pAMSData->rb41rc.offset);
+      pAMSData->rb41rc.l = conv32(pAMSData->rb41rc.l);
+      if (doublet[1].offset + pAMSData->rb41rc.offset + pAMSData->rb41rc.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41rc.offset + pAMSData->rb41rc.l;
+
+      pAMSData->rb41ms.offset = conv32(pAMSData->rb41ms.offset);
+      pAMSData->rb41ms.l = conv32(pAMSData->rb41ms.l);
+      if (doublet[1].offset + pAMSData->rb41ms.offset + pAMSData->rb41ms.l > recLength)
+        recLength = doublet[1].offset + pAMSData->rb41ms.offset + pAMSData->rb41ms.l;
+      recLength -= offsetCorrection;
+      amsRecLength = recLength;
+    }
+    else
+    {
+      recLength = triplet[h].offset + triplet[h].l * triplet[h].n - offsetCorrection;
+    }
+  }
+
+  if (debugLevel >= 3)
+  {
+    if (recordType == amsType)
+    {
+      fprintf(infoStream, "Highest doublet = %d RecLength = %d New Offset = %lld\n",
+                        h, recLength, currentOffset);
+      if (debugLevel >=4)
+      {
+        for (i=0;i<sectionCount;i++)
+        {
+          fprintf(infoStream,"Doublet %d - offset=%d len=%d \n",i,doublet[i].offset,doublet[i].l);
+        }
+      }
+    }
+    else
+    {
+      fprintf(infoStream, "Highest triple = %d RecLength = %d New Offset = %lld\n",
+                        h, recLength, currentOffset);
+      if (debugLevel >=4)
+      {
+        for (i=0;i<sectionCount;i++)
+        {
+          fprintf(infoStream,"Triplet %d - offset=%d len=%d count=%d\n",i,triplet[i].offset,triplet[i].l,triplet[i].n);
+        }
+      }
+    }
+  }
+
+  if (debugLevel >=4)
+  {
+    if (recordType == amsType) {
+
+    } else  {
+
+    }
+  }
+
+  return recLength;
+}

@@ -1,5 +1,5 @@
 CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J /O2 /DPLATFORM_WINDOWS
-VERS=915
+VERS=920
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
@@ -8,32 +8,39 @@ SRC = mqsmf.c \
       smfPrint.c \
       checkSize.c \
       printDEBUG.c \
-      printQ5ST.c    \
-      printQCST.c    \
-      printQCCT.c  \
-      printQCTADP.c\
-      printQCTDNS.c\
-      printQCTDSP.c\
-      printQCTSSL.c\
-      printQESD.c  \
-      printQEST.c  \
-      printQIS1.c  \
-      printQIST.c  \
-      printQJST.c  \
-      printQLST.c  \
-      printQMAC.c  \
-      printQMST.c  \
-      printQPST.c  \
-      printQSGM.c  \
-      printQSPH.c  \
-      printQSRS.c  \
-      printQSST.c  \
-      printQTST.c  \
-      printWQ.c    \
-      printWTAS.c  \
-      printWTID.c
+      t115/printQ5ST.c    \
+      t115/printQCCT.c  \
+      t115/printQCTADP.c\
+      t115/printQCTDNS.c\
+      t115/printQCTDSP.c\
+      t115/printQCTSSL.c\
+      t115/printQESD.c  \
+      t115/printQEST.c  \
+      t115/printQIS1.c  \
+      t115/printQIST.c  \
+      t115/printQJST.c  \
+      t115/printQLST.c  \
+      t115/printQMST.c  \
+      t115/printQPST.c  \
+      t115/printQSGM.c  \
+      t115/printQSPH.c  \
+      t115/printQSRS.c  \
+      t115/printQSST.c  \
+      t115/printQTST.c  \
+      t116/printQCST.c    \
+      t116/printQMAC.c  \
+      t116/printWQ.c    \
+      t116/printWTAS.c  \
+      t116/printWTID.c  \
+      t123/printDataV1.c   \
+      t123/printDataV2.c   \
+      t123/printServerV1.c   \
+      t123/printServerV2.c   \
+      t180/printAMS.c 
 
-HDR = mqsmfstruc.h \
+HDR = mqsmfstrucW.h \
+      t123/smf123.h \
+      t180/smf180.h \
       mqsmf.h
 
 checkSize: mqsmfcsv.exe
@@ -46,8 +53,8 @@ mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win
 	del /q *.obj
 	copy $@ ..\bin\win
 
-mqsmfstruc.h: convH.exe  dummy
-	convH $(VERS) < csqdsmfc-$(VERS).h > $@
+mqsmfstrucW.h: convH.exe  dummy
+	if exist csqdsmfc-$(VERS).h convH $(VERS) < csqdsmfc-$(VERS).h > $@
 
 convH.exe: convH64.c
 	$(CC) $(CFLAGS) /Fe$@ convH64.c
