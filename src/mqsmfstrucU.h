@@ -1,9 +1,9 @@
 /*
- * This file was generated from cqsdsmfc.h version 920
+ * This file was generated from cqsdsmfc.h version 922
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
- * (C) Copyright IBM Corp. 1993, 2020 All Rights Reserved.
+ * (C) Copyright IBM Corp. 1993, 2021 All Rights Reserved.
  * 
  */
 #pragma pack(1)

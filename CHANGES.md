@@ -1,6 +1,9 @@
 
 History (newest at top)
 =======================
+Mar  2021 (v5.3.1)
+* Update for MQ V9.2.2 (no real change)
+
 July 2020 (v5.3)
 * Update for MQ V9.2
 * Support for AMS SMF type 180 (thanks to Andrew Mattingly)

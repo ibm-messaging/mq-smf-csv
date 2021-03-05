@@ -372,7 +372,7 @@ void printHeader(char *version)
   printf(" * by the convH program (convH64.c) in the src directory\n");
   printf(" * Do not try to edit this header manually.\n");
   printf(" * \n");
-  printf(" * (C) Copyright IBM Corp. 1993, 2020 All Rights Reserved.\n");
+  printf(" * (C) Copyright IBM Corp. 1993, 2021 All Rights Reserved.\n");
   printf(" * \n");
   printf(" */\n");
 }

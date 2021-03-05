@@ -438,7 +438,7 @@ char *strCfStatType(int v)
   case  6: c = "Write"       ; break;
   case  7: c = "StartMon"    ; break;
   case  8: c = "StopMon"     ; break;
-  case  9: c = "Unused"      ; break;
+  case  9: c = "ReadList"    ; break;
   case 10: c = "New"         ; break;
   case 11: c = "Move"        ; break;
   case 12: c = "MoveEntry"   ; break;

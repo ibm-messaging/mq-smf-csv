@@ -19,7 +19,7 @@
 
 
 /********************************************************************/
-/* Note that AMS can emit SMF records with a configurablt record    */
+/* Note that AMS can emit SMF records with a configurable record    */
 /* type but the default is 180.                                     */
 /********************************************************************/
 
