@@ -159,6 +159,8 @@ static unsigned int startingRecords = 0;
 static myoff_t pos;
 static int offsetCorrection = 0;
 
+static BOOL warn115_240=FALSE;
+
 static time_t startTime = 0;
 static char *formatRate;
 
@@ -909,6 +911,18 @@ int main( int argc, char *argv[] )
           }
         }
         break;
+
+      case 240: 
+        /* These are internal undocumented structures. There's not much we can do */
+        /* except ignore them. We will see them show up in the overall subtype    */ 
+        /* stats of records processed, but no other debug.                        */
+        if (!warn115_240) 
+        {
+          sprintf(tmpHead,"Internal SMF %d subtype %d records found",SMFTYPE_MQ_STAT,recordSubType);
+          fprintf(infoStream,"%s\n",tmpHead);
+          warn115_240=TRUE;
+        }
+        break; 
 
       default:
         knownSubType = FALSE;

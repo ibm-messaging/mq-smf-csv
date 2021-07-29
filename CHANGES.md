@@ -1,6 +1,12 @@
 
 History (newest at top)
 =======================
+Jul 2021 (v5.3.2)
+* Recognise and ignore 115 subtype 240 (an internal undocumented stucture)
+* Fix an error in QESD interpretation
+* Update for MQ V9.2.3 (no real change)
+
+
 Mar  2021 (v5.3.1)
 * Update for MQ V9.2.2 (no real change)
 

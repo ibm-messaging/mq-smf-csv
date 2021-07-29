@@ -47,6 +47,7 @@ void printQESD(qesd *p)
       ADDU32  ("Pages_Reallocated", p -> qesdsmrp);
       ADDU32  ("Pages_Cleaned_Up" , p -> qesdsmcp);
       ADDU32  ("Failed_Allocates" , p -> qesdsmfl);
+
       ADDU32  ("Max_Msg_Count"    , p -> qesdsmmm);
       ADDU32  ("Max_Used_Blocks"  , p -> qesdsmmu);
       ADDU32  ("Min_Free_Blocks"  , p -> qesdsmmf);
@@ -58,6 +59,7 @@ void printQESD(qesd *p)
       ADDU32  ("Free_Empty_Buffers", p -> qesdbffe);
       ADDU32  ("Pool_Waiters"     , p -> qesdbfpw);
       ADDU32  ("Buffer_Waiters"   , p -> qesdbfbw);
+
       ADDU32  ("Buffer_Get_Count", p -> qesdbfgb);
       ADDU32  ("Buffer_Get_Valid", p -> qesdbfgv);
       ADDU32  ("Buffer_Get_Empty", p -> qesdbfgm);
@@ -73,9 +75,11 @@ void printQESD(qesd *p)
       ADDU32  ("Waited_For_Pool"  , p -> qesdbfwp);
       ADDU32  ("Waited_For_Buffer", p -> qesdbfwb);
       ADDSTCK ("Pool_Wait_Time"   , p -> qesdbfpt);
-      ADDU32  ("Buffer_Wait_Time" , p -> qesdbfmu);
-      ADDU32  ("Buffer_Max_Used"  , p -> qesdbfmf);
-      ADDU32  ("Buffer_Min_Free"  , p -> qesdbfmp);
+      ADDU32  ("Buffer_Wait_Time" , p -> qesdbfbt);
+
+      ADDU32  ("Buffer_Max_Used"  , p -> qesdbfmu);
+      ADDU32  ("Buffer_Min_Free"  , p -> qesdbfmf);
+      ADDU32  ("Pool_Max_Waiters" , p -> qesdbfmp);
       ADDU32  ("Buffer_Max_Waiters", p -> qesdbfmb);
 
       ADDU32  ("High_Allocated_Ctl_Interval", p -> qesdioha);
