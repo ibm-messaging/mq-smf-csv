@@ -32,7 +32,7 @@ void printQTST(qtst *p)
   ADDU32("Subs_Low_Water_Proxy" ,  p->qtstzero.qtstslow[2]);
 
   ADDU32("Subs_Expired"         , p->qtstzero.qtstsexp);
-  ADDU32("Total_Pub_Requests"   , p->qtstzero.qtsttmsg);
+  ADDU32("Total_Published_Msg"  , p->qtstzero.qtsttmsg);
   ADDU32("Single_Sub_High_Water", p->qtstzero.qtstsphw);
 
   ADDU32("Pubs_Total_API"  , p->qtstzero.qtstptot[0]);
