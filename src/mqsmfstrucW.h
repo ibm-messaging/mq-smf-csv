@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 923
+ * This file was generated from cqsdsmfc.h version 924
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -621,7 +621,8 @@ int32_t   qpstsos;
 uint32_t  qpstloc : 1;
 uint32_t  qpstf4kb : 1;
 uint32_t         : 30;
-int32_t   filler__001[7];
+uint32_t  QPST_MSGP020_PUTIME;
+int32_t   filler__001[6];
 } qpst;
 #define QPSTIDV  0xD30F
 #define QPSTEYEV "QPST"

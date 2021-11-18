@@ -2,6 +2,11 @@
 
 plat=`uname`
 
+if [ -z "$VERS" ]
+then
+  VERS="924"
+fi
+
 if [ "$plat" = "AIX" ]
 then
   flags="-q64 -qmaxmem=-1 $CCEXTRAFLAGS -D PLATFORM_AIX"
@@ -26,7 +31,7 @@ else
   flags="$flags $optim"
 fi
 
-export PLATFLAGS=$flags CC=$cc VERS=923
+export PLATFLAGS=$flags CC=$cc VERS=$VERS
 make -e -f Makefile.unix $*
 
 rm -f $targdir/convH $targdir/mqsmfcsv

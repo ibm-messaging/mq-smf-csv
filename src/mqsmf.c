@@ -404,7 +404,9 @@ int main( int argc, char *argv[] )
     basename = inputFile;
   else
     basename = b+1;
-  fprintf(infoStream,"Input file: %s. Format: %s.\n",basename, useRDW?"RDW":"Without RDW");
+  fprintf(infoStream,"Input file: %s. Requested format: %s.\n",basename, useRDW?"RDW":"Without RDW");
+  fprintf(infoStream,"  If there are lots of parsing errors or unknown record types,\n");
+  fprintf(infoStream,"  or even a SEGV, then try using alternate RDW format option.\n\n");
 
   /********************************************************************/
   /* Open the checkpoint file for reading if we have been asked to do */
@@ -676,7 +678,7 @@ int main( int argc, char *argv[] )
         convDate(pqwhs->qwhsstck,dt);
         strcpy(commonF.stckFormatDate,dt[0]);
         strcpy(commonF.stckFormatDate,dt[1]);
-        if (recordType == 115)
+        if (recordType == SMFTYPE_MQ_STAT) 
         {
           if (conv16(pqwhs->qwhslen) >= 52)
           {
@@ -740,7 +742,7 @@ int main( int argc, char *argv[] )
        fprintf(infoStream,"Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
 
     /*********************************************************************/
-    /* One we know how many sections there are, copy the triplet values  */
+    /* Once we know how many sections there are, copy the triplet values */
     /* into a local array, doing the endianness conversion on the way.   */
     /* That makes it look a  bit easier rather than than having convxxx  */
     /* function calls everywhere else.                                   */
@@ -783,7 +785,7 @@ int main( int argc, char *argv[] )
     case SMFTYPE_MQ_STAT:
       switch(recordSubType)
       {
-      case 1:
+      case SMFSUBTYPE_MQ_STAT_BASIC: 
         /*****************************************************************/
         /* Some of the triplets seem to refer to internal/undocumented   */
         /* structures. Only the QSST and QJST are known elements.        */
@@ -806,7 +808,7 @@ int main( int argc, char *argv[] )
         }
         break;
 
-      case 2:
+      case SMFSUBTYPE_MQ_STAT_API:
         /*****************************************************************/
         /* All of the triplets may be used, so we can just iterate       */
         /* through them and pick the right formatter for each.           */
@@ -837,7 +839,7 @@ int main( int argc, char *argv[] )
         }
         break;
 
-      case 5:
+      case SMFSUBTYPE_MQ_STAT_POOL:
         for (i = 0; i < triplet[1].n; i++)
         {
           p = &dataBuf[triplet[1].offset + triplet[1].l * i];
@@ -845,7 +847,7 @@ int main( int argc, char *argv[] )
         }
         break;
 
-      case 6:
+      case SMFSUBTYPE_MQ_STAT_GETMAIN:
         for (i = 0; i < triplet[1].n; i++)
         {
           p = &dataBuf[triplet[1].offset + triplet[1].l * i];
@@ -853,7 +855,7 @@ int main( int argc, char *argv[] )
         }
         break;
 
-      case 7:
+      case SMFSUBTYPE_MQ_STAT_REGION:
         for (i = 0; i < triplet[1].n; i++)
         {
           p = &dataBuf[triplet[1].offset + triplet[1].l * i];
@@ -864,7 +866,7 @@ int main( int argc, char *argv[] )
 #ifdef QIS1IDV
      /* Pageset statistics introduced in MQ V9 - only compile this block if using */
      /* the V9 header file.                                                       */
-     case 201:
+      case SMFSUBTYPE_MQ_STAT_PAGESET:
         for(i = 0; i < triplet[1].n; i++)
         {
           p = &dataBuf[triplet[1].offset + triplet[1].l * i];
@@ -873,7 +875,7 @@ int main( int argc, char *argv[] )
         break;
 #endif
 
-      case 215:
+      case SMFSUBTYPE_MQ_STAT_BUFFER:
         for(i = 0; i < triplet[1].n; i++)
         {
           p = &dataBuf[triplet[1].offset + triplet[1].l * i];
@@ -881,7 +883,7 @@ int main( int argc, char *argv[] )
         }
         break;
 
-      case 231:
+      case SMFSUBTYPE_MQ_STAT_CHANNEL:
         /*****************************************************************/
         /* All of the triplets may be used, so we can just iterate       */
         /* through them and pick the right formatter for each.           */
@@ -912,7 +914,7 @@ int main( int argc, char *argv[] )
         }
         break;
 
-      case 240: 
+      case SMFSUBTYPE_MQ_STAT_RESERVED_1:
         /* These are internal undocumented structures. There's not much we can do */
         /* except ignore them. We will see them show up in the overall subtype    */ 
         /* stats of records processed, but no other debug.                        */
@@ -1511,6 +1513,28 @@ static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos)
     sprintf(formatPercentString,"[%5.2f%%]", f);
   }
   return formatPercentString;
+}
+
+
+/*****************************************************************/
+/* FUNCTION: laterThan                                           */
+/* PURPOSE:                                                      */
+/*   Is the qmgr version in the current record greater than      */
+/*   a particular level                                          */
+/* RETURN: 1 if later version; 0 otherwise                       */
+/*****************************************************************/
+int laterThan(int v)
+{
+  int rc = 0;
+  char mqVer[5] = {0};
+  static int currentVersion = -1;
+  if (currentVersion == -1) {
+    strncpy(mqVer,commonF.mqVer,4);
+    currentVersion = atoi(mqVer);
+  }
+  if (currentVersion > v) 
+    return 1;
+  return rc;
 }
 
 /*****************************************************************/

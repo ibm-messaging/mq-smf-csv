@@ -66,6 +66,19 @@ typedef      unsigned int BOOL;
 #define SMFTYPE_MQ_AMS  (180)     /* The default but can be changed */
 
 /********************************************************************/
+/* Various subtypes                                                 */
+/********************************************************************/
+#define SMFSUBTYPE_MQ_STAT_BASIC   (1)
+#define SMFSUBTYPE_MQ_STAT_API     (2)
+#define SMFSUBTYPE_MQ_STAT_POOL    (5)
+#define SMFSUBTYPE_MQ_STAT_GETMAIN (6)
+#define SMFSUBTYPE_MQ_STAT_REGION  (7)
+#define SMFSUBTYPE_MQ_STAT_PAGESET (201)
+#define SMFSUBTYPE_MQ_STAT_BUFFER  (215)
+#define SMFSUBTYPE_MQ_STAT_CHANNEL (231)
+#define SMFSUBTYPE_MQ_STAT_RESERVED_1 (240)
+
+/********************************************************************/
 /* Layout of the SMF records. Standard header for all types of SMF. */
 /* The SMFRECREL is not necessarily standard usage so we overlay it */
 /* with another int32 that can be used for whatever a record has    */
@@ -231,6 +244,7 @@ extern char  *convStr(unsigned char *,int);/* Convert EBCDIC string to ASCII*/
 extern char  *convSecUSec(unsigned long long s);/* Convert stck durations to string containing sec,usec*/
 extern void   convDate(unsigned long long s,char *dt[2]);  /* Convert stck to date/time*/
 extern int    looksLikeNum(int l, char *c);
+extern int    laterThan(int version); /* Is current record from qmgr version later than requested */
 
 extern char  *stckConv(unsigned long long stck, char * output);
 extern void   calcYMD(int y,int dY,int *m,int *dM);
