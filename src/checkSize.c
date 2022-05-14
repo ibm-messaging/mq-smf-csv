@@ -26,6 +26,7 @@ fprintf(fp,"%s : %d\n","qlst",(int)sizeof(qlst));
 fprintf(fp,"%s : %d\n","qmac",(int)sizeof(qmac));
 fprintf(fp,"%s : %d\n","qmst",(int)sizeof(qmst));
 fprintf(fp,"%s : %d\n","qpst",(int)sizeof(qpst));
+fprintf(fp,"%s : %d\n","qqst",(int)sizeof(qqst));
 fprintf(fp,"%s : %d\n","qsgm",(int)sizeof(qsgm));
 fprintf(fp,"%s : %d\n","qsph",(int)sizeof(qsph));
 fprintf(fp,"%s : %d\n","qsrs",(int)sizeof(qsrs));
@@ -46,6 +47,11 @@ fprintf(fp,"%s : %d\n","qwsx",(int)sizeof(qwsx));
 fprintf(fp,"%s : %d\n","qwas",(int)sizeof(qwas));
 fprintf(fp,"%s : %d\n","qwa0",(int)sizeof(qwa0));
 fprintf(fp,"%s : %d\n","wq  ",(int)sizeof(wq));
+
+/* Print a few structure offsets that reflect problematic areas */
 fprintf(fp,"wq->maxqdpth: %d\n",(int)offsetof(wq,maxqdpth));
 fprintf(fp,"wq->z__001  : %d\n",(int)offsetof(wq,z__001  ));
+
+/* QQST is new during 930 development and initial version looked wrong. But it's now corrected. */
+fprintf(fp,"qqst->qqstdpth  : %d\n",(int)offsetof(qqst,qqstdpth  ));
 }

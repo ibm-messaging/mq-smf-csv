@@ -1,9 +1,9 @@
 /*
- * This file was generated from cqsdsmfc.h version 924
+ * This file was generated from cqsdsmfc.h version 930
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
- * (C) Copyright IBM Corp. 1993, 2021 All Rights Reserved.
+ * (C) Copyright IBM Corp. 1993, 2022 All Rights Reserved.
  * 
  */
 #pragma pack(1)
@@ -621,11 +621,33 @@ int32_t   qpstsos;
 uint32_t  qpstloc : 1;
 uint32_t  qpstf4kb : 1;
 uint32_t         : 30;
-uint32_t  QPST_MSGP020_PUTIME;
-int32_t   filler__001[6];
+int32_t   filler__001[7];
 } qpst;
 #define QPSTIDV  0xD30F
 #define QPSTEYEV "QPST"
+#if defined(__cplusplus)
+}
+#endif
+#if defined(__cplusplus)
+extern "C" {
+#endif
+typedef
+struct {
+uint16_t  qqstid;
+uint16_t  qqstll;
+char     qqsteyec[4];
+char     qqstqnam[48];
+uint32_t   qqstflag;
+signed   short  int qqstpsid;
+signed   short  int qqstbpid;
+char     qqstqsgn[4];
+char     qqstcfst[12];
+int32_t   qqstdpth;
+} qqst;
+#define QQSTIDV  0xD80F
+#define QQSTEYEV "QQST"
+#define QQSTDISP 0x80000000
+#define QQSTPART 0x40000000
 #if defined(__cplusplus)
 }
 #endif
@@ -1317,6 +1339,21 @@ uint32_t  qws10r8o;
 uint16_t  qws10r8l;
 uint16_t  qws10r8n;
 } qws1;
+#if defined(__cplusplus)
+}
+#endif
+#if defined(__cplusplus)
+extern "C" {
+#endif
+typedef
+struct {
+uint32_t  qws30pso;
+uint16_t  qws30psl;
+uint16_t  qws30psn;
+uint32_t  qws30r1o;
+uint16_t  qws30r1l;
+uint16_t  qws30r1n;
+} qws3;
 #if defined(__cplusplus)
 }
 #endif

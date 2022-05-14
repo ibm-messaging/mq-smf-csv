@@ -2,6 +2,10 @@
 History (newest at top)
 =======================
 
+Jul 2022 (v5.4)
+* Update for MQ V9.3.0
+* New QQST structure in the 115 records
+
 Nov 2021 (v5.3.3)
 * Update for MQ V9.2.4 (no functional change)
 * Visual Studio 2022 setup script

@@ -24,6 +24,7 @@ SRC = \
       t115/printQLST.c  \
       t115/printQMST.c  \
       t115/printQPST.c  \
+      t115/printQQST.c  \
       t115/printQSGM.c  \
       t115/printQSPH.c  \
       t115/printQSRS.c  \

@@ -14,6 +14,7 @@ qlst : 32
 qmac : 48
 qmst : 104
 qpst : 104
+qqst : 84
 qsgm : 48
 qsph : 88
 qsrs : 232
@@ -36,3 +37,4 @@ qwa0 : 56
 wq   : 2788
 wq->maxqdpth: 588
 wq->z__001  : 594
+qqst->qqstdpth  : 80

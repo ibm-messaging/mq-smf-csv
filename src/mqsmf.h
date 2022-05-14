@@ -75,6 +75,7 @@ typedef      unsigned int BOOL;
 #define SMFSUBTYPE_MQ_STAT_REGION  (7)
 #define SMFSUBTYPE_MQ_STAT_PAGESET (201)
 #define SMFSUBTYPE_MQ_STAT_BUFFER  (215)
+#define SMFSUBTYPE_MQ_STAT_QUEUES  (216)
 #define SMFSUBTYPE_MQ_STAT_CHANNEL (231)
 #define SMFSUBTYPE_MQ_STAT_RESERVED_1 (240)
 
@@ -190,6 +191,9 @@ extern void printQESD  (qesd *);
 extern void printQEST  (qest *);
 #ifdef QIS1IDV
 extern void printQIS1  (qis1 *);
+#endif
+#ifdef QQSTIDV
+extern void printQQST  (qqst *);
 #endif
 extern void printQIST  (qist *);
 extern void printQJST  (qjst *);

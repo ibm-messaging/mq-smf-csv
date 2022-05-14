@@ -3,7 +3,7 @@ CC=i686-w64-mingw32-gcc
 # CFLAGS= -I. -m32 -fpack-struct=8 -DPLATFORM_WINDOWS 
 CFLAGS= -I. -m32  -DPLATFORM_WINDOWS 
 PLATFLAGS=
-VERS=924
+VERS=930
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
@@ -26,6 +26,7 @@ SRC = mqsmf.c \
       t115/printQLST.c  \
       t115/printQMST.c  \
       t115/printQPST.c  \
+      t115/printQQST.c  \
       t115/printQSGM.c  \
       t115/printQSPH.c  \
       t115/printQSRS.c  \

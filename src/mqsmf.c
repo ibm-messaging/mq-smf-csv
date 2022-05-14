@@ -914,6 +914,18 @@ int main( int argc, char *argv[] )
         }
         break;
 
+#ifdef QQSTIDV
+     /* Pageset statistics introduced in MQ V9.3 - only compile this block if using */
+     /* a suitable header file.                                                   */
+      case SMFSUBTYPE_MQ_STAT_QUEUES:
+        for(i = 0; i < triplet[1].n; i++)
+        {
+          p = &dataBuf[triplet[1].offset + triplet[1].l * i];
+          printQQST((qqst *)p);
+        }
+        break;
+#endif
+
       case SMFSUBTYPE_MQ_STAT_RESERVED_1:
         /* These are internal undocumented structures. There's not much we can do */
         /* except ignore them. We will see them show up in the overall subtype    */ 
