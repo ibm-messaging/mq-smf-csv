@@ -16,6 +16,17 @@
 
 SMFPRINTGLOB;
 
+static char *qqstPart[] = { "FULL",   
+                            "PARTIAL",
+                             NULL};
+
+static char *qqstDisp[] = { "PRIVATE",   
+                            "SHARED",
+                             NULL};
+
+static char *qqstUncm[] = { "NO",      
+                            "YES",
+                            NULL};
 /* Queue statistics */
 void printQQST(qqst *p)
 {
@@ -28,20 +39,20 @@ void printQQST(qqst *p)
   ADDSTRENS("Queue",    p->qqstqnam);
 
   flags = conv32(p->qqstflag);
-  if ((flags & QQSTDISP) == QQSTDISP) { 
-    c = "SHARED";
+  if ((flags & QQSTDISP) == QQSTDISP) {
+    c = qqstDisp[1];
   } else {
-    c = "PRIVATE";
+    c = qqstDisp[0];
   }
-  ADDSTR("Queue_Disp",  c,7); /* 7 = max length of SHARED/PRIVATE */
+  ADDSTR("Queue_Disp",  c,fieldWidth(qqstDisp));
 
   /* When the record is partial the depth will be shown as 0 but might be incorrect */
-  if ((flags & QQSTPART) == QQSTPART) { 
-    c = "PARTIAL";
+  if ((flags & QQSTPART) == QQSTPART) {
+    c = qqstPart[1];
   } else {
-    c = "FULL";
+    c = qqstPart[0];
   }
-  ADDSTR("Record",  c,7); /* 7 = max length of PARTIAL/FULL */
+  ADDSTR("Record",  c,fieldWidth(qqstPart));
 
   ADDSTRENS("QSG_Name", p->qqstqsgn);
   ADDSTRENS("Structure",p->qqstcfst);
@@ -50,7 +61,26 @@ void printQQST(qqst *p)
   ADDS16("BufferPool",  p->qqstbpid); /*   and for unallocated private queues            */
   ADDS32("Current_Depth",p->qqstdpth);
 
+  /* qqstopct was the first field added after the original structure */
+  if (conv16(p->qqstll)>offsetof(qqst,qqstopct))
+  {
+    ADDS32("Output_Handles",p->qqstopct);
+    ADDS32("Input_Handles" ,p->qqstipct);
+    ADDS32("Max_Age"       ,p->qqstmage);
+    ADDS32("QTime_Short"   ,p->qqstqtst);
+    ADDS32("QTime_Long"    ,p->qqstqtlt);
+    ADDTIME("Last_Put"     ,p->qqstlput);
+    ADDTIME("Last_Get"     ,p->qqstlget);
+    if ((flags & QQSTUNCM) == QQSTUNCM) {
+      c = qqstUncm[1];
+    } else {
+      c = qqstUncm[0];
+    }
+    ADDSTR("Uncommitted",  c,fieldWidth(qqstUncm));
+  }
+
   SMFPRINTSTOP;
 
   return;
 }
+

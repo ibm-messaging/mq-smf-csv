@@ -218,6 +218,8 @@ extern char *formatDDL (char *);
 extern char *formatDDLMaxLength (char *,int);
 extern void addIndex   (char *);
 
+extern int fieldWidth(char *strings[]);
+
 extern void  jsonNew(FILE *,char *);
 extern void  jsonDump(FILE *, columnHeader_t **);
 extern columnHeader_t *jsonFormatHeader(BOOL,char *);
@@ -512,6 +514,7 @@ extern unsigned char  EBCDIC_TO_ASCII[];
 extern int  debugLevel;
 extern BOOL  addEquals;
 extern BOOL  printHeaders;
+extern BOOL localTime;
 extern unsigned int   recordType;
 extern unsigned short recordSubType;
 extern commonFields_t commonF;

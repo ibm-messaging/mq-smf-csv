@@ -121,6 +121,7 @@ BOOL  printHeaders = TRUE;
 BOOL  useRDW = TRUE;
 BOOL  streamOutput = FALSE;
 BOOL  streamInput = TRUE;
+BOOL  localTime = TRUE; /* Print timestamps in localtime rather than CUT */
 char *ddlTemplateOpen = NULL;
 char *ddlTemplateClose = NULL;
 char *ddlQuote = "\"";
@@ -246,7 +247,7 @@ int main( int argc, char *argv[] )
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  while((c = mqgetopt(argc, argv, "ab:cd:e:f:h:i:m:o:p:rst:vy:")) != EOF)
+  while((c = mqgetopt(argc, argv, "ab:cd:e:f:g:h:i:m:o:p:rst:vy:")) != EOF)
   {
     switch(c)
     {
@@ -290,6 +291,12 @@ int main( int argc, char *argv[] )
           addEquals=0;
         } else if (strstr(mqoptarg,"CSV"))
           outputFormat = OF_CSV;
+        break;
+      case 'g':
+        for (i=0;i<strlen(mqoptarg);i++)
+          mqoptarg[i] = toupper(mqoptarg[i]);
+        if (!strcmp(mqoptarg,"YES"))
+          localTime = FALSE;
         break;
       case 'h':
         for (i=0;i<strlen(mqoptarg);i++)
@@ -1465,12 +1472,13 @@ static void Usage(void)
   fprintf(infoStream,"         [-b Db2 | MySQL ] \n");
   fprintf(infoStream,"         [-p <template DDL file prefix>  ] \n");
   fprintf(infoStream,"         [-e <template DDL file ending>  ] \n");
-  fprintf(infoStream,"         [-r] [-c] [-t <ticker>] [-y AMS Record Type]\n");
+  fprintf(infoStream,"         [-r] [-c] [-t <ticker>] [-g yes|no] [-y AMS Record Type]\n");
   fprintf(infoStream,"  -a               Append to files if they exist. Default is overwrite.\n");
   fprintf(infoStream,"  -b <Database>    Database DDL format can be Db2 or MySQL. Default is Db2.\n");
   fprintf(infoStream,"  -c               Recover after aborted run by using the checkpoint.\n");
   fprintf(infoStream,"  -d <Level>       Debug by dumping binary records (Level = 1 or 2).\n");
   fprintf(infoStream,"  -f               File formats. Default to RDW for input, CSV for output.\n");
+  fprintf(infoStream,"  -g yes|no        Print timestamps in GMT/CUT. Default (no) converts to localtime.\n");
   fprintf(infoStream,"  -h yes|no        Print column headers for new output files. Default is yes.\n");
   fprintf(infoStream,"  -i <Input file>  Default is to read from stdin.\n");
   fprintf(infoStream,"  -m <Max records> End after formatting M records. Default to process all.\n");

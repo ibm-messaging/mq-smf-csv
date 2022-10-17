@@ -2,6 +2,12 @@
 History (newest at top)
 =======================
 
+Oct 2022 (v5.4.1)
+* Update for MQ V9.3.1
+* Extended QQST structure in the 115 records
+* Add config option (-g) to print timestamps in GMT.
+  * Default prints as localtime
+
 Jul 2022 (v5.4)
 * Update for MQ V9.3.0
 * New QQST structure in the 115 records

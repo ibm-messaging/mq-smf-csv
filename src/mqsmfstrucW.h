@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 930
+ * This file was generated from cqsdsmfc.h version 931
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -638,16 +638,24 @@ uint16_t  qqstll;
 char     qqsteyec[4];
 char     qqstqnam[48];
 uint32_t   qqstflag;
-signed   short  int qqstpsid;
-signed   short  int qqstbpid;
+int16_t   qqstpsid;
+int16_t   qqstbpid;
 char     qqstqsgn[4];
 char     qqstcfst[12];
-int32_t   qqstdpth;
+int32_t  qqstdpth;
+uint32_t qqstopct;
+uint32_t qqstipct;
+uint32_t qqstmage;
+uint32_t qqstqtst;
+uint32_t qqstqtlt;
+uint64_t      qqstlput;
+uint64_t      qqstlget;
 } qqst;
 #define QQSTIDV  0xD80F
 #define QQSTEYEV "QQST"
 #define QQSTDISP 0x80000000
 #define QQSTPART 0x40000000
+#define QQSTUNCM 0x20000000
 #if defined(__cplusplus)
 }
 #endif

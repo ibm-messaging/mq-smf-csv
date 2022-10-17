@@ -127,31 +127,42 @@ void convDate(unsigned long long stcki, char *dt[2])
   }
   else
   {
-  s = stck - EPOCH1970;  /* Make relative to our epoch instead of z/OS 1900*/
-  s = s / 4096;                                /* Convert stck to microsecs*/
-  sec  = (time_t)(s / 1000000);                     /* Split into two parts*/
-  usec = s % 1000000;
+    s = stck - EPOCH1970;  /* Make relative to our epoch instead of z/OS 1900*/
+    s = s / 4096;                                /* Convert stck to microsecs*/
+    sec  = (time_t)(s / 1000000);                     /* Split into two parts*/
+    usec = s % 1000000;
 
-  t = localtime(&sec);                 /* Turn seconds into tm structure...*/
+    if (localTime)
+    {
+      t = localtime(&sec);                 /* Turn seconds into tm structure...*/
+    }
+    else
+    {
+      t = gmtime(&sec);
+    }
 
-  offset1 = strftime(stckDate,sizeof(stckDate)-1,tf.fmtDate,t); /* ...and format it*/
-  offset2 = strftime(stckTime,sizeof(stckTime)-1,tf.fmtTime,t); /* ...and format it*/
-  if (offset1 == 0 || offset2 == 0 || stck < EPOCH1970)
-  {
-    /***********************************************************************/
-    /* There seem to be occasions where the timestamp is not a proper      */
-    /* value - perhaps when there has been no work done for the activity   */
-    /* being recorded. So we put a hardcoded value into the string to make */
-    /* those times (MQ bugs?) easy to recognise.                           */
-    /***********************************************************************/
-    strcpy(stckTime,tf.epochTime);
-    strcpy(stckDate,tf.epochDate);
+    offset1 = strftime(stckDate,sizeof(stckDate)-1,tf.fmtDate,t); /* ...and format it*/
+    offset2 = strftime(stckTime,sizeof(stckTime)-1,tf.fmtTime,t); /* ...and format it*/
+    if (offset1 == 0 || offset2 == 0 || stck < EPOCH1970)
+    {
+      /***********************************************************************/
+      /* There seem to be occasions where the timestamp is not a proper      */
+      /* value - perhaps when there has been no work done for the activity   */
+      /* being recorded. So we put a hardcoded value into the string to make */
+      /* those times (MQ bugs?) easy to recognise.                           */
+      /***********************************************************************/
+      strcpy(stckTime,tf.epochTime);
+      strcpy(stckDate,tf.epochDate);
+    }
+    else
+    {
+      sprintf(&stckTime[offset2],"%s%6.6d%s",tf.decimal,usec,(outputFormat==OF_JSON)?"":"\"");          /* Add on usec value*/
+    }
   }
-  else
-    sprintf(&stckTime[offset2],"%s%6.6d%s",tf.decimal,usec,(outputFormat==OF_JSON)?"":"\"");          /* Add on usec value*/
-  }
+
   dt[0] = stckDate;
   dt[1] = stckTime;
+
   return;
 }
 
@@ -166,9 +177,9 @@ void calcYMD(int year,int dayOfYear,int *mon,int *day)
   int isLeapYear = FALSE;
   int i;
 
-  if (((year % 4    == 0) &&
-      (year % 100  != 0)) ||
-      (year % 400 == 0))
+  if (((year % 4   == 0) &&
+       (year % 100 != 0)) ||
+       (year % 400 == 0))
     isLeapYear = TRUE;
 
   if (isLeapYear)

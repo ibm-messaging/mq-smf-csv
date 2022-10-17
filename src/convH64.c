@@ -59,7 +59,8 @@
 /* breaking compilation or the sizeTest build rule.                   */
 /**********************************************************************/
 #define ZLONGLONG         "long long "
-#define ZSHORTINT         "short int "
+#define ZSHORTINT1         "short int "
+#define ZSHORTINT2         "short  int " /* one version of the header had extra spaces */
 #define ZEXTRAINT         " int "
 #define ZLONGINT1         "long int "
 #define ZLONGINT2         "long  int "
@@ -275,14 +276,37 @@ void datatypeReplace(char *line) {
   }
 
   /* And then the "short" ones */
-  p = strstr(line,ZSHORTINT);
+  p = strstr(line,ZSHORTINT1);
   if (p) {
     p2 = strstr(line,UNSIGNED);
     if (p2) {
       memcpy(p2,UNSIGNED_BLANK,strlen(UNSIGNED));
-      memcpy(p,REPLACE_UINT16,strlen(ZSHORTINT));
+      memcpy(p,REPLACE_UINT16,strlen(ZSHORTINT1));
     } else {
-      memcpy(p,REPLACE_INT16,strlen(ZSHORTINT));
+      memcpy(p,REPLACE_INT16,strlen(ZSHORTINT1));
+      p2 = strstr(line,SIGNED);
+      if (p2) {
+        memcpy(p2,SIGNED_BLANK,strlen(SIGNED));
+      }
+    }
+
+    /*************************************************************/
+    /* We may now have a line "uint16_t int qwsx0r5n" so get rid */
+    /* of the extraneous "int"                                   */
+    /*************************************************************/
+    p = strstr(line,ZEXTRAINT);
+    if (p) {
+      memcpy(p,REPLACE_EXTRAINT,strlen(ZEXTRAINT));
+    }
+  }
+  p = strstr(line,ZSHORTINT2);
+  if (p) {
+    p2 = strstr(line,UNSIGNED);
+    if (p2) {
+      memcpy(p2,UNSIGNED_BLANK,strlen(UNSIGNED));
+      memcpy(p,REPLACE_UINT16,strlen(ZSHORTINT2));
+    } else {
+      memcpy(p,REPLACE_INT16,strlen(ZSHORTINT2));
       p2 = strstr(line,SIGNED);
       if (p2) {
         memcpy(p2,SIGNED_BLANK,strlen(SIGNED));

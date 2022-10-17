@@ -274,3 +274,20 @@ void smfPrintStop(FILE *fp, BOOL newFile, BOOL *first, columnHeader_t **h)
     break;
   }
 }
+
+
+int fieldWidth(char *s[]) 
+{
+  int rc = 0;
+  int idx = 0;
+  int l  = 0;
+  while (s[idx]) 
+  {
+    l = strlen(s[idx++]);
+    if (l > rc) 
+    {
+      rc = l;
+    }
+  }
+  return rc;
+}
