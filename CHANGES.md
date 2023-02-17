@@ -2,6 +2,12 @@
 History (newest at top)
 =======================
 
+Feb 2023 (v5.4.2)
+* Update for MQ V9.3.2
+* WQ structure extended with streamed message count
+* Fix problem when final record in input data was truncated/corrupt
+* Removed QIST RAIO/RABP fields as they are never filled in by qmgr so misleading
+
 Oct 2022 (v5.4.1)
 * Update for MQ V9.3.1
 * Extended QQST structure in the 115 records

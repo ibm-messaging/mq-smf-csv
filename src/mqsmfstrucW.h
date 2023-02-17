@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 931
+ * This file was generated from cqsdsmfc.h version 932
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -1088,10 +1088,13 @@ used during close of a topic
 uint32_t  putddly;   /* Number of messages put with
 delivery delay, and hence sent to
 delivery delay staging queue    */
+uint32_t  z__004[1];
+uint32_t  streamedn;
+uint32_t  z__005[1];
 } wq;
 #define WQ_HEXID 0xF702
 #define WQ_EYE   "WQST"
-#define WQ_VER   8
+#define WQ_VER   9
 #define WQ_VER_1 1
 #define WQ_VER_2 2
 #define WQ_VER_3 3
@@ -1099,6 +1102,7 @@ delivery delay staging queue    */
 #define WQ_VER_5 5
 #define WQ_VER_6 6
 #define WQ_VER_8 8
+#define WQ_VER_9 9
 #define WQ_LEN_1 576
 #define WQ_LEN_2 592
 #define WQ_LEN_3 608

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016, 2023 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -244,6 +244,11 @@ void printWQ(wq *p)
   if (conv32(p->wqver) >= 8)
   {
      ADDU32("Put_Delay_Count",p->putddly);
+  }
+
+  if (conv32(p->wqver) >= 9)
+  {
+     ADDU32("Streamed_Msgs",p->streamedn);
   }
 
   SMFPRINTSTOP;

@@ -117,10 +117,7 @@ columnHeader_t *jsonFormatHeader(BOOL idx, char *name)
           break;
       }
       if (!j) {
-        if (debugLevel >0)
-        {
-          fprintf(infoStream,"Allocating array element %d buffer %s\n",arrayIndex,nameNoDup);
-        }
+        debugf(1,"Allocating array element %d buffer %s\n",arrayIndex,nameNoDup);
         j = malloc(sizeof(jsonArrayElement_t));
         j->offsetD = 0;
         jsonArray[arrayElementCount++] = j;
@@ -129,18 +126,12 @@ columnHeader_t *jsonFormatHeader(BOOL idx, char *name)
     }
     else
     {
-      if (debugLevel >0)
-      {
-        fprintf(infoStream,"Array index %d for %s\n",arrayIndex,nameNoDup);
-      }
+      debugf(1,"Array index %d for %s\n",arrayIndex,nameNoDup);
     }
   }
 
   ch = malloc(sizeof(columnHeader_t));
-  if (debugLevel >0)
-  {
-     fprintf(infoStream,"Allocating buffer for column %s\n",nameNoDup);
-  }
+  debugf(1,"Allocating buffer for column %s\n",nameNoDup);
   ch->name = strdup(nameNoDup);
   ch->idx = idx?arrayIndex:-1;
   ch->arrayLine = j;
@@ -203,8 +194,7 @@ static void jsonAddLine(columnHeader_t *h ,int type, const char *fmt,...)
   /* Resize the buffer if we get 90% of the way through it */
   if (offset > (jsonOutputSize * 90 /100)) {
     jsonOutputSize = jsonOutputSize*2;
-    if (debugLevel > 0)
-       fprintf(infoStream,"Resizing JSON output buffer to %ld\n",(long)jsonOutputSize);
+    debugf(1,"Resizing JSON output buffer to %ld\n",(long)jsonOutputSize);
     jsonOutputStart = realloc(jsonOutputStart,jsonOutputSize);
     jsonPtr = jsonOutputStart + offset;
   }
@@ -412,8 +402,9 @@ static int removeIndex(char *s) {
   int idx = 0;
   char *p;
   int l = strlen(s)-2;
-  if(debugLevel >=1)
-    fprintf(infoStream,"Working on index %s for %s\n",&s[l],s);
+
+  debugf(1,"Working on index %s for %s\n",&s[l],s);
+
   for (i=0;i<2;i++)
   {
     p = &s[l+i];

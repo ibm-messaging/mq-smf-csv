@@ -32,8 +32,8 @@ void printQIST(qist *p)
   ADDU32 ("Lock_Marked_Msg"     ,p->qistlomm);
   ADDU32 ("Delete_Marked_Msg"   ,p->qistdlmm);
   ADDU32 ("Enumerates"          ,p->qistenum);
-  ADDU32 ("ReadAhead_IO"        ,p->qistraio);
-  ADDU32 ("ReadAhead_BufferPool",p->qistrabp);
+  /* ADDU32 ("ReadAhead_IO"        ,p->qistraio);*/  /* The ReadAhead fields are never filled in, */
+  /* ADDU32 ("ReadAhead_BufferPool",p->qistrabp);*/  /* so not going to print them here           */
   ADDU32 ("Gets_From_Disk"      ,p->qistgetd);
   ADDU32 ("Gets_From_BufferPool",p->qistgetb);
 

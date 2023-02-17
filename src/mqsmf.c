@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2020 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2023 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -163,6 +163,7 @@ static int offsetCorrection = 0;
 static BOOL warn115_240=FALSE;
 
 static time_t startTime = 0;
+static time_t endTime = 0;
 static char *formatRate;
 
 static int amsType = SMFTYPE_MQ_AMS;
@@ -207,6 +208,7 @@ int main( int argc, char *argv[] )
   int i,j;                             /* loop counters                    */
   char  dataBuf[MAX_SMF_DATA];         /* Contains the SMF data            */
   int   bytesRead;                     /* Number of bytes from fread()     */
+  int   tmpBytes;
   int   offset;                        /* total number of bytes in a record*/
   unsigned int d[3];                   /* used in date conversion          */
   unsigned int ddd,year;               /* day number and year number       */
@@ -399,8 +401,7 @@ int main( int argc, char *argv[] )
 
   fstat(fileno(fp),&statbuf);
   totalFileSize = statbuf.st_size;
-  if (debugLevel >=3 )
-    fprintf(infoStream,"Total File Size = %lld\n",totalFileSize);
+  debugf(3,"Total File Size = %lld\n",totalFileSize);
 
   convInit();      /* Decide whether this is a big or little endian machine*/
 
@@ -466,15 +467,22 @@ int main( int argc, char *argv[] )
       /* same as the SMF record length). It comes from the first two      */
       /* bytes of the Record Descriptor Word (RDW).                       */
       /********************************************************************/
-
       bytesRead = fread(&pSMFMQRecord->Header.SMFLEN,1,2,fp);
       if (bytesRead < 2)
-        continue;
+      {
+        debugf(1,"At end of input data - fread (phase 1a) returned %d bytes\n",tmpBytes);
+        break;
+      }
 
       /********************************************************************/
       /* The second half-word is the segment indicator.                   */
       /********************************************************************/
-      fread(&pSMFMQRecord->Header.SMFSEG ,1,2,fp);
+      tmpBytes = fread(&pSMFMQRecord->Header.SMFSEG ,1,2,fp);
+      if (tmpBytes < 2)
+      {
+        debugf(1,"At end of input data - fread (phase 1b) returned %d bytes\n",tmpBytes);
+        break;
+      }
 
       /********************************************************************/
       /* And then read the actual data, starting at the RECFLG field in   */
@@ -483,8 +491,7 @@ int main( int argc, char *argv[] )
       /* amount.                                                          */
       /********************************************************************/
       nextLength = conv16(pSMFMQRecord->Header.SMFLEN) - 4;
-      if (debugLevel >=3)
-        fprintf(infoStream,"   NextLen = %d bytes \n",nextLength);
+      debugf(3,"   NextLen = %d bytes \n",(nextLength));
 
       bytesRead = fread(&pSMFMQRecord->Header.SMFRECFLG, 1, nextLength , fp);
       if (bytesRead != nextLength)
@@ -504,18 +511,28 @@ int main( int argc, char *argv[] )
       /* segmentation, no SMF record is meant to be >32768 bytes, so we   */
       /* need to check that.  Once again, ignore the RDW when working     */
       /* out how much real data there is.                                 */
+      /* We've also seen input files which were truncated such that       */
+      /* the continuation records were not captured. So check that we are */
+      /* actually able to read the data and that we're not at the EOF.    */
       /********************************************************************/
       if (pSMFMQRecord->Header.SMFSEG[0] != 0)
       {
         do
         {
+          tmpBytes = fread(&nextLength ,1,2,fp);
+          if (tmpBytes < 2) {
+            debugf(1,"At end of input data - fread (phase 2a) returned %d bytes\n",tmpBytes);
+            goto mod_exit;
+          }
 
-          fread(&nextLength ,1,2,fp);
           nextLength = conv16(nextLength);
-          fread(&pSMFMQRecord->Header.SMFSEG ,1,2,fp);
+          tmpBytes = fread(&pSMFMQRecord->Header.SMFSEG ,1,2,fp);
+          if (tmpBytes < 2) {
+            debugf(1,"At end of input data - fread (phase 2b) returned %d bytes\n",tmpBytes);
+            goto mod_exit;
+          }
 
-          if (debugLevel >=3)
-            fprintf(infoStream,"   NextLen = %d bytes \n",nextLength);
+          debugf(3,"   NextLen = %d bytes \n",nextLength);
 
           if (offset+nextLength > sizeof(dataBuf))
           {
@@ -524,6 +541,10 @@ int main( int argc, char *argv[] )
           }
 
           bytesRead = fread(&dataBuf[offset], 1, nextLength-4 , fp );
+          if (bytesRead < (nextLength - 4)) {
+            debugf(1,"At end of input data - fread (phase 2c) returned %d bytes\n",tmpBytes);
+            goto mod_exit;
+          }
           offset += bytesRead;
         } while (pSMFMQRecord->Header.SMFSEG[0] != 0x02);/* end of record indicator*/
 
@@ -685,7 +706,7 @@ int main( int argc, char *argv[] )
         convDate(pqwhs->qwhsstck,dt);
         strcpy(commonF.stckFormatDate,dt[0]);
         strcpy(commonF.stckFormatDate,dt[1]);
-        if (recordType == SMFTYPE_MQ_STAT) 
+        if (recordType == SMFTYPE_MQ_STAT)
         {
           if (conv16(pqwhs->qwhslen) >= 52)
           {
@@ -745,8 +766,8 @@ int main( int argc, char *argv[] )
       }
     }
 
-    if (debugLevel >=3 && pqwhs != NULL)
-       fprintf(infoStream,"Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
+    if (pqwhs != NULL)
+       debugf(3,"Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
 
     /*********************************************************************/
     /* Once we know how many sections there are, copy the triplet values */
@@ -792,7 +813,7 @@ int main( int argc, char *argv[] )
     case SMFTYPE_MQ_STAT:
       switch(recordSubType)
       {
-      case SMFSUBTYPE_MQ_STAT_BASIC: 
+      case SMFSUBTYPE_MQ_STAT_BASIC:
         /*****************************************************************/
         /* Some of the triplets seem to refer to internal/undocumented   */
         /* structures. Only the QSST and QJST are known elements.        */
@@ -935,15 +956,15 @@ int main( int argc, char *argv[] )
 
       case SMFSUBTYPE_MQ_STAT_RESERVED_1:
         /* These are internal undocumented structures. There's not much we can do */
-        /* except ignore them. We will see them show up in the overall subtype    */ 
+        /* except ignore them. We will see them show up in the overall subtype    */
         /* stats of records processed, but no other debug.                        */
-        if (!warn115_240) 
+        if (!warn115_240)
         {
           sprintf(tmpHead,"Internal SMF %d subtype %d records found",SMFTYPE_MQ_STAT,recordSubType);
           fprintf(infoStream,"%s\n",tmpHead);
           warn115_240=TRUE;
         }
-        break; 
+        break;
 
       default:
         knownSubType = FALSE;
@@ -1163,22 +1184,20 @@ int main( int argc, char *argv[] )
   /* Cleanup and exit. If we get here normally, then the checkpoint      */
   /* file is not needed any more, so it is deleted.                      */
   /***********************************************************************/
-  if (debugLevel >= 1) {
-    fprintf(infoStream,"Removing checkpoint file\n");
-  }
+  debugf(1,"Removing checkpoint file %s\n",checkPointFileName);
   remove(checkPointFileName);
   pos = ftello(fp);
 
+mod_exit:
   if (outputFormat == OF_SQL && ddlTemplateClose != NULL) {
        closeFinalDDL();
   }
-
-mod_exit:
 
   fflush(NULL); /* Ensure all streams flushed if possible */
 
   for (i=0;i<MAXCP;i++) {
     if (checkPoint[i].fp) {
+      debugf(1,"  Closing %s\n",checkPoint[i].name);
       fclose(checkPoint[i].fp);
     }
   }
@@ -1188,8 +1207,8 @@ mod_exit:
   }
 
   formatRate = getFormatRate(pos);
-  fprintf(infoStream,"Processed %u records total %s\n",totalRecords,formatRate);
-
+  endTime = time(NULL);
+  fprintf(infoStream,"Processed %u records total %s in %d seconds \n",totalRecords,formatRate,(int)(endTime-startTime));
 
   /**********************************************************************/
   /* If the program has been restarted via checkpoint, these counts are */
@@ -1375,9 +1394,7 @@ myoff_t readCheckPoint(FILE *fp) {
   sscanf(line,"%d %lld",&startingRecords,&inputOffset);
   fprintf(infoStream,"Reading from recovery checkpoint.\n");
 
-  if (debugLevel >=1) {
-    fprintf(infoStream,"InputOffset: %lld Processed records: %d\n",inputOffset, startingRecords);
-  }
+  debugf(1,"InputOffset: %lld Processed records: %d\n",inputOffset, startingRecords);
 
   /************************************************************************/
   /* Subsequent lines have two fields naming the output structure and how */
@@ -1392,9 +1409,7 @@ myoff_t readCheckPoint(FILE *fp) {
       sscanf(line,"%s %lld",field,&offset);
       checkPoint[i].name = strdup(field);
       checkPoint[i].offset = offset;
-      if (debugLevel >=2) {
-        fprintf(infoStream,"Loaded status[%d] for %s as offset %lld\n",i,field,offset);
-      }
+      debugf(2,"Loaded status[%d] for %s as offset %lld\n",i,field,offset);
       i++;
     }
   } while (c);
@@ -1552,7 +1567,7 @@ int laterThan(int v)
     strncpy(mqVer,commonF.mqVer,4);
     currentVersion = atoi(mqVer);
   }
-  if (currentVersion > v) 
+  if (currentVersion > v)
     return 1;
   return rc;
 }

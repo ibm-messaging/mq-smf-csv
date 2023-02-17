@@ -26,7 +26,7 @@
  * to an explicitly-sized standard datatype (eg uint64). This
  * is needed if the program is compiled in 64-bit mode. We also
  * rewrite bitfield elements in structures.
- * 
+ *
  * Two variants of the output are created, one for Windows
  * and one for Unix, based on the PLATFORM_* definitions because
  * of different paddings done for bitfields.
@@ -105,6 +105,7 @@ int inBitfieldReplace = 0;
 void bitfieldReprint(int c);
 void datatypeReplace(char *);
 char *stripLine(char *);
+char *trimLine(char *);
 void printHeader(char *);
 
 int main(int argc, char **argv)
@@ -140,6 +141,8 @@ int main(int argc, char **argv)
      c = fgets(line,sizeof(line)-1,stdin);
      if (c)
      {
+       c = trimLine(line);
+
        if (strstr(line,"pragma"))
          continue;
        /****************************************************/
@@ -185,6 +188,26 @@ int main(int argc, char **argv)
   return 0;
 }
 
+/* Strip trailing whitespace but leave the final "\n" alone */
+char *trimLine(char *l) {
+  char *p;
+  int len;
+  int trimmed = 0;
+  len = strlen(l);
+  if (len > 2) {
+    p = &l[len-2]; /* Start before the final '\n' */
+    while (*p == ' ' || *p == '\t') {
+      trimmed=1;
+      *p=0;
+      p--;
+    }
+    if (trimmed) {
+      strcat(l,"\n"); /* Put the trailing CR back */
+    }
+  }
+  return l;
+}
+
 /* Remove trailing comments and leading spaces */
 char *stripLine(char *l) {
   char *p = l;
@@ -198,7 +221,7 @@ char *stripLine(char *l) {
   cmtEnd  = strstr(p,"*/\n");
 
   /* There are a few multi-line macros that have comments embedded
-   * so we can't just strip to end of line ... if the line ends in 
+   * so we can't just strip to end of line ... if the line ends in
    * a continuation marker then leave the comments alone
    */
   if (cmtStart != NULL && cmtEnd != NULL && p[strlen(p)-2] != '\\') {
@@ -389,7 +412,7 @@ void datatypeReplace(char *line) {
   return;
 }
 
-void printHeader(char *version) 
+void printHeader(char *version)
 {
   printf("/*\n");
   printf(" * This file was generated from cqsdsmfc.h version %s\n",version);

@@ -1,6 +1,6 @@
 
 CC=cc
-CFLAGS= -I.
+CFLAGS= -I. -O2
 PLATFLAGS=
 SRC = \
       smfDDL.c \

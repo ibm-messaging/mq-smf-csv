@@ -258,6 +258,10 @@ extern void   calcYMD(int y,int dY,int *m,int *dM);
 extern FILE * fopencsv(const char *, BOOL *);
 extern FILE * fopenext(const char *, const char *, BOOL *);
 
+#if !defined(debugf)
+#define debugf(_level,_fmt,...) \
+      {if (debugLevel >= _level) fprintf(infoStream,_fmt,__VA_ARGS__);}
+#endif
 /*
  * Convert some MQI values into the corresponding string
  */
