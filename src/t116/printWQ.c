@@ -78,8 +78,8 @@ void printWQ(wq *p)
   ADDU32 ("Get_Log_UNF_Count",p->getjwn);
   ADDSTCK("Get_Pageset_ET",p->getpset);
   ADDU32 ("Get_Pageset_Count",p->getpsn);
-  ADDSTCK("Get_Pageset_Suspend_ET",p->getsuset);
-  ADDU32 ("Get_Pageset_Suspend_Count",p->getsusn);
+  ADDSTCK("Get_Suspend_ET",p->getsuset);
+  ADDU32 ("Get_Suspend_Count",p->getsusn);
   ADDU32 ("Get_Pages_Skipped_Count",p->getepage);
   ADDU32 ("Get_Messages_Skipped_Count",p->getsmsg);
   ADDU32 ("Get_Messages_Expired_Count",p->getexmsg);
@@ -193,6 +193,7 @@ void printWQ(wq *p)
     ADDU32 ("Put1_LogForce_Count",p->put1jcn);
     ADDSTCK("Set_LogForce_ET", p->setjcet);
     ADDU32 ("Set_LogForce_Count",p->setjcn);
+    ADDU32 ("Put_Shared_Queue",p->putdsq);
   }
 
   if (conv32(p->wqver) > 4)

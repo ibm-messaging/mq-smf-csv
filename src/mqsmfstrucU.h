@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 932
+ * This file was generated from cqsdsmfc.h version 933
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -650,6 +650,63 @@ uint32_t qqstqtst;
 uint32_t qqstqtlt;
 uint64_t      qqstlput;
 uint64_t      qqstlget;
+uint32_t qqstdphi;
+uint32_t qqstdplo;
+uint64_t      qqstputs;
+uint64_t      qqstput1;
+uint64_t      qqstnppt;
+uint64_t      qqstppt;
+uint64_t      qqstnpp1;
+uint64_t      qqstpp1;
+uint64_t      qqstputb;
+uint64_t      qqstpt1b;
+uint64_t      qqstnppb;
+uint64_t      qqstppb;
+uint64_t      qqstnp1b;
+uint64_t      qqstp1b;
+uint64_t      qqstflpt;
+uint64_t      qqstflp1;
+uint64_t      qqstfptc;
+uint64_t      qqstfptb;
+uint64_t      qqststrm;
+uint64_t      qqstmsmi;
+uint64_t      qqstmsma;
+uint64_t      qqstmsav;
+uint64_t      qqstgets;
+uint64_t      qqstnpdg;
+uint64_t      qqstpdg;
+uint64_t      qqstgetb;
+uint64_t      qqstnpdb;
+uint64_t      qqstpdb;
+uint64_t      qqstbrws;
+uint64_t      qqstnpbr;
+uint64_t      qqstpbr;
+uint64_t      qqstbrwb;
+uint64_t      qqstnpbb;
+uint64_t      qqstpbb;
+uint64_t      qqstflgt;
+uint64_t      qqstnmag;
+uint64_t      qqsttmfg;
+uint64_t      qqstflbr;
+uint64_t      qqstnmab;
+uint64_t      qqsttmfb;
+uint64_t      qqstflgw;
+uint64_t      qqstrdgw;
+uint64_t      qqstflbw;
+uint64_t      qqstrdbw;
+uint64_t      qqstsagt;
+uint64_t      qqstsabr;
+uint32_t qqstiphi;
+uint32_t qqstiplo;
+uint32_t qqstophi;
+uint32_t qqstoplo;
+uint64_t      qqstopen;
+uint64_t      qqstclos;
+uint64_t      qqstinqr;
+uint64_t      qqstset;
+uint64_t      qqstexpr;
+uint64_t      qqstrbpt;
+uint64_t      qqstrbgt;
 } qqst;
 #define QQSTIDV  0xD80F
 #define QQSTEYEV "QQST"

@@ -183,10 +183,10 @@ extern void printDEBUG (char *title, void *,int);
 extern void printQ5ST  (q5st *);
 extern void printQCCT  (qcct *);
 extern void printQCST  (qcst *);
-extern void printQCTADP(qct_adp *);
-extern void printQCTDNS(qct_dns *);
-extern void printQCTDSP(qct_dsp *);
-extern void printQCTSSL(qct_ssl *);
+extern void printQCTADP(qct_adp *,uint32_t);
+extern void printQCTDNS(qct_dns *,uint32_t);
+extern void printQCTDSP(qct_dsp *,uint32_t);
+extern void printQCTSSL(qct_ssl *,uint32_t);
 extern void printQESD  (qesd *);
 extern void printQEST  (qest *);
 #ifdef QIS1IDV
@@ -384,9 +384,15 @@ extern void checkStructureSizes(FILE *);
   ADDHEAD(h,DDL_I,0); \
   ADDDATA(ODT_I,"%u,",conv32(v))
 
+/* Add a number that does not need to be byte-swapped */
+#define ADDU32NC(h,v) \
+  ADDHEAD(h,DDL_I,0); \
+  ADDDATA(ODT_I,"%u,",v)
+
+/* Print this as decimal, not hex */
 #define ADDX32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA(ODT_I,"%X,",conv32(v))
+  ADDDATA(ODT_I,"%u,",conv32(v))
 
 #define ADDS32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
@@ -528,6 +534,8 @@ extern FILE *fpJson;
 extern char *ddlTemplateOpen;
 extern char *ddlTemplateClose;
 extern char *ddlQuote;
+
+extern BOOL jsonCompact;
 
 enum outputFormat_e { OF_CSV=0, OF_SQL=1, OF_JSON=2 };
 extern enum outputFormat_e outputFormat;

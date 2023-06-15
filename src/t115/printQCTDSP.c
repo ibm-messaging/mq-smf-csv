@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2023 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -16,11 +16,12 @@
 
 SMFPRINTGLOB;
 
-void printQCTDSP(qct_dsp *p)
+void printQCTDSP(qct_dsp *p, uint32_t idx)
 {
   SMFPRINTSTART("QCTDSP", p, sizeof(qct_dsp));
 
   ADDU32 ("Task_Number"      ,p->qcttskn);
+  ADDU32NC("Task_Index"      ,idx);
   ADDU32 ("Request_Count"    ,p->qctreqn);
   ADDSTCK("Task_CPU_Time"    ,p->qctcptm);
   ADDSTCK("Task_Elapsed_Time",p->qcteltm);

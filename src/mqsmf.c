@@ -281,12 +281,19 @@ int main( int argc, char *argv[] )
       case 'f':
         for (i=0;i<strlen(mqoptarg);i++)
           mqoptarg[i] = toupper(mqoptarg[i]);
+
         if (strstr(mqoptarg,"NORDW"))
           useRDW = FALSE;
         else if (strstr(mqoptarg,"RDW"))
           useRDW = TRUE;
-        if (strstr(mqoptarg,"JSON"))
+
+        if (strstr(mqoptarg,"JSON")) {
           outputFormat = OF_JSON;
+          if (strstr(mqoptarg,"COMPACT"))
+            jsonCompact = TRUE;
+          else
+            jsonCompact = FALSE;
+        }
         else if (strstr(mqoptarg,"SQL")) {
           outputFormat = OF_SQL;
           printHeaders = FALSE;
@@ -926,14 +933,14 @@ int main( int argc, char *argv[] )
               switch(i)
               {
               case 1: printQCCT((qcct *)p);break;
-              case 2: printQCTDSP((qct_dsp *)p);break;
-              case 3: printQCTADP((qct_adp *)p);break;
-              case 4: printQCTSSL((qct_ssl *)p);break;
+              case 2: printQCTDSP((qct_dsp *)p,(uint32_t)j);break;
+              case 3: printQCTADP((qct_adp *)p,(uint32_t)j);break;
+              case 4: printQCTSSL((qct_ssl *)p,(uint32_t)j);break;
               /* If nothing has been done with DNS in this interval, the
                  record seems to be present but contain garbage.
                */
               case 5: if (triplet[i].l == sizeof(qct_dns))
-                          printQCTDNS((qct_dns *)p);
+                          printQCTDNS((qct_dns *)p,(uint32_t)j);
                       break;
               default: break;
               }
@@ -1483,7 +1490,7 @@ static void Usage(void)
 {
   fprintf(infoStream,"Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
   fprintf(infoStream,"         [-h yes|no] [ -i <input file> [-m <max records>]\n");
-  fprintf(infoStream,"         [-f RDW | NORDW | JSON | SQL | CSV ] \n");
+  fprintf(infoStream,"         [-f RDW | NORDW | JSON | JSON_COMPACT | SQL | CSV ] \n");
   fprintf(infoStream,"         [-b Db2 | MySQL ] \n");
   fprintf(infoStream,"         [-p <template DDL file prefix>  ] \n");
   fprintf(infoStream,"         [-e <template DDL file ending>  ] \n");

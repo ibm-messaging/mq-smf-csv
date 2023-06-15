@@ -1,5 +1,5 @@
 CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J /O2 /DPLATFORM_WINDOWS
-VERS=932
+VERS=933
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \

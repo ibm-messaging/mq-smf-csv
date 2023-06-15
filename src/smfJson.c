@@ -22,6 +22,8 @@ char  *jsonPtr  = NULL;        /* Where to add next line to EventBuf */
 char  *jsonOutputStart  = NULL;
 size_t jsonOutputSize;
 
+BOOL jsonCompact = FALSE;
+
 static char *jsonEscape(char *s, size_t l);
 static char *removeSuffix(char *s);
 static int   removeIndex(char *s);
@@ -92,8 +94,9 @@ columnHeader_t *jsonFormatHeader(BOOL idx, char *name)
   /* And remove any trailing _ */
   for (o = nameNoDup + strlen(nameNoDup) -1;
       (o >= nameNoDup) && ((*o == '_') || (*o == ' '));
-      o--)
+      o--) {
     *o = 0;
+  }
 
 
   if (idx)
@@ -139,7 +142,6 @@ columnHeader_t *jsonFormatHeader(BOOL idx, char *name)
      j->name = ch->name;
   return ch;
 }
-
 
 static void jsonAddLine(columnHeader_t *h ,int type, const char *fmt,...)
 {
@@ -332,6 +334,13 @@ void jsonDump(FILE *fp, columnHeader_t **columnHeaders)
 
   jsonAddLine(NULL,ODT_VAR,"}");
   if (jsonOutputStart) {
+    if (jsonCompact) {
+        char *p;
+        for (p =jsonOutputStart;p<jsonPtr-1;p++) {
+          if (*p == '\n')
+             *p=' ';
+        }
+    }
     fwrite(jsonOutputStart,1,jsonPtr-jsonOutputStart,fp);
     fflush(fp);
   }
