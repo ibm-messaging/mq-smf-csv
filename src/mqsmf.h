@@ -180,6 +180,7 @@ typedef struct columnHeader_s {
 /* Formatting functions - one for each element type                 */
 /********************************************************************/
 extern void printDEBUG (char *title, void *,int);
+extern FILE *printDEBUGStream();
 extern void printQ5ST  (q5st *);
 extern void printQCCT  (qcct *);
 extern void printQCST  (qcst *);
@@ -260,7 +261,13 @@ extern FILE * fopenext(const char *, const char *, BOOL *);
 
 #if !defined(debugf)
 #define debugf(_level,_fmt,...) \
-      {if (debugLevel >= _level) fprintf(infoStream,_fmt,__VA_ARGS__);}
+     {if (debugLevel >= _level) {         \
+        FILE *dfp = printDEBUGStream();    \
+        if (dfp) {                         \
+          fprintf(dfp,_fmt,__VA_ARGS__); \
+        } \
+        fprintf(infoStream,_fmt,__VA_ARGS__);}  \
+     }
 #endif
 /*
  * Convert some MQI values into the corresponding string

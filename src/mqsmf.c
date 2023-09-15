@@ -161,6 +161,7 @@ static myoff_t pos;
 static int offsetCorrection = 0;
 
 static BOOL warn115_240=FALSE;
+static BOOL corruptData = FALSE;
 
 static time_t startTime = 0;
 static time_t endTime = 0;
@@ -243,6 +244,7 @@ int main( int argc, char *argv[] )
 
   int sectionCount;
   int recordSubTypeVersion;
+  int triplet1Offset;
 
   infoStream=stdout;
 
@@ -697,7 +699,18 @@ int main( int argc, char *argv[] )
       /*******************************************************************/
       offsetBlockStart = &pSMFMQRecord->s[0];
       offsetBlockType = BT_TRIPLET;
-      p = &dataBuf[conv32(pSMFMQRecord->s[0].offset)];
+      triplet1Offset = conv32(pSMFMQRecord->s[0].offset);
+      p = &dataBuf[triplet1Offset];
+
+      /*
+      debugf(2,"Current file offset: 0x%08X\n",currentOffset);
+      printDEBUG("INPUT BUF",dataBuf,offset);
+      debugf(2,"\n  p=%p bytesread=%d offset=%d\n",p,bytesRead+4,offset);
+      debugf(2,"     trip[0] tripOffset=%d [0x%08X] len=%d count=%d\n", triplet1Offset,triplet1Offset,
+                   conv16(pSMFMQRecord->s[0].l),
+                   conv16(pSMFMQRecord->s[0].n));
+      */
+
       if (conv16(pSMFMQRecord->s[0].l) == 4)           /* There is no QWHS */
       {
         sectionCount = 2;    /* 1 extra triplet beyond the QWHS location */
@@ -708,7 +721,24 @@ int main( int argc, char *argv[] )
       else
       {
         char *dt[2];
+        int qwshlen;
+
         pqwhs = (qwhs *)p;
+        qwshlen = conv16(pqwhs->qwhslen);
+        if (debugLevel >= 2) {
+          printDEBUG("QWHS",p,(qwshlen!=0)?qwshlen:0x30);
+        }
+        if (qwshlen <= 0)
+        {
+          FILE *dfp = printDEBUGStream();
+          fprintf(stderr,"Error: Data at file offset 0x%08X appears corrupt. Exiting the formatter.\n",currentOffset);
+          if (dfp) {
+            fprintf(dfp, "Error: Data at file offset 0x%08X appears corrupt. Exiting the formatter.\n",currentOffset);
+          }
+          corruptData = TRUE;
+          continue;
+        }
+
         sectionCount =  pqwhs->qwhsnsda[0];
         convDate(pqwhs->qwhsstck,dt);
         strcpy(commonF.stckFormatDate,dt[0]);
@@ -736,7 +766,7 @@ int main( int argc, char *argv[] )
       }
       break;
 
-   case SMFTYPE_ZCEE:
+    case SMFTYPE_ZCEE:
       recordSubTypeVersion = conv32(pSMFMQRecord->Header.u.v);
 
       switch (recordSubTypeVersion)
@@ -773,8 +803,9 @@ int main( int argc, char *argv[] )
       }
     }
 
-    if (pqwhs != NULL)
-       debugf(3,"Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
+    if (pqwhs != NULL) {
+      debugf(3,"Section count %d for %4.4s, qwhslen=%d\n",sectionCount,commonF.qMgr,conv16(pqwhs->qwhslen));
+    }
 
     /*********************************************************************/
     /* Once we know how many sections there are, copy the triplet values */
@@ -786,8 +817,9 @@ int main( int argc, char *argv[] )
     /*********************************************************************/
     recLength = getOffsets(sectionCount,offsetBlockStart, offsetBlockType, recordType,subTypesValid, currentOffset);
     currentOffset += recLength;
-    if (debugLevel >= 2)
+    if (debugLevel >= 2) {
       printDEBUG("FULL RECORD",dataBuf + offsetCorrection,recLength);
+    }
 
 
     /*********************************************************************/
@@ -1185,7 +1217,7 @@ int main( int argc, char *argv[] )
         exit(0);
       }
     }
-  } while (0 != bytesRead && totalRecords < maxRecords);
+  } while (0 != bytesRead && totalRecords < maxRecords && !corruptData);
 
   /***********************************************************************/
   /* Cleanup and exit. If we get here normally, then the checkpoint      */
@@ -1740,26 +1772,20 @@ int getOffsets(int sectionCount,void *offsetBlockStart, int offsetBlockType, int
   {
     if (recordType == amsType)
     {
-      fprintf(infoStream, "Highest doublet = %d RecLength = %d New Offset = %lld\n",
+      debugf(3, "Highest doublet = %d RecLength = %d New Offset = %lld\n",
                         h, recLength, currentOffset);
-      if (debugLevel >=4)
+      for (i=0;i<sectionCount;i++)
       {
-        for (i=0;i<sectionCount;i++)
-        {
-          fprintf(infoStream,"Doublet %d - offset=%d len=%d \n",i,doublet[i].offset,doublet[i].l);
-        }
+        debugf(4,"Doublet %d - offset=%d len=%d \n",i,doublet[i].offset,doublet[i].l);
       }
     }
     else
     {
-      fprintf(infoStream, "Highest triple = %d RecLength = %d New Offset = %lld\n",
+      debugf(3, "Highest triple = %d RecLength = %d New Offset = %lld\n",
                         h, recLength, currentOffset);
-      if (debugLevel >=4)
+      for (i=0;i<sectionCount;i++)
       {
-        for (i=0;i<sectionCount;i++)
-        {
-          fprintf(infoStream,"Triplet %d - offset=%d len=%d count=%d\n",i,triplet[i].offset,triplet[i].l,triplet[i].n);
-        }
+        debugf(4,"Triplet %d - offset=%d len=%d count=%d\n",i,triplet[i].offset,triplet[i].l,triplet[i].n);
       }
     }
   }

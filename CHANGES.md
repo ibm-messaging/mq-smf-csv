@@ -1,12 +1,16 @@
 
 History (newest at top)
 =======================
+
+Sep 2023 (v5.4.4)
+* Try to recognise some input file corruption and cleanly exit
+
 Jun 2023 (v5.4.3)
 * Update for MQ V9.3.3
-  * Many more QQST fields  
+  * Many more QQST fields
 * New "-f jsoncompact" option for single-line JSON records
 * Add Task_Index field to channel structures, to easier tie up with MP1B output
-* Correct a couple of column names in WQ structure 
+* Correct a couple of column names in WQ structure
 
 Feb 2023 (v5.4.2)
 * Update for MQ V9.3.2

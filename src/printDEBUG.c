@@ -72,3 +72,8 @@ void printDEBUG(char *title, void *buf,int length)
   }
   return;
 }
+
+FILE *printDEBUGStream()
+{
+  return fp;
+}

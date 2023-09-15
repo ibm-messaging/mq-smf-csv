@@ -3,6 +3,7 @@ CC=cc
 CFLAGS= -I. -O2
 PLATFLAGS=
 SRC = \
+      mqsmf.c \
       smfDDL.c \
       smfPrint.c \
       smfDate.c \
@@ -39,8 +40,7 @@ SRC = \
       t123/printDataV2.c   \
       t123/printServerV1.c   \
       t123/printServerV2.c   \
-      t180/printAMS.c   \
-      mqsmf.c
+      t180/printAMS.c
 
 HDR = mqsmfstrucU.h \
       t123/smf123.h \
@@ -62,7 +62,7 @@ shipTest: mqsmfcsv
 mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 
-mqsmfstrucU.h: convH dummy # csqdsmfc-$(VERS).h  
+mqsmfstrucU.h: convH dummy # csqdsmfc-$(VERS).h
 	(test -s csqdsmfc-$(VERS).h && convH $(VERS) < csqdsmfc-$(VERS).h > $@) || exit 0
 
 convH: convH64.c  dummy

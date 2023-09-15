@@ -33,6 +33,11 @@ fi
 
 export PLATFLAGS=$flags CC=$cc VERS=$VERS
 make -e -f Makefile.unix $*
+rc=$?
+if [ $rc -ne 0 ]
+then
+  exit $rc
+fi
 
 rm -f $targdir/convH $targdir/mqsmfcsv
 cp convH mqsmfcsv $targdir
