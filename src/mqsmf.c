@@ -89,9 +89,11 @@
 #define fseeko  _fseeki64
 typedef signed long long myoff_t;
 typedef struct __stat64 mystat_t;
+#define LLX "%llx"
 #else
 typedef off_t myoff_t;
 typedef struct stat mystat_t;
+#define LLX "%08X"
 #endif
 
 #ifndef PATH_MAX
@@ -731,9 +733,9 @@ int main( int argc, char *argv[] )
         if (qwshlen <= 0)
         {
           FILE *dfp = printDEBUGStream();
-          fprintf(stderr,"Error: Data at file offset 0x%08X appears corrupt. Exiting the formatter.\n",currentOffset);
+          fprintf(stderr,"Error: Data at file offset 0x"LLX" appears corrupt. Exiting the formatter.\n",currentOffset);
           if (dfp) {
-            fprintf(dfp, "Error: Data at file offset 0x%08X appears corrupt. Exiting the formatter.\n",currentOffset);
+            fprintf(dfp, "Error: Data at file offset 0x"LLX" appears corrupt. Exiting the formatter.\n",currentOffset);
           }
           corruptData = TRUE;
           continue;

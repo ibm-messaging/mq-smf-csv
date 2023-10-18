@@ -2,8 +2,9 @@
 History (newest at top)
 =======================
 
-Sep 2023 (v5.4.4)
+Oct 2023 (v5.4.4)
 * Try to recognise some input file corruption and cleanly exit
+* Update for MQ V9.3.4 (no changes to SMF records)
 
 Jun 2023 (v5.4.3)
 * Update for MQ V9.3.3

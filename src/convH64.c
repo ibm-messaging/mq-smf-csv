@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022 IBM Corporation and other Contributors.
+ * Copyright (c) 2016, 2023 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -419,7 +419,7 @@ void printHeader(char *version)
   printf(" * by the convH program (convH64.c) in the src directory\n");
   printf(" * Do not try to edit this header manually.\n");
   printf(" * \n");
-  printf(" * (C) Copyright IBM Corp. 1993, 2022 All Rights Reserved.\n");
+  printf(" * (C) Copyright IBM Corp. 1993, 2023 All Rights Reserved.\n");
   printf(" * \n");
   printf(" */\n");
 }

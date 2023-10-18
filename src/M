@@ -4,7 +4,7 @@ plat=`uname`
 
 if [ -z "$VERS" ]
 then
-  VERS="933"
+  VERS="934"
 fi
 
 if [ "$plat" = "AIX" ]
