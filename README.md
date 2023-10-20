@@ -33,7 +33,7 @@ of the program is not changing to reflect that broader scope.
 
 Pull requests
 =============
-Contributions to this package can be accepted under the terms of the
-IBM Contributor License Agreement, found in the file CLA.md of this repository.
+Contributions to this package can be accepted under the terms of the Developer's Certificate of Origin, found in the
+[DCO file](DCO1.1.txt) of this repository. When submitting a pull request, you must include a statement stating you
+accept the terms in the DCO.
 
-When submitting a pull request, you must include a statement stating you accept the terms in CLA.md.
