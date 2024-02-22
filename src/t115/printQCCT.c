@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016, 2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -27,7 +27,11 @@ void printQCCT(qcct *p)
   ADDU32 ("Active_Chl_Max"        ,p->qcctmxac);
   ADDU32 ("Max_TCP_Chl"           ,p->qcctmxtp);
   ADDU32 ("Max_LU62_Chl"          ,p->qcctmxlu);
-  ADDU32 ("Storage_Usage"         ,p->qcctstus);
+  ADDU32 ("Storage_Usage_31"      ,p->qcctstus);
+  if (conv16(p->qcctll) > offsetof(qcct,qcctstab)) {
+    ADDU64("Storage_Usage_64" , p->qcctstab);
+    ADDU64("Storage_Limit_64" , p->qcctslim);
+  }
   SMFPRINTSTOP;
 
   return;

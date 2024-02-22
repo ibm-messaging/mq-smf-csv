@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -29,7 +29,7 @@ void printWTID(wtid *p, unsigned char *correlid)
   ADDSTRB ("UOW_ID", p->wtiduowi, 24);
   ADDSTRB ("Accounting_Token", p->wtidacct, 22);
   ADDSTREN("Channel_Name", p->wtidchl, 20);
-  ADDSTREN("Channel_Connection_Name", p->wtidchlc, 48);
+  ADDSTRENM("Channel_Connection_Name", p->wtidchlc, 48, 48);
   ADDSTRB ("Context_Token", p->wtidctxt, 16);
   ADDSTREN("MVS_UserId", p->wtidtran, 8);
 

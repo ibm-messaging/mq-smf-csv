@@ -2,6 +2,12 @@
 History (newest at top)
 =======================
 
+Feb 2024 (v5.4.5)
+* Update for MQ V9.3.5 
+* QCCT now has info about 64-bit CHIN storage use
+  * Previous "Storage_Usage" renamed to "Storage_Usage_31" 
+  * New fields added
+
 Oct 2023 (v5.4.4)
 * Try to recognise some input file corruption and cleanly exit
 * Update for MQ V9.3.4 (no changes to SMF records)

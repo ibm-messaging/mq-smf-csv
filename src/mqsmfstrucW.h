@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 934
+ * This file was generated from cqsdsmfc.h version 935
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -137,6 +137,8 @@ uint32_t qcctmxac;
 uint32_t qcctmxtp;
 uint32_t qcctmxlu;
 uint32_t qcctstus;
+uint64_t      qcctstab;
+uint64_t      qcctslim;
 } qcct;
 #define QCCTIDV  0xE741
 #define QCCTEYEV "QCCT"

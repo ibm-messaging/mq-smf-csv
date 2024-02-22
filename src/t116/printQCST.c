@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2020 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -27,7 +27,7 @@ void printQCST(qcst *p)
   ADDSTR  ("Type"            ,strMQCHT((int)p->qcstchty),20);
   ADDSTR  ("Status"          ,strMQCHS((int)p->qcstchst),20);
   ADDSTR  ("Stat_Setting"    ,strMQMON((int)p->qcststcl),20);
-  ADDSTREN("Connection_Name" ,p->qcstcnnm,48);
+  ADDSTRENM("Connection_Name" ,p->qcstcnnm,48,48);
   ADDTIME ("Start"           ,p->qcststrt);
   ADDTIME ("Stop"            ,p->qcstludt);
   ADDTIME ("Last_Msg"        ,p->qcstlmst);
