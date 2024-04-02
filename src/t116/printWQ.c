@@ -187,7 +187,7 @@ void printWQ(wq *p)
     ADDU32 ("Get_LogForce_Count" ,p->getjcn);
     ADDU32 ("Put_Waiting_Getter_Count",p->putpwg);
     ADDSTCK("Put_LogForce_ET",p->putjcet);
-    ADDU32 ("Put_LogForce_Count ",p->putjcn);
+    ADDU32 ("Put_LogForce_Count",p->putjcn);
     ADDU32 ("Put1_Waiting_Getter_Count",p->put1pwg);
     ADDSTCK("Put1_LogForce_ET",p->put1jcet);
     ADDU32 ("Put1_LogForce_Count",p->put1jcn);

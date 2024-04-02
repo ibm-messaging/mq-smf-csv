@@ -2,6 +2,12 @@
 History (newest at top)
 =======================
 
+Jun 2024 (v5.5)
+* Update for MQ 9.4.0
+* New stats available for zHyperlink
+* Remove trailing spaces for ApplType (#1)
+* Initial build option added for MacOS
+
 Feb 2024 (v5.4.5)
 * Update for MQ V9.3.5 
 * QCCT now has info about 64-bit CHIN storage use

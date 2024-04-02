@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -31,7 +31,7 @@ void printWTAS(wtas *p)
   SMFPRINTSTART("WTAS",p,conv16(p->wtaslen));
 
   ADDS32 ("Record_Version" , p->wtasver);
-  ADDSTRB("Correl", (char *)&p->wtasstrt,16);
+  ADDSTRB("Correl", (char*)&p->wtasstrt,16);
   ADDINDEX("Correl");
   ADDTIME("Start_Time", p->wtasstrt);
   ADDS32 ("Block_Count", p->wtaswqct);
@@ -142,7 +142,9 @@ void printWTAS(wtas *p)
     ADDSTCK("Topic_ET", p->wtastpet);
     ADDSTCK("Topic_CT", p->wtastpct);
 
-    /*ADDU32 ("Topic_Count", p->wtastpn);*//* Not used */
+#if 0
+    ADDU32 ("Topic_Count", p->wtastpn); /* Not used */
+#endif
 
     ADDSTCK("Subscribe_ET", p->wtassuet);
     ADDSTCK("Subscribe_CT", p->wtassuct);

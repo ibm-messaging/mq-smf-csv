@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2020 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -289,17 +289,17 @@ void printAMS(AMSProduct_t* p, AMSData_t *q, int len)
         }
         ADDSTR("Encryption_Algorithm", pt, 64);
 
-        ADDSTRENM("Object_Name", ((char*)q) + q->rb41ob.offset, q->rb41ob.l,48);
-        ADDSTRENM("Queue_Name", ((char*)q) + q->rb41qn.offset, q->rb41qn.l,48);
-        ADDSTRENM("QManager_Name", ((char*)q) + q->rb41qm.offset, q->rb41qm.l,4);
+        ADDSTRENM("Object_Name", ((unsigned char*)q) + q->rb41ob.offset, q->rb41ob.l,48);
+        ADDSTRENM("Queue_Name", ((unsigned char*)q) + q->rb41qn.offset, q->rb41qn.l,48);
+        ADDSTRENM("QManager_Name", ((unsigned char*)q) + q->rb41qm.offset, q->rb41qm.l,4);
 
         /* operation codes are not documented, but might be in the future, so convert */
         /* to a native trimmed string, so we can walk thru the characters, if needed. */
         memset(temp, '\0', sizeof(temp));
-        memcpy(temp, convStr(((char*)q) + q->rb41op.offset, q->rb41op.l), q->rb41op.l);
+        memcpy(temp, convStr(((unsigned char*)q) + q->rb41op.offset, q->rb41op.l), q->rb41op.l);
         ADDSTR("Operation_Codes", temp, 64);
 
-        ADDSTRENM("Sender_Identity", ((char*)q) + q->rb41id.offset, q->rb41id.l,1024);
+        ADDSTRENM("Sender_Identity", ((unsigned char*)q) + q->rb41id.offset, q->rb41id.l,1024);
         ADDU32("Recipient_Count", q->rb41nrc);
 
         recipsLength = 0;
@@ -325,10 +325,10 @@ void printAMS(AMSProduct_t* p, AMSData_t *q, int len)
         ADDSTR("Recipients", recipsString, MAX_RECIPS_STRING);
 
         if (q->rb41ms.l > 0) {
-                ADDSTRBN("Message_ID", ((char*)q) + q->rb41ms.offset, q->rb41ms.l,48);
+                ADDSTRBN("Message_ID", ((unsigned char*)q) + q->rb41ms.offset, q->rb41ms.l,48);
         }
         else {
-                ADDSTRBN("Message_ID", emptyMsgId,24, 48);
+                ADDSTRBN("Message_ID", ((unsigned char*)emptyMsgId),24, 48);
         }
 
         ADDSTREN("Format_Name", q->rb41fmt, 8);

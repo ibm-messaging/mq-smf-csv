@@ -4,7 +4,7 @@ plat=`uname`
 
 if [ -z "$VERS" ]
 then
-  VERS="935"
+  VERS="940"
 fi
 
 if [ "$plat" = "AIX" ]
@@ -12,6 +12,13 @@ then
   flags="-q64 -qmaxmem=-1 $CCEXTRAFLAGS -D PLATFORM_AIX"
   cc="xlc"
   targdir="../bin/aix"
+  optim="-O3"
+elif [ "$plat" = "Darwin" ]
+then
+  # Ought to work through the -W flags so they can be removed without compiler warnings
+  flags="-m64  -Wno-pragma-pack  $CCEXTRAFLAGS -D PLATFORM_MACOS"
+  cc="gcc"
+  targdir="../bin/macos"
   optim="-O3"
 else
   flags="-m64 $CCEXTRAFLAGS -D PLATFORM_LINUX"
@@ -31,7 +38,11 @@ else
   flags="$flags $optim"
 fi
 
-export PLATFLAGS=$flags CC=$cc VERS=$VERS
+PLATFLAGS=$flags 
+CC=$cc 
+VERS=$VERS
+export PLATFLAGS CC VERS
+
 make -e -f Makefile.unix $*
 rc=$?
 if [ $rc -ne 0 ]
@@ -39,6 +50,7 @@ then
   exit $rc
 fi
 
+mkdir -p $targdir >/dev/null 2>&1 
 rm -f $targdir/convH $targdir/mqsmfcsv
 cp convH mqsmfcsv $targdir
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -34,7 +34,7 @@ void printQEST(qest *p)
     /* dump the data once when debug is enabled; but then reset   */
     /* the value to its original setting on exit from function.   */
     /**************************************************************/
-    if (convStr(p->qeststuc[i].qeststr,12)[0] != '.')
+    if (convStr(((unsigned char*)p->qeststuc[i].qeststr),12)[0] != '.')
     {
       SMFPRINTSTART("QEST",p,conv16(p->qestll));
       debugLevel = 0;

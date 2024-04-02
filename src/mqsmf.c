@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2023 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -93,7 +93,8 @@ typedef struct __stat64 mystat_t;
 #else
 typedef off_t myoff_t;
 typedef struct stat mystat_t;
-#define LLX "%08X"
+/*#define LLX "%08X"*/
+#define LLX "%llx"
 #endif
 
 #ifndef PATH_MAX
@@ -599,10 +600,10 @@ int main( int argc, char *argv[] )
     /* Some items from the record need to be shown for all types         */
     /* of structure. Save them into a shared block available for all.    */
     /*********************************************************************/
-    memcpy(commonF.qMgr,convStr(pSMFMQRecord->Header.SMFRECSSID,4),4);
-    memcpy(commonF.systemId,convStr(pSMFMQRecord->Header.SMFRECSID,4),4);
+    memcpy(commonF.qMgr,convStr(((unsigned char*)pSMFMQRecord->Header.SMFRECSSID),4),4);
+    memcpy(commonF.systemId,convStr(((unsigned char*)pSMFMQRecord->Header.SMFRECSID),4),4);
     if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT) {
-      memcpy(commonF.mqVer,convStr(pSMFMQRecord->Header.u.s.SMFRECREL,3),3);
+      memcpy(commonF.mqVer,convStr((unsigned char*)(pSMFMQRecord->Header.u.s.SMFRECREL),3),3);
     }
 
 
@@ -1738,7 +1739,7 @@ int getOffsets(int sectionCount,void *offsetBlockStart, int offsetBlockType, int
       pAMSData->rb41qm.l = conv32(pAMSData->rb41qm.l);
       /* KLUDGE: Grab the queue manager name from the Data section since it is not */
       /* written to the subsystem ID field of the standard header.                 */
-      memcpy(commonF.qMgr, convStr(((char *)pAMSData) + pAMSData->rb41qm.offset, 4), 4);
+      memcpy(commonF.qMgr, convStr(((unsigned char *)pAMSData) + pAMSData->rb41qm.offset, 4), 4);
       if (doublet[1].offset + pAMSData->rb41qm.offset + pAMSData->rb41qm.l > recLength)
         recLength = doublet[1].offset + pAMSData->rb41qm.offset + pAMSData->rb41qm.l;
 

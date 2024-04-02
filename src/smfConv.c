@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -288,12 +288,12 @@ char *strConnType(int v)
   switch (v)
   {
   case 1: c = "CICS"    ;break;
-  case 2: c = "TSO "    ;break;
+  case 2: c = "TSO"     ;break;
   case 3: c = "IMS Ctl ";break;
   case 4: c = "IMS MPP/BMP";break;
   case 5: c = "Cmd Svr" ;break;
   case 6: c = "CHIN"    ;break;
-  case 7: c = "RRS "    ;break;
+  case 7: c = "RRS"     ;break;
   }
   return c;
 }

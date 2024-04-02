@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -32,13 +32,13 @@ void printQMAC(qmac *p, qwhc *pqwhc)
     printDEBUG("QWHC",pqwhc,conv16(pqwhc->qwhclen));
 
 
-  ADDSTREN("Authorisation_ID ",pqwhc->qwhcaid,8);
+  ADDSTREN("Authorisation_ID",pqwhc->qwhcaid,8);
   ADDSTRB ("Correl_ID",pqwhc->qwhccv ,12);
   ADDSTREN("Connection_Name",pqwhc->qwhccn ,8 );
   ADDSTREN("Operator_ID",pqwhc->qwhcopid ,8 );
   ADDSTR  ("Application_Type",strConnType(conv32(pqwhc->qwhcatyp)),20);
   ADDSTRB ("Accounting_Token",pqwhc->qwhctokn ,22);
-  ADDSTRB ("Network_ID ",pqwhc->qwhcnid  ,16);
+  ADDSTRB ("Network_ID",pqwhc->qwhcnid  ,16);
 
   ADDSTCK("CPU_Time", p->qmaccput);
 

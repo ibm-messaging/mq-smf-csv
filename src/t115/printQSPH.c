@@ -29,16 +29,16 @@ void printQSPH(qsph *p)
   /* These flags are in a char field (not an int) so no conversion needed */
   flags = p->qsphflags;
   if (flags & QSPHDSPC) {
-    ADDSTREN("Dataspace_Name",(char *)&p->qsphdspnm,8);
+    ADDSTREN("Dataspace_Name",(char*)&p->qsphdspnm,8);
   } else {
     ADDSTR("Dataspace_Name","        ",8);
   }
   ADDSTREN("Name",p->qsphname,48);
 
   ADDSTR("Attr_Fixed", ((flags & QSPHFIXED)?"Yes":"No"),3);
-  ADDSTR("Attr_Glob",  ((flags & QSPHGLOB )?"Yes":"No"),3);
-  ADDSTR("Attr_DSP  ", ((flags & QSPHDSPC )?"Yes":"No"),3);
-  ADDSTR("Attr_IVSA ", ((flags & QSPHIVSA )?"Yes":"No"),3);
+  ADDSTR("Attr_Glob" ,  ((flags & QSPHGLOB )?"Yes":"No"),3);
+  ADDSTR("Attr_DSP"  , ((flags & QSPHDSPC )?"Yes":"No"),3);
+  ADDSTR("Attr_IVSA" , ((flags & QSPHIVSA )?"Yes":"No"),3);
   ADDSTR("Attr_64BIT", ((flags & QSPH64BIT)?"Yes":"No"),3);
 
 

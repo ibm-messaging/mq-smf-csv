@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 IBM Corporation and other Contributors.
+ * Copyright (c) 2016, 2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -486,25 +486,25 @@ extern void checkStructureSizes(FILE *);
   ADDSTRN(h,v,strlen(v),maxlen)             /* ASCII string null terminated*/
 
 #define ADDSTRB(h,v,len) \
-  ADDSTR(h,convBin(v,len),len*2+1)                         /* Binary string*/
+  ADDSTR(h,convBin((unsigned char*)v,len),len*2+1)                         /* Binary string*/
 
 #define ADDSTRBN(h,v,len,maxlen) \
-    ADDSTR(h,convBin(v,len),maxlen)  /* Binary string with known max length*/
+    ADDSTR(h,convBin((unsigned char*)v,len),maxlen)  /* Binary string with known max length*/
 
 #define ADDSTREN(h,v,l) \
-  ADDSTRN(h,convStr(v,l),l,l)                /* EBCDIC string, known length*/
+  ADDSTRN(h,convStr((unsigned char*)v,l),l,l)                /* EBCDIC string, known length*/
 
 #define ADDSTRENS(h,v) \
   ADDSTREN(h,v,sizeof(v))     /* EBCDIC string, length grabbed from sizeof */
 
 
 #define ADDSTRENM(h,v,l,maxlen) \
-  ADDSTRN(h,convStr(v,l),l,maxlen)    /* EBCDIC string, known length, fix max*/
+  ADDSTRN(h,convStr((unsigned char*)v,l),l,maxlen)    /* EBCDIC string, known length, fix max*/
 
 #define ADDSTRENIDX(h,idx, v,l) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEADIDX(tmpHead,DDL_C,l);\
-  smfAddString(l,convStr(v,l))               /* EBCDIC string, known length*/
+  smfAddString(l,convStr((unsigned char*)v,l))               /* EBCDIC string, known length*/
 
 #define ADDINDEX(n) \
   if (first) { \

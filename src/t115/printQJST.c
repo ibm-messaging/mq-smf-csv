@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 IBM Corporation and other Contributors.
+ * Copyright (c) 2016, 2024 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -30,7 +30,7 @@ void printQJST(qjst *p)
   ADDS32("Log_Read_Active_Log"   ,p->qjstract);
   ADDS32("Log_Read_Archive_Log"  ,p->qjstrarh);
   ADDS32("Tape_Contention_Delays",p->qjsttvc );
-  ADDS32("BSDS_Access "          ,p->qjstbsds);
+  ADDS32("BSDS_Access"           ,p->qjstbsds);
   ADDS32("Active_Log_CI"         ,p->qjstbffl);
   ADDS32("Buffer_Writes"         ,p->qjstbfwr);
   ADDS32("Archive_Read"          ,p->qjstalr );
@@ -97,7 +97,6 @@ void printQJST(qjst *p)
     ADDU64 ("IO_Time_Sum_Squares_2", p->qjstiosqu[1]);
   }
 
-#if CSQDSMF_VERSION >= 912
   /* MQ 9.1.2 added support for zHyperwrite logging */
   if (conv16(p->qjstll)>offsetof(qjst,qjstcp1n))
   {
@@ -106,17 +105,41 @@ void printQJST(qjst *p)
       ADDS32("New_Logs_ZHW_Capable"     , p->qjsthwc);
       ADDS32("New_Logs_ZHW_Enabled"     , p->qjsthwe);
   }
-#endif
 
-#if CSQDSMF_VERSION >= 914
   /* MQ 9.1.4 added support for encrypted datasets */
   if (conv16(p->qjstll)>offsetof(qjst,qjstencr)) {
       ADDS32("New_Logs_Encrypted",p->qjstencr);
   }
-#endif
+
+  /* MQ 9.4 added support for zHyperLink */
+  if (conv16(p->qjstll)>offsetof(qjst,qjsthlsciw)) {
+    ADDU32("ZHL_Single_CI_Write_Requests" , p->qjsthlsciw);
+    ADDU32("ZHL_Multi_CI_Write_Requests"  , p->qjsthlmciw);
+    ADDU32("ZHL_CIs_Attempted"            , p->qjsthlcicntw);
+    ADDU32("ZHL_Single_CI_Writes_Success" , p->qjsthlscis);
+    ADDU32("ZHL_multi_CI_Writes_Success"  , p->qjsthlmcis);
+    ADDU32("ZHL_CIs_Successful"           , p->qjsthlcicnts);
+    ADDU32("ZHL_Async_Single_CI_Writes"   , p->qjsthlscif);
+    ADDU32("ZHL_Async_Multi_CI_Writes"    , p->qjsthlmcif);
+    ADDU32("ZHL_CIs_Async"                , p->qjsthlcicntf);
+    ADDU32("Single_CI_Writes_ZHL_Conn"    , p->qjsthlscicon);
+    ADDU32("Multi_CI_Writes_ZHL_Conn"     , p->qjsthlmcicon);
+    ADDU32("CIs_Written_In_Conn_Time"     , p->qjsthlconcicnt);
+    ADDU64("ZHL_IO_Time_Single_CI_Max"    , p->qjsthlsciwtmax);
+    ADDU64("ZHL_IO_Time_Single_CI_Min"    , p->qjsthlsciwtmin);
+    ADDU64("ZHL_IO_Time_Single_CI_Total"  , p->qjsthlsciwttot);
+    ADDU64("ZHL_IO_Time_Multi_CI_Max"     , p->qjsthlmciwtmax);
+    ADDU64("ZHL_IO_Time_Multi_CI_Min"     , p->qjsthlmciwtmin);
+    ADDU64("ZHL_IO_Time_Multi_CI_Total"   , p->qjsthlmciwttot);
+
+    ADDU64 ("ZHL_IO_Time_Sum_Squares_1", p->qjsthliosqu[0]);
+    ADDU64 ("ZHL_IO_Time_Sum_Squares_2", p->qjsthliosqu[1]);
+
+    ADDU32("New_Logs_ZHL_Capable", p->qjsthlc);
+    ADDU32("New_Logs_ZHL_Enabled", p->qjsthle);
+  }
 
   SMFPRINTSTOP;
 
   return;
 }
-

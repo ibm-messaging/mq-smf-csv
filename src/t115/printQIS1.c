@@ -40,7 +40,7 @@ void printQIS1(qis1 *p)
   ADDBYTE("Pageset_Status"     ,p->qis1stat);
   ADDU32 ("Total_Pages"        ,p->qis1topg);
   ADDU32 ("Unused_Pages"       ,p->qis1unpg);
-  ADDU32 ("Persistent_Pages "  ,p->qis1ppg);
+  ADDU32 ("Persistent_Pages"   ,p->qis1ppg);
   ADDU32 ("Nonpersistent_Pages",p->qis1nppg);
   ADDU32 ("Full_Count"         ,p->qis1full);
   ADDU32 ("Put_Cursor_High"    ,p->qis1pchi);

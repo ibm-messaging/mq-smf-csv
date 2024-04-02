@@ -1,5 +1,5 @@
 CFLAGS=-nologo /D_CRT_SECURE_NO_WARNINGS /Zp1 /J /O2 /DPLATFORM_WINDOWS
-VERS=935
+VERS=940
 SRC = mqsmf.c \
       smfDDL.c \
       smfDate.c \
@@ -46,10 +46,10 @@ HDR = mqsmfstrucW.h \
 
 checkSize: mqsmfcsv.exe
 	mqsmfcsv.exe -v > sizes.tmp
-	diff -b sizes.tmp sizes.master.$(VERS)  
+	diff -b sizes.tmp sizes/sizes.master.$(VERS)  
 
 mqsmfcsv.exe: $(SRC) $(HDR) Makefile.win
-	rm -f $@
+	del /q $@
 	$(CC) $(SRC) -I. /Fe$@ $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 	del /q *.obj
 	copy $@ ..\bin\win

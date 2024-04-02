@@ -23,7 +23,7 @@ void printWTID(wtid *p, unsigned char *correlid)
   ADDSTR  ("Appl_Type", strConnType(conv32(p->wtidatyp)),16);
   ADDSTREN("Connection_Name", p->wtidccn, 8);
   ADDSTREN("Operator_ID", p->wtidopid,8);
-  ADDSTRB ("NID ", p->wtidnid, 16);
+  ADDSTRB ("NID", p->wtidnid, 16);
   ADDSTRB ("Correl(HEX)", p->wtidcori, 12);
   ADDSTREN("Correl(CHAR)", p->wtidcori, 12);
   ADDSTRB ("UOW_ID", p->wtiduowi, 24);

@@ -54,7 +54,7 @@ tests: all
 
 sizeTest: mqsmfcsv
 	./mqsmfcsv -v > sizes.tmp
-	diff -b sizes.tmp sizes.master.$(VERS)
+	diff -b sizes.tmp sizes/sizes.master.$(VERS)
 
 shipTest: mqsmfcsv
 	cd ../testing/shipTest;./shipTest.sh csv sql json

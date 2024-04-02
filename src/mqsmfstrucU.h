@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 935
+ * This file was generated from cqsdsmfc.h version 940
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -511,6 +511,28 @@ int32_t   qjstcp2n;
 int32_t   qjsthwc;
 int32_t   qjsthwe;
 int32_t   qjstencr;
+uint32_t  filler__003;
+uint32_t qjsthlsciw;
+uint32_t qjsthlmciw;
+uint32_t qjsthlcicntw;
+uint32_t qjsthlscis;
+uint32_t qjsthlmcis;
+uint32_t qjsthlcicnts;
+uint32_t qjsthlscif;
+uint32_t qjsthlmcif;
+uint32_t qjsthlcicntf;
+uint32_t qjsthlscicon;
+uint32_t qjsthlmcicon;
+uint32_t qjsthlconcicnt;
+uint64_t  qjsthlsciwtmax;
+uint64_t  qjsthlsciwtmin;
+uint64_t  qjsthlsciwttot;
+uint64_t  qjsthlmciwtmax;
+uint64_t  qjsthlmciwtmin;
+uint64_t  qjsthlmciwttot;
+uint64_t  qjsthliosqu[2];
+uint32_t qjsthlc;
+uint32_t qjsthle;
 } qjst;
 #define QJSTIDV  0x0093
 #define QJSTEYEV "QJST"
