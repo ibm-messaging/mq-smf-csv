@@ -5,6 +5,7 @@ History (newest at top)
 Oct 2024 (v5.5.1)
 * Update for MQ 9.4.1
 * Some QESD fields renamed to match product changes
+* New sample data testing/data/SMF_MQ940_NORDW.dat (use "-f nordw" to format)
 
 Jun 2024 (v5.5)
 * Update for MQ 9.4.0
