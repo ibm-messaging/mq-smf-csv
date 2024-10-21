@@ -37,11 +37,11 @@ void printQESD(qesd *p)
       ADDU32  ("Blocks_Msg_Data"  , p -> qesdsmbd);
       ADDU32  ("Blocks_In_Use"    , p -> qesdsmbu);
       ADDU32  ("Blocks_Free"      , p -> qesdsmbf);
-      ADDU32  ("Messages_In_Dataset", p -> qesdsmmc);
-      ADDU32  ("Space_Allocated"  , p -> qesdsmar);
-      ADDU32  ("Space_Free"       , p -> qesdsmfr);
-      ADDU32  ("Space_Reallocated", p -> qesdsmrr);
-      ADDU32  ("Space_Cleaned_Up" , p -> qesdsmcr);
+      ADDU32  ("Messages_In_Dataset" , p -> qesdsmmc);
+      ADDU32  ("Allocation_Requests" , p -> qesdsmar);
+      ADDU32  ("Release_Requests" , p -> qesdsmfr);
+      ADDU32  ("Reallocation_Requests", p -> qesdsmrr);
+      ADDU32  ("Cleanup_Requests" , p -> qesdsmcr);
       ADDU32  ("Pages_Allocated"  , p -> qesdsmap);
       ADDU32  ("Pages_Freed"      , p -> qesdsmfp);
       ADDU32  ("Pages_Reallocated", p -> qesdsmrp);

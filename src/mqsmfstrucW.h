@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 940
+ * This file was generated from cqsdsmfc.h version 941
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 

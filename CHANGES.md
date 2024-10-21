@@ -2,6 +2,10 @@
 History (newest at top)
 =======================
 
+Oct 2024 (v5.5.1)
+* Update for MQ 9.4.1
+* Some QESD fields renamed to match product changes
+
 Jun 2024 (v5.5)
 * Update for MQ 9.4.0
 * New stats available for zHyperlink
