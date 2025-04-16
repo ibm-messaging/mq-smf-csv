@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 941
+ * This file was generated from cqsdsmfc.h version 943
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -612,6 +612,31 @@ int64_t       qmstspp;
 int64_t       qmstsnp;
 int64_t       qmstpbp;
 int64_t       qmstnbp;
+uint64_t      qmstocpa;
+uint64_t      qmstocga;
+uint64_t      qmstoahc;
+uint64_t      qmstocpd;
+uint64_t      qmstocmp;
+uint64_t      qmstocgd;
+uint64_t      qmstocps;
+uint64_t      qmstocgs;
+uint64_t      qmstoscs;
+uint64_t      qmstosps;
+uint64_t      qmstosns;
+uint64_t      qmstocda;
+uint64_t      qmstospl;
+uint64_t      qmstoscl;
+uint64_t      qmstosfs;
+uint64_t      qmstosok;
+uint64_t      qmstosfr;
+uint64_t      qmstosfc;
+uint64_t      qmstotso;
+uint64_t      qmstotsr;
+uint64_t      qmstotsc;
+uint64_t      qmstotpu;
+uint64_t      qmstotpw;
+uint64_t      qmstotpd;
+int32_t  qmstotsk;
 } qmst;
 #define QMSTIDV  0xD40F
 #define QMSTEYEV "QMST"
@@ -731,6 +756,21 @@ uint64_t      qqstset;
 uint64_t      qqstexpr;
 uint64_t      qqstrbpt;
 uint64_t      qqstrbgt;
+uint64_t      qqstocpa;
+uint64_t      qqstocga;
+uint64_t      qqstoahc;
+uint64_t      qqstocpd;
+uint64_t      qqstocmp;
+uint64_t      qqstocgd;
+uint64_t      qqstocps;
+uint64_t      qqstocgs;
+uint64_t      qqstoscs;
+uint64_t      qqstosps;
+uint64_t      qqstosns;
+uint64_t      qqstocda;
+uint64_t      qqstospl;
+uint64_t      qqstoscl;
+uint64_t      qqstosfs;
 } qqst;
 #define QQSTIDV  0xD80F
 #define QQSTEYEV "QQST"

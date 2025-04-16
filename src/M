@@ -4,13 +4,15 @@ plat=`uname`
 
 if [ -z "$VERS" ]
 then
-  VERS="941"
+  VERS="943"
 fi
 
 if [ "$plat" = "AIX" ]
 then
-  flags="-q64 -qmaxmem=-1 $CCEXTRAFLAGS -D PLATFORM_AIX"
-  cc="xlc"
+  # flags="-q64 -qmaxmem=-1 $CCEXTRAFLAGS -D PLATFORM_AIX"
+  # cc="xlc"
+  flags="-Wno-pragma-pack $CCEXTRAFLAGS -D PLATFORM_AIX"
+  cc="/opt/IBM/openxlC/17.1.1/bin/ibm-clang_r"
   targdir="../bin/aix"
   optim="-O3"
 elif [ "$plat" = "Darwin" ]

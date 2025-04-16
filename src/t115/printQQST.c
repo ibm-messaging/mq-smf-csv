@@ -145,6 +145,27 @@ void printQQST(qqst *p)
   }
 #endif
 
+#if CSQDSMF_VERSION >= 943
+  if (conv16(p->qqstll)>offsetof(qqst,qqstocpa))
+  {
+    ADDU64("Otel_Prop_Put",       p->qqstocpa);
+    ADDU64("Otel_Prop_Get",       p->qqstocga);
+    ADDU64("Otel_Disc_Put",       p->qqstoahc);
+    ADDU64("Otel_Inval_Put",      p->qqstocpd);
+    ADDU64("Otel_Max_Props_Put",  p->qqstocmp);
+    ADDU64("Otel_Inval_Get",      p->qqstocgd);
+    ADDU64("Otel_State_Trunc_Put",p->qqstocps);
+    ADDU64("Otel_State_Trunc_Get",p->qqstocgs);
+    ADDU64("Otel_Spans_Consumer", p->qqstoscs);
+    ADDU64("Otel_Spans_Producer", p->qqstosps);
+    ADDU64("Otel_Nosample_Put",   p->qqstosns);
+    ADDU64("Otel_Disc_Get",       p->qqstocda);
+    ADDU64("Otel_Span_Limit_Producer", p->qqstospl);
+    ADDU64("Otel_Span_Limit_Consumer", p->qqstoscl);
+    ADDU64("Otel_Span_Limit_Storage",  p->qqstosfs);
+  }
+
+#endif
   SMFPRINTSTOP;
 
   return;

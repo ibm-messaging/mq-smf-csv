@@ -48,6 +48,39 @@ void printQMST(qmst *p)
   }
 #endif
 
+#if CSQDSMF_VERSION >= 943
+  // MQW 943 introduced OpenTelemetry tracing for applications via
+  // SMF. As part of that, there are lots of new metrics.
+  if (conv16(p->qmstll) > offsetof(qmst,qmstocpa))
+  {
+    ADDU64("Otel_Prop_Put",       p->qmstocpa);
+    ADDU64("Otel_Prop_Get",       p->qmstocga);
+    ADDU64("Otel_Disc_Put",       p->qmstoahc);
+    ADDU64("Otel_Inval_Put",      p->qmstocpd);
+    ADDU64("Otel_Max_Props_Put",  p->qmstocmp);
+    ADDU64("Otel_Inval_Get",      p->qmstocgd);
+    ADDU64("Otel_State_Trunc_Put",p->qmstocps);
+    ADDU64("Otel_State_Trunc_Get",p->qmstocgs);
+    ADDU64("Otel_Spans_Consumer", p->qmstoscs);
+    ADDU64("Otel_Spans_Producer", p->qmstosps);
+    ADDU64("Otel_Nosample_Put",   p->qmstosns);
+    ADDU64("Otel_Disc_Get",       p->qmstocda);
+    ADDU64("Otel_Span_Limit_Producer", p->qmstospl);
+    ADDU64("Otel_Span_Limit_Consumer", p->qmstoscl);
+    ADDU64("Otel_Span_Limit_Storage",  p->qmstosfs);
+    ADDU64("Otel_Span_Success",        p->qmstosok);
+    ADDU64("Otel_Span_Failed",         p->qmstosfr);
+    ADDU64("Otel_Span_Failed_Capacity",p->qmstosfc);
+    ADDU64("Otel_SMF_Success",         p->qmstotso);
+    ADDU64("Otel_SMF_Failed",          p->qmstotsr);
+    ADDU64("Otel_SMF_Failed_Capacity", p->qmstotsc);
+    ADDSTCK("Otel_CPU_Time",           p->qmstotpu);
+    ADDSTCK("Otel_Wait_Work_Time",     p->qmstotpw);
+    ADDSTCK("Otel_Wait_SMF_Time",      p->qmstotpd);
+    ADDS32("Otel_EmissionTasks",       p->qmstotsk);
+  }
+#endif
+
   SMFPRINTSTOP;
 
   return;
