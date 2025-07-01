@@ -2,7 +2,7 @@
 History (newest at top)
 =======================
 
-xxx 2025 (v5.5.2)
+Jul 2025 (v5.5.2)
 * Update for MQ 9.4.3
 * Many new fields in QQST and QMST structures report on 
   OTel activity (not the OTel records themselves though)
