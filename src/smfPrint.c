@@ -238,6 +238,8 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
       } else {
         ADDDATA(ODT_I64,"%llu,",du);
       }
+      /* Add the QWHX here ... */
+      /* if (qwhx) { ADDSTRN("MQ_Version",6,6);ADDSTRN("QSG",4,4) */
     }
   } else {
     ADDSTRN("SubsystemID",commonF.qMgr,4,4);

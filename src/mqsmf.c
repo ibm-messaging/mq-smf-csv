@@ -750,14 +750,27 @@ int main( int argc, char *argv[] )
         {
           if (conv16(pqwhs->qwhslen) >= 52)
           {
+
             /* This structure changes size on different platforms because */
             /* of how the compiler deals with bitfields. So have to do it */
             /* explicitly with known offsets after the structure changes. */
             char *t = (char *)&(pqwhs->qwhsflag1);
+            char extensionFlags = *t;
             t+=4;
             memcpy(&commonF.intstart,t,8);
             t+=8;
             memcpy(&commonF.intduration,t,8);
+            t+=8;
+
+            //struct {
+            //  int qwhssmfc : 1;
+            //  int qwhsqwhx : 1;
+            //  int qshspad1 : 6;
+            // } qwhsflag1;
+            if (extensionFlags & 0x02) {  // What's the real value? On big/little-endian machines?
+              /* The extension field is present */
+              /*struct qwhx *qwhx = (struct qwhx *)t;*/
+            }
           }
           else
           {

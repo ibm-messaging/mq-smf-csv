@@ -294,6 +294,7 @@ char *strConnType(int v)
   case 5: c = "Cmd Svr" ;break;
   case 6: c = "CHIN"    ;break;
   case 7: c = "RRS"     ;break;
+  case 8: c = "IGQ"     ;break;
   }
   return c;
 }

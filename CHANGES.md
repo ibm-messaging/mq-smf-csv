@@ -2,6 +2,10 @@
 History (newest at top)
 =======================
 
+Feb 2026 (v5.5.3)
+* Update for MQ 9.4.5
+  * QMST extensions for IMS Bridge
+
 Jul 2025 (v5.5.2)
 * Update for MQ 9.4.3
 * Many new fields in QQST and QMST structures report on 

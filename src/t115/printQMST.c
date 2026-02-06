@@ -80,6 +80,14 @@ void printQMST(qmst *p)
     ADDS32("Otel_EmissionTasks",       p->qmstotsk);
   }
 #endif
+#if CSQDSMF_VERSION >= 945
+  if (conv16(p->qmstll) > offsetof(qmst,qmstobse))
+  {
+    ADDU64("Otel_IMS_Bridge_Spans",     p->qmstobse);
+    ADDU64("Otel_IMS_Bridge_Propagates",p->qmstobcp);
+    ADDU64("Otel_IBM_Bridge_Discard",  p->qmstobcd);
+  }
+#endif
 
   SMFPRINTSTOP;
 

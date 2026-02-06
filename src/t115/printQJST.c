@@ -117,7 +117,7 @@ void printQJST(qjst *p)
     ADDU32("ZHL_Multi_CI_Write_Requests"  , p->qjsthlmciw);
     ADDU32("ZHL_CIs_Attempted"            , p->qjsthlcicntw);
     ADDU32("ZHL_Single_CI_Writes_Success" , p->qjsthlscis);
-    ADDU32("ZHL_multi_CI_Writes_Success"  , p->qjsthlmcis);
+    ADDU32("ZHL_Multi_CI_Writes_Success"  , p->qjsthlmcis);
     ADDU32("ZHL_CIs_Successful"           , p->qjsthlcicnts);
     ADDU32("ZHL_Async_Single_CI_Writes"   , p->qjsthlscif);
     ADDU32("ZHL_Async_Multi_CI_Writes"    , p->qjsthlmcif);

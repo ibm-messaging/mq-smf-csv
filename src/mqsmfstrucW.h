@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 943
+ * This file was generated from cqsdsmfc.h version 945
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -637,6 +637,10 @@ uint64_t      qmstotpu;
 uint64_t      qmstotpw;
 uint64_t      qmstotpd;
 int32_t  qmstotsk;
+int32_t  filler_001;
+uint64_t      qmstobse;
+uint64_t      qmstobcp;
+uint64_t      qmstobcd;
 } qmst;
 #define QMSTIDV  0xD40F
 #define QMSTEYEV "QMST"
