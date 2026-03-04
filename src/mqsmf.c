@@ -600,6 +600,9 @@ int main( int argc, char *argv[] )
     /* Some items from the record need to be shown for all types         */
     /* of structure. Save them into a shared block available for all.    */
     /*********************************************************************/
+    memset(commonF.QSG, ' ',4);   /* Set defaults that might not get filled in for older record types */
+    memset(commonF.mqVer, ' ', 6);
+
     memcpy(commonF.qMgr,convStr(((unsigned char*)pSMFMQRecord->Header.SMFRECSSID),4),4);
     memcpy(commonF.systemId,convStr(((unsigned char*)pSMFMQRecord->Header.SMFRECSID),4),4);
     if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT) {

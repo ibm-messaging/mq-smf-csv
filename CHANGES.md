@@ -1,6 +1,10 @@
 
 History (newest at top)
 =======================
+Jun 2026 (v5.6)
+* Update for MQ 10.0.0
+  * Includes QSG (old format records, or qmgrs that are not in QSG have this set to spaces)
+  * MQVersion field extended to 6 characters (old format records now right-padded)
 
 Feb 2026 (v5.5.3)
 * Update for MQ 9.4.5
@@ -8,15 +12,15 @@ Feb 2026 (v5.5.3)
 
 Jul 2025 (v5.5.2)
 * Update for MQ 9.4.3
-* Many new fields in QQST and QMST structures report on 
+* Many new fields in QQST and QMST structures report on
   OTel activity (not the OTel records themselves though)
 
 Oct 2024 (v5.5.1)
 * Update for MQ 9.4.1
 * Some QESD fields renamed to match product changes
-* New sample data testing/data/SMF_MQ940_NORDW.dat 
+* New sample data testing/data/SMF_MQ940_NORDW.dat
   * Use "-f nordw" to format
-  * Thanks to Lyn for providing the file 
+  * Thanks to Lyn for providing the file
 
 Jun 2024 (v5.5)
 * Update for MQ 9.4.0
@@ -25,9 +29,9 @@ Jun 2024 (v5.5)
 * Initial build option added for MacOS
 
 Feb 2024 (v5.4.5)
-* Update for MQ V9.3.5 
+* Update for MQ V9.3.5
 * QCCT now has info about 64-bit CHIN storage use
-  * Previous "Storage_Usage" renamed to "Storage_Usage_31" 
+  * Previous "Storage_Usage" renamed to "Storage_Usage_31"
   * New fields added
 
 Oct 2023 (v5.4.4)
