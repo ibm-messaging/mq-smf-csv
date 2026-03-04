@@ -221,9 +221,13 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
   ADDSTRN("LPAR",commonF.systemId,4,4);
   if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT)
   {
+    int l = SMF_VERSION_LENGTH_V10;
     ADDSTRN("QMgr",commonF.qMgr,4,4);
     ADDSTRN("QSG",commonF.QSG,4,4);
-    ADDSTRN("MQ_Version",commonF.mqVer,6,6);
+    if (commonF.mqVer[3] == ' ') {
+      l = SMF_VERSION_LENGTH; /* Use variable length of the field so we don't get right-padded old records */
+    }
+    ADDSTRN("MQ_Version",commonF.mqVer,l,SMF_VERSION_LENGTH_V10);
 
     if (recordType == SMFTYPE_MQ_STAT && commonF.intstart != 0)
     {

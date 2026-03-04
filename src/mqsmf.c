@@ -105,7 +105,7 @@ typedef struct stat mystat_t;
 #include "t180/smf180.h"
 #include "t123/smf123.h"
 
-static void Usage();
+static void Usage(void);
 void takeCheckPoint(char *,myoff_t);
 myoff_t readCheckPoint(FILE *);
 static char *getFormatRate(myoff_t pos);
@@ -212,12 +212,12 @@ int main( int argc, char *argv[] )
   int i,j;                             /* loop counters                    */
   char  dataBuf[MAX_SMF_DATA];         /* Contains the SMF data            */
   int   bytesRead;                     /* Number of bytes from fread()     */
-  int   tmpBytes;
+  int   tmpBytes = 0;
   int   offset;                        /* total number of bytes in a record*/
   unsigned int d[3];                   /* used in date conversion          */
   unsigned int ddd,year;               /* day number and year number       */
   unsigned int smfTime;                   /* Copied from the SMF header       */
-  char savedMqVer[3] = {0};
+  char savedMqVer[SMF_VERSION_LENGTH_V10] = {0};
 
   char *inputFile = NULL;
   FILE *fp;
@@ -601,12 +601,12 @@ int main( int argc, char *argv[] )
     /* of structure. Save them into a shared block available for all.    */
     /*********************************************************************/
     memset(commonF.QSG, ' ',4);   /* Set defaults that might not get filled in for older record types */
-    memset(commonF.mqVer, ' ', 6);
+    memset(commonF.mqVer, ' ', SMF_VERSION_LENGTH_V10);
 
     memcpy(commonF.qMgr,convStr(((unsigned char*)pSMFMQRecord->Header.SMFRECSSID),4),4);
     memcpy(commonF.systemId,convStr(((unsigned char*)pSMFMQRecord->Header.SMFRECSID),4),4);
     if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT) {
-      memcpy(commonF.mqVer,convStr((unsigned char*)(pSMFMQRecord->Header.u.s.SMFRECREL),3),3);
+      memcpy(commonF.mqVer,convStr((unsigned char*)(pSMFMQRecord->Header.u.s.SMFRECREL),SMF_VERSION_LENGTH),SMF_VERSION_LENGTH);
     }
 
 
@@ -684,10 +684,12 @@ int main( int argc, char *argv[] )
     case SMFTYPE_MQ_STAT:
     case SMFTYPE_MQ_ACCT:
       if (savedMqVer[0] == 0)
-        memcpy(savedMqVer,commonF.mqVer,3);
+        memcpy(savedMqVer,commonF.mqVer,SMF_VERSION_LENGTH_V10);
 
-      if (inconsistentVersions(commonF.mqVer,savedMqVer,3)) {
-        fprintf(stderr,"Warning: Data contains records from multiple versions of MQ - %3.3s and %3.3s\n",commonF.mqVer,savedMqVer);
+      if (inconsistentVersions(commonF.mqVer,savedMqVer,SMF_VERSION_LENGTH_V10)) {
+        fprintf(stderr,"Warning: Data contains records from multiple versions of MQ - %*.*s and %*.*s\n",
+            SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, commonF.mqVer,
+            SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, savedMqVer);
       }
 
       /*******************************************************************/
@@ -780,7 +782,7 @@ int main( int argc, char *argv[] )
               memcpy(commonF.QSG, convStr(((unsigned char*)(pqwhx->qwhxqsg)),4),4);
               /* Overwrite the version string from the standard header with a value from the extension. */
               /* It's longer, so we've modified the commonFields structure to hold the longer value     */
-              memcpy(commonF.mqVer,convStr(((unsigned char*)(pqwhx->qwhxrel)),6),6);
+              memcpy(commonF.mqVer,convStr(((unsigned char*)(pqwhx->qwhxrel)),SMF_VERSION_LENGTH_V10),SMF_VERSION_LENGTH_V10);
 
             }
           }
@@ -1208,9 +1210,9 @@ int main( int argc, char *argv[] )
         for (i = 0; i < 3; i++) {
           tempVer[i] += 0xF0;
         }
-        memcpy(commonF.mqVer, convStr(tempVer, 3), 3);
+        memcpy(commonF.mqVer, convStr(tempVer, SMF_VERSION_LENGTH), SMF_VERSION_LENGTH);
         /* UNKLUDGE: stating AMS v.r.m as the MQ version might mislead       */
-        memcpy(commonF.mqVer, "   ", 3);
+        memcpy(commonF.mqVer, "   ", SMF_VERSION_LENGTH);
         printAMS(pAMSProduct, pAMSData, amsRecLength - sizeof(AMSRecord_t));
       }
       else
@@ -1295,7 +1297,7 @@ mod_exit:
       }
     }
   }
-  exit(0);
+  return(0);
 }
 
 /*************************************************************************/
@@ -1628,10 +1630,10 @@ static char *getFormatPercent(myoff_t totalFileSize,myoff_t pos)
 int laterThan(int v)
 {
   int rc = 0;
-  char mqVer[5] = {0};
+  char mqVer[SMF_VERSION_LENGTH_V10+1] = {0};
   static int currentVersion = -1;
   if (currentVersion == -1) {
-    strncpy(mqVer,commonF.mqVer,4);
+    strncpy(mqVer,commonF.mqVer,SMF_VERSION_LENGTH_V10);
     currentVersion = atoi(mqVer);
   }
   if (currentVersion > v)
@@ -1653,7 +1655,7 @@ int laterThan(int v)
 static BOOL inconsistentVersions(char *v1,char *v2,int l)
 {
   BOOL rc = FALSE;
-  if (memcmp(v1,v2,l) != 0) /* Maybe need to do more about specific version comparisons */
+  if (memcmp(v1,v2,l) != 0) /* Consider doing more about specific version comparisons */
     rc= TRUE;
   return FALSE;
 }

@@ -4,7 +4,7 @@ History (newest at top)
 Jun 2026 (v5.6)
 * Update for MQ 10.0.0
   * Includes QSG (old format records, or qmgrs that are not in QSG have this set to spaces)
-  * MQVersion field extended to 6 characters (old format records now right-padded)
+  * MQVersion field extended length 
 
 Feb 2026 (v5.5.3)
 * Update for MQ 9.4.5

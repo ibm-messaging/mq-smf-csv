@@ -158,6 +158,8 @@ typedef struct
 /* This structure can be changed at will; it's not a direct map of  */
 /* any SMF structure.                                               */
 /********************************************************************/
+#define SMF_VERSION_LENGTH     (3)
+#define SMF_VERSION_LENGTH_V10 (6)           /* Extended for MQ V10 */
 typedef struct {
   unsigned long long int intstart;      /* Interval start for 115   */
   unsigned long long int intduration;   /* Duration for 115         */
@@ -166,7 +168,7 @@ typedef struct {
   char systemId[4];
   char qMgr[4];
   char QSG[4];
-  char mqVer[6];
+  char mqVer[SMF_VERSION_LENGTH_V10];
   char padding;
   char stckFormatDate[64];                  /* STCK as string date/time */
   char stckFormatTime[64];                  /* STCK as string date/time */
