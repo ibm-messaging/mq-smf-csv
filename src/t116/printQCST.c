@@ -67,6 +67,13 @@ void printQCST(qcst *p)
   ADDU32  ("Batch_Data_Limit",p->qcstcbdl);
   ADDU16  ("Dispatcher_Number",p->qcstdspn);
 
+  if (conv16(p->qcstll) > offsetof(qcst,qcstrpid)) {
+     /* A reserved field was also added the structure at */
+     /* this point for padding                           */
+     ADDSTREN("Remote_Product_ID", p->qcstrpid,4);
+     ADDSTREN("Remote_Product_Version", p->qcstrver,8);
+  }
+
   SMFPRINTSTOP;
   return;
 }
