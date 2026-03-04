@@ -1,5 +1,5 @@
 /*
- * This file was generated from cqsdsmfc.h version 945
+ * This file was generated from cqsdsmfc.h version 1000
  * by the convH program (convH64.c) in the src directory
  * Do not try to edit this header manually.
  * 
@@ -238,7 +238,10 @@ uint32_t qcstqetc;
 uint32_t qcstcbit;
 uint32_t qcstcbdl;
 uint16_t  qcstdspn;
-char     qcstrsv1[6] ;
+char     qcstrsv1[6];
+char     qcstrpid[4];
+char     qcstrver[8];
+char     qcstrsv2[4];
 } qcst;
 #define QCSTIDV  0xE74A
 #define QCSTEYEV "QCST"
@@ -1033,7 +1036,8 @@ char     qwhsiseq[4];
 char     qwhswseq[4];
 struct {
 int qwhssmfc : 1;
-int qshspad1 : 7;
+int qwhsqwhx : 1;
+int qshspad1 : 6;
 } qwhsflag1;
 char     qwhsflag2;
 char     qwhsflag3;
@@ -1041,6 +1045,21 @@ char     qwhsflag4;
 uint64_t      qwhstime;
 uint64_t      qwhsdurn;
 } qwhs;
+#if defined(__cplusplus)
+}
+#endif
+#if defined(__cplusplus)
+extern "C" {
+#endif
+typedef
+struct {
+int16_t   qwhxlen;
+char     qwhxtyp[1];
+char     res1[1];
+char     qwhxqsg[4];
+char     qwhxrel[6];
+char     res2[2];
+} qwhx;
 #if defined(__cplusplus)
 }
 #endif

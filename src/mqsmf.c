@@ -762,14 +762,23 @@ int main( int argc, char *argv[] )
             memcpy(&commonF.intduration,t,8);
             t+=8;
 
-            //struct {
-            //  int qwhssmfc : 1;
-            //  int qwhsqwhx : 1;
-            //  int qshspad1 : 6;
-            // } qwhsflag1;
-            if (extensionFlags & 0x02) {  // What's the real value? On big/little-endian machines?
-              /* The extension field is present */
-              /*struct qwhx *qwhx = (struct qwhx *)t;*/
+            /* There's a char-sized bitfield in the QWHS structure that tells us if there's a QWHX element:
+              struct {
+                int qwhssmfc : 1;
+                int qwhsqwhx : 1;
+                int qshspad1 : 6;
+              } qwhsflag1;
+            */
+            if (extensionFlags & 0x40) {  /* The bits in this bitfield should be addressed directly */
+              /* The QWHX extension field is present, directly after the QWHS structure */
+              qwhx *pqwhx = (qwhx *)t;
+
+              /* Fill in the QSG, which might be empty */
+              memcpy(commonF.QSG, convStr(((unsigned char*)(pqwhx->qwhxqsg)),4),4);
+              /* Overwrite the version string from the standard header with a value from the extension. */
+              /* It's longer, so we've modified the commonFields structure to hold the longer value     */
+              memcpy(commonF.mqVer,convStr(((unsigned char*)(pqwhx->qwhxrel)),6),6);
+
             }
           }
           else

@@ -35,6 +35,7 @@ fprintf(fp,"%s : %d\n","qtst",(int)sizeof(qtst));
 fprintf(fp,"%s : %d\n","qwac",(int)sizeof(qwac));
 fprintf(fp,"%s : %d\n","qwhc",(int)sizeof(qwhc));
 fprintf(fp,"%s : %d\n","qwhs",(int)sizeof(qwhs));
+fprintf(fp,"%s : %d\n","qwhx",(int)sizeof(qwhx));
 fprintf(fp,"%s : %d\n","wtas",(int)sizeof(wtas));
 fprintf(fp,"%s : %d\n","wtid",(int)sizeof(wtid));
 fprintf(fp,"%s : %d\n","qwst",(int)sizeof(qwst));

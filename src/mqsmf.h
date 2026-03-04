@@ -155,6 +155,8 @@ typedef struct
 /* SMF headers at the front of the record.                          */
 /* The selected items are then used in the COMMON_BLOCK macro for   */
 /* every line of output.                                            */
+/* This structure can be changed at will; it's not a direct map of  */
+/* any SMF structure.                                               */
 /********************************************************************/
 typedef struct {
   unsigned long long int intstart;      /* Interval start for 115   */
@@ -163,7 +165,8 @@ typedef struct {
   char recordTime[64];
   char systemId[4];
   char qMgr[4];
-  char mqVer[3];
+  char QSG[4];
+  char mqVer[6];
   char padding;
   char stckFormatDate[64];                  /* STCK as string date/time */
   char stckFormatTime[64];                  /* STCK as string date/time */

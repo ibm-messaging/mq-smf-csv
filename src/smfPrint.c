@@ -222,7 +222,8 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
   if (recordType == SMFTYPE_MQ_STAT || recordType == SMFTYPE_MQ_ACCT)
   {
     ADDSTRN("QMgr",commonF.qMgr,4,4);
-    ADDSTRN("MQ_Version",commonF.mqVer,3,3);
+    ADDSTRN("QSG",commonF.QSG,4,4);
+    ADDSTRN("MQ_Version",commonF.mqVer,6,6);
 
     if (recordType == SMFTYPE_MQ_STAT && commonF.intstart != 0)
     {
@@ -278,15 +279,15 @@ void smfPrintStop(FILE *fp, BOOL newFile, BOOL *first, columnHeader_t **h)
 }
 
 
-int fieldWidth(char *s[]) 
+int fieldWidth(char *s[])
 {
   int rc = 0;
   int idx = 0;
   int l  = 0;
-  while (s[idx]) 
+  while (s[idx])
   {
     l = strlen(s[idx++]);
-    if (l > rc) 
+    if (l > rc)
     {
       rc = l;
     }
