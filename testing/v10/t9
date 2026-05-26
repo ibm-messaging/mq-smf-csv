@@ -1,0 +1,16 @@
+cd ../../src
+
+rm -rf /tmp/smf/v9/* 2>/dev/null
+mkdir -p /tmp/smf/v9 2>/dev/null
+
+if [ `uname` = "AIX" ]
+then
+  olddir="../bin/aix.945"
+else
+  olddir="../bin/linux.945"
+fi
+
+#$olddir/mqsmfcsv -o /tmp/smf/v9 -d 5 -i ../testing/data/CUST2_115.dat -m 100 2>&1 | tee t9.out
+$olddir/mqsmfcsv -o /tmp/smf/v9 -d 5 -i ../testing/data/TEST116.dat -m 100 2>&1 | tee -a t9.out
+
+# pg    /tmp/smf/v9/*

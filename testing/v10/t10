@@ -1,0 +1,28 @@
+cd ../../src
+
+CCDEBUG=true M
+
+
+rm -rf /tmp/smf/v10/* 2>/dev/null
+mkdir -p /tmp/smf/v10 2>/dev/null
+
+d=5
+# ./mqsmfcsv -o /tmp/smf/v10 -d 5 -i ../testing/data/v10smfa.nordw.bin -f nordw -a 2>&1 | tee t10.out
+# ./mqsmfcsv -o /tmp/smf/v10 -d 5 -i ../testing/data/v10smfa.bin  2>&1 -a | tee t10.out
+
+
+./mqsmfcsv -i ../testing/data/SMF116.dat -o  /tmp/smf/v10 -m 100 -t 10 -a -d $d -f csv
+./mqsmfcsv -i ../testing/data/TESTCHL.dat -o  /tmp/smf/v10 -a -d $d -f csv
+./mqsmfcsv -i ../testing/data/TEST115.dat -o  /tmp/smf/v10 -m 100 -h No -a -d $d -f csv
+#./mqsmfcsv -i ../testing/data/TEST123.dat -o  /tmp/smf/v10 -m 100 -h No -a -d $d -f csv
+#./mqsmfcsv -i ../testing/data/AMS180.dat -o  /tmp/smf/v10 -m 100 -h No -a -d $d -f csv
+
+#
+#./mqsmfcsv -o /tmp/smf/v10 -d 5 -i ../testing/data/CUST2_115.dat -m 100 -a 2>&1 | tee t10.out
+#./mqsmfcsv -o /tmp/smf/v10 -d 5 -i ../testing/data/TEST116.dat -m 100 -a 2>&1 | tee t10.out
+exit 0
+cat ../testing/data/v10smfa.bin   \
+    ../testing/data/CUST2_115.dat \
+    ../testing/data/TEST116.dat | ./mqsmfcsv -o /tmp/smf/v10 -d0 2>&1| tee t10.out
+
+# pg    /tmp/smf/v10/*
