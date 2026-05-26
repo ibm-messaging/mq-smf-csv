@@ -37,6 +37,7 @@ void printQQST(qqst *p)
   SMFPRINTSTART("QQST", p, conv16(p->qqstll));
 
   ADDSTRENS("Queue",    p->qqstqnam);
+  ADDINDEX("Queue");
 
   flags = conv32(p->qqstflag);
   if ((flags & QQSTDISP) == QQSTDISP) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2026 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -198,6 +198,23 @@ static int   mqoptopt;                 /* getopt option                    */
 static char* mqoptarg;                 /* getopt argument                  */
 
 static BOOL debugBREAK = FALSE;
+static BOOL inconsistentWarning = FALSE; /* So we don't continually give the same warning */
+
+/********************************************************************/
+/* Use the header extension block to fill in version > 9 + QSG      */
+/********************************************************************/
+static void setQWHX(qwhx *pqwhx) {
+  /* The QWHX extension field is present, directly after the QWHS structure */
+  if (debugLevel >= 2) {
+    printDEBUG("QWHX",pqwhx,conv16(pqwhx->qwhxlen));
+  }
+
+  /* Fill in the QSG, which might be empty */
+  memcpy(commonF.QSG, convStr(((unsigned char*)(pqwhx->qwhxqsg)),4),4);
+  /* Overwrite the version string from the standard header with a value from the extension. */
+  /* It's longer, so we've modified the commonFields structure to hold the longer value     */
+  memcpy(commonF.mqVer,convStr(((unsigned char*)(pqwhx->qwhxrel)),SMF_VERSION_LENGTH_V10),SMF_VERSION_LENGTH_V10);
+}
 
 /********************************************************************/
 /* MAIN                                                             */
@@ -205,19 +222,16 @@ static BOOL debugBREAK = FALSE;
 /********************************************************************/
 int main( int argc, char *argv[] )
 {
-
-
-
   int ticker = DEFAULT_TICKER;
   int i,j;                             /* loop counters                    */
-  char  dataBuf[MAX_SMF_DATA];         /* Contains the SMF data            */
+  char  dataBuf[MAX_SMF_DATA + 4];     /* Contains the SMF data            */
   int   bytesRead;                     /* Number of bytes from fread()     */
   int   tmpBytes = 0;
   int   offset;                        /* total number of bytes in a record*/
   unsigned int d[3];                   /* used in date conversion          */
   unsigned int ddd,year;               /* day number and year number       */
   unsigned int smfTime;                   /* Copied from the SMF header       */
-  char savedMqVer[SMF_VERSION_LENGTH_V10] = {0};
+  char savedMqVer[SMF_VERSION_LENGTH_V10+1] = {0};
 
   char *inputFile = NULL;
   FILE *fp;
@@ -683,14 +697,6 @@ int main( int argc, char *argv[] )
     {
     case SMFTYPE_MQ_STAT:
     case SMFTYPE_MQ_ACCT:
-      if (savedMqVer[0] == 0)
-        memcpy(savedMqVer,commonF.mqVer,SMF_VERSION_LENGTH_V10);
-
-      if (inconsistentVersions(commonF.mqVer,savedMqVer,SMF_VERSION_LENGTH_V10)) {
-        fprintf(stderr,"Warning: Data contains records from multiple versions of MQ - %*.*s and %*.*s\n",
-            SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, commonF.mqVer,
-            SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, savedMqVer);
-      }
 
       /*******************************************************************/
       /* The first triplet past the standard header usually points at a  */
@@ -711,10 +717,10 @@ int main( int argc, char *argv[] )
       p = &dataBuf[triplet1Offset];
 
       /*
-      debugf(2,"Current file offset: 0x%08X\n",currentOffset);
+      debugf(2,"Current file offset: 0x%08X\n",(int)currentOffset);
       printDEBUG("INPUT BUF",dataBuf,offset);
       debugf(2,"\n  p=%p bytesread=%d offset=%d\n",p,bytesRead+4,offset);
-      debugf(2,"     trip[0] tripOffset=%d [0x%08X] len=%d count=%d\n", triplet1Offset,triplet1Offset,
+      debugf(2,"     trip[0] tripOffset=%d [0x%08X] len=%d count=%d\n", (int)triplet1Offset,(int)triplet1Offset,
                    conv16(pSMFMQRecord->s[0].l),
                    conv16(pSMFMQRecord->s[0].n));
       */
@@ -729,14 +735,15 @@ int main( int argc, char *argv[] )
       else
       {
         char *dt[2];
-        int qwshlen;
+        int qwhslen;
 
         pqwhs = (qwhs *)p;
-        qwshlen = conv16(pqwhs->qwhslen);
+        qwhslen = conv16(pqwhs->qwhslen);
         if (debugLevel >= 2) {
-          printDEBUG("QWHS",p,(qwshlen!=0)?qwshlen:0x30);
+          printDEBUG("QWHS",p,(qwhslen>0)?qwhslen:0x30);
         }
-        if (qwshlen <= 0)
+
+        if (qwhslen <= 0)
         {
           FILE *dfp = printDEBUGStream();
           fprintf(stderr,"Error: Data at file offset 0x"LLX" appears corrupt. Exiting the formatter.\n",currentOffset);
@@ -747,15 +754,34 @@ int main( int argc, char *argv[] )
           continue;
         }
 
-        sectionCount =  pqwhs->qwhsnsda[0];
-        convDate(pqwhs->qwhsstck,dt);
-        strcpy(commonF.stckFormatDate,dt[0]);
-        strcpy(commonF.stckFormatDate,dt[1]);
+        if (qwhslen > 1) {
+          sectionCount =  pqwhs->qwhsnsda[0];
+          convDate(pqwhs->qwhsstck,dt);
+          strcpy(commonF.stckFormatDate,dt[0]);
+          strcpy(commonF.stckFormatDate,dt[1]);
+        }
+
+        /**************************************************************************/
+        /* Locate any header extension now, for QSG name filtering.               */
+        /* * Most type 115 records, and type 116, subtype 10 (chinit              */
+        /*   accounting) records, have a (long) qwhs, followed by the             */
+        /*   qwhx (if present)                                                    */
+        /*                                                                        */
+        /* * Type 116 records, except for subtype 10, have a (short) qwhs,        */
+        /*   followed by a qwhc, followed by the qwhx (if present).               */
+        /*                                                                        */
+        /* * Type 115, subtype 5,6,7 have a different header that doesn't follow  */
+        /*   the standard patterns. This is four bytes, and may be followed       */
+        /*   by a QWHX but there is no flag to indicate that presence. So we use  */
+        /*   the "946" version number (a non-existent MQ version) to know that    */
+        /*   it's at least V10                                                    */
+        /**************************************************************************/
+
         if (recordType == SMFTYPE_MQ_STAT)
         {
-          if (conv16(pqwhs->qwhslen) >= 52)
-          {
 
+          if (qwhslen >= 52)
+          {
             /* This structure changes size on different platforms because */
             /* of how the compiler deals with bitfields. So have to do it */
             /* explicitly with known offsets after the structure changes. */
@@ -767,32 +793,70 @@ int main( int argc, char *argv[] )
             memcpy(&commonF.intduration,t,8);
             t+=8;
 
-            /* There's a char-sized bitfield in the QWHS structure that tells us if there's a QWHX element:
-              struct {
-                int qwhssmfc : 1;
-                int qwhsqwhx : 1;
-                int qshspad1 : 6;
-              } qwhsflag1;
-            */
-            if (extensionFlags & 0x40) {  /* The bits in this bitfield should be addressed directly */
-              /* The QWHX extension field is present, directly after the QWHS structure */
-              qwhx *pqwhx = (qwhx *)t;
-
-              /* Fill in the QSG, which might be empty */
-              memcpy(commonF.QSG, convStr(((unsigned char*)(pqwhx->qwhxqsg)),4),4);
-              /* Overwrite the version string from the standard header with a value from the extension. */
-              /* It's longer, so we've modified the commonFields structure to hold the longer value     */
-              memcpy(commonF.mqVer,convStr(((unsigned char*)(pqwhx->qwhxrel)),SMF_VERSION_LENGTH_V10),SMF_VERSION_LENGTH_V10);
-
+            /* There's a char-sized bitfield in the QWHS structure that tells us if there's a QWHX element */
+            /* The position in the char must be tested in the same way on both big and little-endian systems */
+            if (extensionFlags & SMF_EXTENDED_VERSION) {
+              setQWHX((qwhx *)t);
             }
-          }
-          else
-          {
+          } else if (qwhslen == 1) {
+             sectionCount = 2;
+             char *t = (char *)p + 4; /* Although the indicated length is 1, we round the offset to 4 */
+
+             if (!memcmp(commonF.mqVer,"946",3)) {
+               setQWHX((qwhx *)t);
+            }
+          } else {
              /* These fields were added after V701 so ignore for old SMF */
              commonF.intstart = 0;
              commonF.intduration = 0;
           }
         }
+        else if (recordType == SMFTYPE_MQ_ACCT)
+        {
+
+          if (qwhslen >= 36)
+          {
+
+            char *t = (char *)&(pqwhs->qwhsflag1);
+            unsigned char extensionFlags = *t;
+            t+=4;
+
+            if (qwhslen >=52 ) {
+                t += 16;
+            }
+
+            if (extensionFlags & SMF_EXTENDED_VERSION) {
+              /* Test for the "short" QWHS which has the QWHC directly following  before
+               *  getting to any QWHX
+               */
+              if (qwhslen == 36) {
+                t += sizeof(qwhc);
+              }
+
+              /* Some older versions of MQ seem to have random data in the flag, so we can't trust */
+              /* it. Use the version test as an additional filter.                                 */
+              if (!memcmp(commonF.mqVer,"946",3)) {
+                setQWHX((qwhx *)t);
+              }
+            }
+          }
+        }
+      }
+
+      /* Don't like to try to process multiple MQ versions in a single run as it will mess up headers that     */
+      /* only get printed on the first execution of a given record type. So print an error (was originally     */
+      /* warning) and then exit. I've escalated to an error because of the new "common" data elements in MQ 10 */
+      if (savedMqVer[0] == 0) {
+        memcpy(savedMqVer,commonF.mqVer,SMF_VERSION_LENGTH_V10);
+      }
+
+      if (inconsistentVersions(commonF.mqVer,savedMqVer,SMF_VERSION_LENGTH_V10) && !inconsistentWarning) {
+        fprintf(stderr,"Error: Data contains records from different versions of MQ: %*.*s and %*.*s\n",
+            SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, commonF.mqVer,
+            SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, savedMqVer);
+        fprintf(stderr, "    Filter data to have a single version of MQ, then rerun the formatter.\n\n");
+        inconsistentWarning = TRUE;
+        goto mod_exit; /* Exit with as much cleanup as possible */
       }
       break;
 
@@ -1277,6 +1341,9 @@ mod_exit:
 
   formatRate = getFormatRate(pos);
   endTime = time(NULL);
+  if (startTime == 0) {
+    startTime = endTime;
+  }
   fprintf(infoStream,"Processed %u records total %s in %d seconds \n",totalRecords,formatRate,(int)(endTime-startTime));
 
   /**********************************************************************/
@@ -1657,7 +1724,9 @@ static BOOL inconsistentVersions(char *v1,char *v2,int l)
   BOOL rc = FALSE;
   if (memcmp(v1,v2,l) != 0) /* Consider doing more about specific version comparisons */
     rc= TRUE;
-  return FALSE;
+  // fprintf(stderr, "Consistency check - l: %d V1: %*.*s V2: %*.*s rc:%d\n",l, l,l,v1,l,l,v2,rc);
+
+  return rc;
 }
 
 /*********************************************************************/

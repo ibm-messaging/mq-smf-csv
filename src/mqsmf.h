@@ -79,6 +79,8 @@ typedef      unsigned int BOOL;
 #define SMFSUBTYPE_MQ_STAT_CHANNEL (231)
 #define SMFSUBTYPE_MQ_STAT_RESERVED_1 (240)
 
+#define SMF_EXTENDED_VERSION (0x40)
+
 /********************************************************************/
 /* Layout of the SMF records. Standard header for all types of SMF. */
 /* The SMFRECREL is not necessarily standard usage so we overlay it */
@@ -185,7 +187,9 @@ typedef struct columnHeader_s {
 /* Formatting functions - one for each element type                 */
 /********************************************************************/
 extern void printDEBUG (char *title, void *,int);
+extern void printDEBUGconv (char *title, void *,int,int);
 extern FILE *printDEBUGStream();
+
 extern void printQ5ST  (q5st *);
 extern void printQCCT  (qcct *);
 extern void printQCST  (qcst *);

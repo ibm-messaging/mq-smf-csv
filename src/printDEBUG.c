@@ -21,7 +21,11 @@ static char *hex = "0123456789ABCDEF";
 /*                                                                 */
 /* FUNCTION: Debug function to print a buffer in hex               */
 /*******************************************************************/
-void printDEBUG(char *title, void *buf,int length)
+void printDEBUG(char *title, void *buf,int length) {
+    printDEBUGconv(title,buf,length,1);
+}
+
+void printDEBUGconv(char *title, void *buf,int length,int conv)
 {
   int  i, j;
   unsigned char *p = (unsigned char*)buf;
@@ -59,7 +63,14 @@ void printDEBUG(char *title, void *buf,int length)
     line[o++] = '|';
     for (j=0;j<16 && (j + (i*16) < length);j++)
     {
-      line[o++] = EBCDIC_TO_ASCII[p[j]];
+      if (conv) {
+        line[o++] = EBCDIC_TO_ASCII[p[j]];
+      } else {
+        if (p[j]>= 32 && p[j] <= 126)
+          line[o++] = p[j];
+        else
+          line[o++] = '.';
+      }
     }
 
     o = 65;

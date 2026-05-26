@@ -32,16 +32,19 @@ if [ "$CCDEBUG" != "" ]
 then
   if [ "$plat" = "AIX" ]
   then
-    flags="$flags -g "
+    flags="$flags -ggdb "
   else
     flags="$flags -g -fsanitize=address,leak,undefined "
+
+    #flags="$flags -g -fsanitize=leak,undefined "
+    flags="$flags -g"
   fi
 else
   flags="$flags $optim"
 fi
 
-PLATFLAGS=$flags 
-CC=$cc 
+PLATFLAGS=$flags
+CC=$cc
 VERS=$VERS
 export PLATFLAGS CC VERS
 
@@ -52,7 +55,7 @@ then
   exit $rc
 fi
 
-mkdir -p $targdir >/dev/null 2>&1 
+mkdir -p $targdir >/dev/null 2>&1
 rm -f $targdir/convH $targdir/mqsmfcsv
 cp convH mqsmfcsv $targdir
 
