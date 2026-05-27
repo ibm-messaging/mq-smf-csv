@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2024 IBM Corporation and other Contributors.
+ * Copyright (c) 2016,2026 IBM Corporation and other Contributors.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -68,8 +68,8 @@ void printQCST(qcst *p)
   ADDU16  ("Dispatcher_Number",p->qcstdspn);
 
   if (conv16(p->qcstll) > offsetof(qcst,qcstrpid)) {
-     /* A reserved field was also added the structure at */
-     /* this point for padding                           */
+     /* A reserved field was also added to the structure at */
+     /* this point for padding                              */
      ADDSTREN("Remote_Product_ID", p->qcstrpid,4);
      ADDSTREN("Remote_Product_Version", p->qcstrver,8);
   }

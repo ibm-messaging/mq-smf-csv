@@ -1,5 +1,10 @@
+@echo off
+
+setlocal
+
 cd ../../src
 
+rem Assumed you've already run something to setup a Visual Studio compile environment
 nmake -f Makefile.win
 
 del c:\temp\smf\v10\*.* /q /f

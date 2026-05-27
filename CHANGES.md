@@ -5,6 +5,9 @@ Jun 2026 (v5.6)
 * Update for MQ 10.0.0
   * Includes QSG (old format records, or qmgrs that are not in QSG have this set to spaces)
   * MQVersion field extended length 
+  * QCST includes client version
+* New sample data testing/data/SMF_MQ1000.dat
+  * Thanks to Rich for providing the file
 
 Feb 2026 (v5.5.3)
 * Update for MQ 9.4.5

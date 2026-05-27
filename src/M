@@ -35,9 +35,6 @@ then
     flags="$flags -ggdb "
   else
     flags="$flags -g -fsanitize=address,leak,undefined "
-
-    #flags="$flags -g -fsanitize=leak,undefined "
-    flags="$flags -g"
   fi
 else
   flags="$flags $optim"

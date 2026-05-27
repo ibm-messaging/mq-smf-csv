@@ -204,7 +204,6 @@ static BOOL inconsistentWarning = FALSE; /* So we don't continually give the sam
 /* Use the header extension block to fill in version > 9 + QSG      */
 /********************************************************************/
 static void setQWHX(qwhx *pqwhx) {
-  /* The QWHX extension field is present, directly after the QWHS structure */
   if (debugLevel >= 2) {
     printDEBUG("QWHX",pqwhx,conv16(pqwhx->qwhxlen));
   }
@@ -821,7 +820,8 @@ int main( int argc, char *argv[] )
             unsigned char extensionFlags = *t;
             t+=4;
 
-            if (qwhslen >=52 ) {
+            if (qwhslen >= 52 ) {
+                /* Skip fields that are documented as 115 only */
                 t += 16;
             }
 
