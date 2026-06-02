@@ -692,6 +692,11 @@ int main( int argc, char *argv[] )
         hund);
     }
 
+    if (debugLevel >= 2 && printDEBUGStream() != NULL) {
+        /* Handy to have marker as blocks are not logged in obvious order */
+        fprintf(printDEBUGStream(), "\n-- NEW RECORD --\n");
+    }
+
     switch (recordType)
     {
     case SMFTYPE_MQ_STAT:
