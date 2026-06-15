@@ -806,7 +806,7 @@ int main( int argc, char *argv[] )
              sectionCount = 2;
              char *t = (char *)p + 4; /* Although the indicated length is 1, we round the offset to 4 */
 
-             if (!memcmp(commonF.mqVer,"946",3)) {
+             if (strncmp(commonF.mqVer,"946",3) >=0) {
                setQWHX((qwhx *)t);
             }
           } else {
@@ -840,7 +840,7 @@ int main( int argc, char *argv[] )
 
               /* Some older versions of MQ seem to have random data in the flag, so we can't trust */
               /* it. Use the version test as an additional filter.                                 */
-              if (!memcmp(commonF.mqVer,"946",3)) {
+              if (strncmp(commonF.mqVer,"946",3)>=0) {
                 setQWHX((qwhx *)t);
               }
             }
