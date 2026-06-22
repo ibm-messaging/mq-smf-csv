@@ -1,10 +1,16 @@
 
 History (newest at top)
 =======================
+Jul 2026 (v5.7)
+* Handle multiple versions of MQ data in a single pass
+  * Add "-f oldcolsonly" if you don't want to see new+unused fields
+  * See documentation for details
+* Add PDF version of the docs
+
 Jun 2026 (v5.6)
 * Update for MQ 10.0.0
   * Includes QSG (old format records, or qmgrs that are not in QSG have this set to spaces)
-  * MQVersion field extended length 
+  * MQVersion field extended length
   * QCST includes client version
 * New sample data testing/data/SMF_MQ1000.dat
   * Thanks to Rich for providing the file
