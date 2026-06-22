@@ -59,13 +59,13 @@ sizeTest: mqsmfcsv
 shipTest: mqsmfcsv
 	cd ../testing/shipTest;./shipTest.sh csv sql json
 
-mqsmfcsv: $(SRC) $(HDR) Makefile.unix dummy
+mqsmfcsv: $(SRC) $(HDR) Makefile.unix  # dummy
 	$(CC) $(PLATFLAGS) -o $@ $(SRC) $(CFLAGS) -DCSQDSMF_VERSION=$(VERS)
 
-mqsmfstrucU.h: convH dummy # csqdsmfc-$(VERS).h
+mqsmfstrucU.h: convH # dummy # csqdsmfc-$(VERS).h
 	(test -s csqdsmfc-$(VERS).h && convH $(VERS) < csqdsmfc-$(VERS).h > $@) || exit 0
 
-convH: convH64.c  dummy
+convH: convH64.c  # dummy
 	$(CC) -o $@ convH64.c
 
 

@@ -24,10 +24,6 @@
 
 SMFPRINTGLOB;
 
-/*******************************************************************/
-/* Only include this function if building from an MQ V9 header file*/
-/*******************************************************************/
-#ifdef QIS1IDV
 void printQIS1(qis1 *p)
 {
   unsigned int  flags;
@@ -73,7 +69,7 @@ void printQIS1(qis1 *p)
   {
     ADDSTR("Expand","No",3);
   }
-#if CSQDSMF_VERSION >= 914
+
   if(flags & QIS1ENCF)
   {
     ADDSTR("Encrypted","Yes",3);
@@ -82,9 +78,8 @@ void printQIS1(qis1 *p)
   {
     ADDSTR("Encrypted","No",3);
   }
-#endif
+
   SMFPRINTSTOP;
 
   return;
 }
-#endif

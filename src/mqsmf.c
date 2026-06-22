@@ -125,6 +125,10 @@ BOOL  useRDW = TRUE;
 BOOL  streamOutput = FALSE;
 BOOL  streamInput = TRUE;
 BOOL  localTime = TRUE; /* Print timestamps in localtime rather than CUT */
+BOOL  oldColsOnly = FALSE; /* When true, do not pad reports with newer columns */
+BOOL  colsAvail = TRUE; /* Are the following fields available in the current record version */
+char EMPTY_STRING[128];
+
 char *ddlTemplateOpen = NULL;
 char *ddlTemplateClose = NULL;
 char *ddlQuote = "\"";
@@ -264,10 +268,13 @@ int main( int argc, char *argv[] )
 
   infoStream=stdout;
 
+  /* Fill in the array with chars that we might need for padding/unset fields*/
+  memset(EMPTY_STRING,'.',sizeof(EMPTY_STRING)); // TODO: Switch this to ' ' when we're happy
+
   /******************************************************************/
   /* Parse command-line parameters                                  */
   /******************************************************************/
-  while((c = mqgetopt(argc, argv, "ab:cd:e:f:g:h:i:m:o:p:rst:vy:")) != EOF)
+  while((c = mqgetopt(argc, argv, "ab:cd:e:f:g:h:i:m:o:p:rst:vy:z:")) != EOF)
   {
     switch(c)
     {
@@ -316,8 +323,13 @@ int main( int argc, char *argv[] )
           outputFormat = OF_SQL;
           printHeaders = FALSE;
           addEquals=0;
-        } else if (strstr(mqoptarg,"CSV"))
+        } else if (strstr(mqoptarg,"CSV")) {
           outputFormat = OF_CSV;
+        }
+
+        if (!strcmp(mqoptarg,"OLDCOLSONLY")) {
+           oldColsOnly = TRUE;
+        }
         break;
       case 'g':
         for (i=0;i<strlen(mqoptarg);i++)
@@ -848,9 +860,12 @@ int main( int argc, char *argv[] )
         }
       }
 
-      /* Don't like to try to process multiple MQ versions in a single run as it will mess up headers that     */
-      /* only get printed on the first execution of a given record type. So print an error (was originally     */
-      /* warning) and then exit. I've escalated to an error because of the new "common" data elements in MQ 10 */
+      /******************************************************************************************************/
+      /* The program now, by default, can handle multiple MQ versions in a single run as it prints all known*/
+      /* columns regardless of the record version. Using dummy values for the non-existent fields. If you   */
+      /* want to not see those dummy values, you can run with "-f OLDCOLSONLY" but that comes with the cost */
+      /* of not allowing muptiple versions to be processed at the same time.                                */
+      /******************************************************************************************************/
       if (savedMqVer[0] == 0) {
         memcpy(savedMqVer,commonF.mqVer,SMF_VERSION_LENGTH_V10);
       }
@@ -859,7 +874,8 @@ int main( int argc, char *argv[] )
         fprintf(stderr,"Error: Data contains records from different versions of MQ: %*.*s and %*.*s\n",
             SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, commonF.mqVer,
             SMF_VERSION_LENGTH_V10, SMF_VERSION_LENGTH_V10, savedMqVer);
-        fprintf(stderr, "    Filter data to have a single version of MQ, then rerun the formatter.\n\n");
+        fprintf(stderr, "    Either filter data to have a single version of MQ, then rerun the formatter.\n");
+        fprintf(stderr, "    or run without the -f OLDCOLSONLY option\n\n");
         inconsistentWarning = TRUE;
         goto mod_exit; /* Exit with as much cleanup as possible */
       }
@@ -1624,7 +1640,7 @@ static void Usage(void)
 {
   fprintf(infoStream,"Usage: mqsmfcsv [-o <output dir>] [-a] [ -d <level> ]\n");
   fprintf(infoStream,"         [-h yes|no] [ -i <input file> [-m <max records>]\n");
-  fprintf(infoStream,"         [-f RDW | NORDW | JSON | JSON_COMPACT | SQL | CSV ] \n");
+  fprintf(infoStream,"         [-f RDW | NORDW | JSON | JSON_COMPACT | SQL | CSV | OLDCOLSONLY] \n");
   fprintf(infoStream,"         [-b Db2 | MySQL ] \n");
   fprintf(infoStream,"         [-p <template DDL file prefix>  ] \n");
   fprintf(infoStream,"         [-e <template DDL file ending>  ] \n");
@@ -1634,6 +1650,9 @@ static void Usage(void)
   fprintf(infoStream,"  -c               Recover after aborted run by using the checkpoint.\n");
   fprintf(infoStream,"  -d <Level>       Debug by dumping binary records (Level = 1 or 2).\n");
   fprintf(infoStream,"  -f               File formats. Default to RDW for input, CSV for output.\n");
+  fprintf(infoStream,"                   Can have multiple times (eg once for an input option, once for output\n)");
+  fprintf(infoStream,"                   OLDCOLSONLY only shows columns valid for the record version; otherwise\n");
+  fprintf(infoStream,"                      all known columns are printed with dummy values when not available\n");
   fprintf(infoStream,"  -g yes|no        Print timestamps in GMT/CUT. Default (no) converts to localtime.\n");
   fprintf(infoStream,"  -h yes|no        Print column headers for new output files. Default is yes.\n");
   fprintf(infoStream,"  -i <Input file>  Default is to read from stdin.\n");
@@ -1729,6 +1748,11 @@ static BOOL inconsistentVersions(char *v1,char *v2,int l)
   BOOL rc = FALSE;
   if (memcmp(v1,v2,l) != 0) /* Consider doing more about specific version comparisons */
     rc= TRUE;
+
+  /* Even when inconsistent versions, the (default) of printing all */
+  /* columns means we don't need to give up here                    */
+  if (!oldColsOnly)
+    rc = FALSE;
   // fprintf(stderr, "Consistency check - l: %d V1: %*.*s V2: %*.*s rc:%d\n",l, l,l,v1,l,l,v2,rc);
 
   return rc;

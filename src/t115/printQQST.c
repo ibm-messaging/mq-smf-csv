@@ -63,7 +63,7 @@ void printQQST(qqst *p)
   ADDS32("Current_Depth",p->qqstdpth);
 
   /* qqstopct was the first field added after the original structure */
-  if (conv16(p->qqstll)>offsetof(qqst,qqstopct))
+  VTEST(conv16(p->qqstll)>offsetof(qqst,qqstopct));
   {
     ADDS32("Output_Handles",p->qqstopct);
     ADDS32("Input_Handles" ,p->qqstipct);
@@ -80,9 +80,8 @@ void printQQST(qqst *p)
     ADDSTR("Uncommitted",  c,fieldWidth(qqstUncm));
   }
 
-#if CSQDSMF_VERSION > 932
   /* Lots more fields added in MQ 9.3.3  */
-  if (conv16(p->qqstll)>offsetof(qqst,qqstdphi))
+  VTEST(conv16(p->qqstll)>offsetof(qqst,qqstdphi));
   {
     ADDU32("Queue_Depth_High_Water",p->qqstdphi);
     ADDU32("Queue_Depth_Low_Water", p->qqstdplo);
@@ -144,10 +143,8 @@ void printQQST(qqst *p)
     ADDU64("Browse_Signal_Accepted",p->qqstsabr);
 
   }
-#endif
 
-#if CSQDSMF_VERSION >= 943
-  if (conv16(p->qqstll)>offsetof(qqst,qqstocpa))
+  VTEST(conv16(p->qqstll)>offsetof(qqst,qqstocpa));
   {
     ADDU64("Otel_Prop_Put",       p->qqstocpa);
     ADDU64("Otel_Prop_Get",       p->qqstocga);
@@ -166,7 +163,6 @@ void printQQST(qqst *p)
     ADDU64("Otel_Span_Limit_Storage",  p->qqstosfs);
   }
 
-#endif
   SMFPRINTSTOP;
 
   return;

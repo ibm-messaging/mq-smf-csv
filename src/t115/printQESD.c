@@ -107,20 +107,24 @@ void printQESD(qesd *p)
       ADDSTCK ("Other_Read_IO_Time", p -> qesdioot);
       ADDSTCK ("Other_Read_IO_Wait", p -> qesdioow);
 
-#if CSQDSMF_VERSION >= 914
-      if (conv16(p->qesdll)>offsetof(qesd,qesdflag)) {
-        u = (unsigned int *)&p->qesdflag;
-        flags = conv32(*(u+1));
 
-        if(flags & QESDENCF) {
-          ADDSTR("Encrypted","Yes",3);
-        }
-        else
-        {
-          ADDSTR("Encrypted","No",3);
+      VTEST (conv16(p->qesdll)>offsetof(qesd,qesdflag));
+      {
+        if (colsAvail) {
+          u = (unsigned int *)&p->qesdflag;
+          flags = conv32(*(u+1));
+
+          if(flags & QESDENCF) {
+            ADDSTR("Encrypted","Yes",3);
+          }
+          else
+          {
+            ADDSTR("Encrypted","No",3);
+          }
+        } else {
+          ADDSTR("Encrypted","N/A",3);
         }
       }
-#endif
 
       SMFPRINTSTOP;
       return;

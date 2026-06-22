@@ -172,7 +172,7 @@ void printWQ(wq *p)
   /* product version.                                      */
   /*********************************************************/
 
-  if (conv32(p->wqver) > 1)
+  VTEST(conv32(p->wqver) > 1);
   {
     ADDS32("Get_Persistent_Count" ,p->getpmsg);
     ADDS32("Put_Persistent_Count" ,p->putpmsg);
@@ -180,7 +180,7 @@ void printWQ(wq *p)
     ADDS32("Max_Depth",p->maxqdpth);
   }
 
-  if (conv32(p->wqver) > 3)
+  VTEST(conv32(p->wqver) > 3);
   {
     ADDU32 ("Get_Valid",p->getdval);
     ADDSTCK("Get_LogForce_ET",p->getjcet);
@@ -196,7 +196,7 @@ void printWQ(wq *p)
     ADDU32 ("Put_Shared_Queue",p->putdsq);
   }
 
-  if (conv32(p->wqver) > 4)
+  VTEST(conv32(p->wqver) > 4);
   {
     ADDU32("Select_Count",p->selcount);
     ADDU32("Select_Max_Length",p->selmaxln);
@@ -208,7 +208,7 @@ void printWQ(wq *p)
     ADDU32 ("CallBack_Count",p->cbn);
   }
 
-  if (conv32(p->wqver) > 5)
+  VTEST(conv32(p->wqver) > 5);
   {
     ADDSTCK("Open_Suspend_Time" ,p->opensuet);
     ADDU32 ("Open_Suspend_Count" ,p->opensun);
@@ -242,12 +242,12 @@ void printWQ(wq *p)
     ADDSTCK("TopicOnSRB_Close", p->topicclosesrb);
   }
 
-  if (conv32(p->wqver) >= 8)
+  VTEST(conv32(p->wqver) >= 8);
   {
      ADDU32("Put_Delay_Count",p->putddly);
   }
 
-  if (conv32(p->wqver) >= 9)
+  VTEST(conv32(p->wqver) >= 9);
   {
      ADDU32("Streamed_Msgs",p->streamedn);
   }

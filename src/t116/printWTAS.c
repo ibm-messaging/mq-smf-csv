@@ -134,7 +134,7 @@ void printWTAS(wtas *p)
   /*-----------------------------------------------------------*/
   /* Version 7 (WTAS_VER_4) inclusions                         */
   /*-----------------------------------------------------------*/
-  if (conv32(p->wtasver) >= WTAS_VER_4)
+  VTEST(conv32(p->wtasver) >= WTAS_VER_4);
   {
     ADDSTCK("BufferPool_Latch_Wait", p->wtaspbhw);
     ADDSTCK("Held_BufferPool_Latch_ET"  , p->wtaspbtt);
@@ -167,10 +167,16 @@ void printWTAS(wtas *p)
 
     for (i=0;i<2;i++)
     {
-      if (i==0)
-        cf = &p->commitcf;
-      else
-        cf = &p->prepcf;
+      if (conv32(p->wtasver) >= WTAS_VER_4) {
+        if (i==0) {
+          cf = &p->commitcf;
+        } else {
+          cf = &p->prepcf;
+        }
+      } else {
+        cf = NULL;
+      }
+
 
       for (j=0;j<14;j++)/* Last few of the array are unused, so don't print them*/
       {
@@ -196,7 +202,7 @@ void printWTAS(wtas *p)
   /*-----------------------------------------------------------*/
   /* Version 7.1 (WTAS_VER_5) inclusions                       */
   /*-----------------------------------------------------------*/
-  if (conv32(p->wtasver) >= WTAS_VER_5)
+  VTEST(conv32(p->wtasver) >= WTAS_VER_5)
   {
     ADDU32 ("SMDS_Write_Bytes", p -> wtassmwb);
     ADDU32 ("SMDS_Read_Bytes", p -> wtassmrb);
@@ -210,7 +216,7 @@ void printWTAS(wtas *p)
   /*-----------------------------------------------------------*/
   /* Version 8   (WTAS_VER_8) inclusions                       */
   /*-----------------------------------------------------------*/
-  if (conv32(p->wtasver) >= WTAS_VER_8)
+  VTEST(conv32(p->wtasver) >= WTAS_VER_8)
   {
     ADDSTCK("Prepare_ET", p -> wtaspret);
     ADDSTCK("Prepare_CT", p -> wtasprct);

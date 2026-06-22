@@ -188,6 +188,32 @@ char *convSecUSec(unsigned long long s)
   return usecBuf;
 }
 
+/* Used for dummy entries when there's no real column   */
+/* We used SIGNED ints here instead of the unsigned     */
+/* when formatting real data.                           */
+char *convSecUSecNoCol(void)
+{
+  unsigned long long s = -1;
+  int sec = -1;
+  int usec = -1;
+
+  /* Separate fields by ',' for CSV formats */
+  switch (outputFormat)
+  {
+  case OF_SQL:
+    sprintf(usecBuf,"%lld ",s);
+    break;
+  case OF_JSON:
+    sprintf(usecBuf,"%lld",s);
+    break;
+  default:
+    sprintf(usecBuf,"%d, %d ",sec,usec);
+    break;
+  }
+
+  return usecBuf;
+}
+
 
 
 /**********************************************************************/

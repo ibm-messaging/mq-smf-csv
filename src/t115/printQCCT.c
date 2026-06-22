@@ -28,7 +28,9 @@ void printQCCT(qcct *p)
   ADDU32 ("Max_TCP_Chl"           ,p->qcctmxtp);
   ADDU32 ("Max_LU62_Chl"          ,p->qcctmxlu);
   ADDU32 ("Storage_Usage_31"      ,p->qcctstus);
-  if (conv16(p->qcctll) > offsetof(qcct,qcctstab)) {
+
+  VTEST(conv16(p->qcctll) > offsetof(qcct,qcctstab));
+  {
     ADDU64("Storage_Usage_64" , p->qcctstab);
     ADDU64("Storage_Limit_64" , p->qcctslim);
   }

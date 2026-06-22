@@ -52,6 +52,19 @@ CC=$cc
 VERS=$VERS
 export PLATFLAGS CC VERS
 
+if [ -r mqsmfcsv ]
+then
+  t=`file mqsmfcsv | grep RISC`
+  u=`uname`
+  if [ $u = "AIX" -a "$t" = "" ]
+  then
+    rm -f mqsmfcsv
+  elif [ $u != "AIX" -a "$t" != "" ]
+  then
+    rm -f mqsmfcsv
+  fi
+fi
+
 make -e -f Makefile.unix $*
 rc=$?
 if [ $rc -ne 0 ]

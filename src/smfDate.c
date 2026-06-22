@@ -117,15 +117,23 @@ void convDate(unsigned long long stcki, char *dt[2])
 
   stck = conv64(stcki);   /* Always passed in z/OS endian; ensure converted */
 
-  if (stck == 0 )
+  if (stcki == -1)
   {
     /***********************************************************************/
-    /* Put a hardcoded value                                               */
+    /* Put a hardcoded value that indicates the column is not available   */
+    /* at all in this level of record                                     */
+    /***********************************************************************/
+    strcpy(stckTime,tf.epochTime);
+    strcpy(stckDate,tf.epochDate);
+  }
+  else if (stck == 0) {
+    /***********************************************************************/
+    /* Put a hardcoded value that indicates the column should be available */
+    /* but has not been filled in                                          */
     /***********************************************************************/
     strcpy(stckTime,tf.emptyTime);
     strcpy(stckDate,tf.emptyDate);
-  }
-  else
+  } else
   {
     s = stck - EPOCH1970;  /* Make relative to our epoch instead of z/OS 1900*/
     s = s / 4096;                                /* Convert stck to microsecs*/
@@ -162,6 +170,9 @@ void convDate(unsigned long long stcki, char *dt[2])
 
   dt[0] = stckDate;
   dt[1] = stckTime;
+
+  //printf("dt: %llu %s %s\n",stck, dt[0],dt[1]);
+
 
   return;
 }

@@ -29,7 +29,7 @@ void printQMST(qmst *p)
   ADDS32("Set" ,p->qmstset );
   ADDS32("Endw",p->qmstendw);
   ADDS32("Close_Handles",p->qmstcalh);
-  if (conv16(p->qmstll) >  offsetof(qmst,  qmstsub))/* Fields added for V7.0 API calls*/
+  VTEST(conv16(p->qmstll) >  offsetof(qmst,  qmstsub)); /* Fields added for V7.0 API calls*/
   {
     ADDS32("Sub"   ,p->qmstsub);
     ADDS32("SubReq",p->qmstsubr);
@@ -38,20 +38,18 @@ void printQMST(qmst *p)
     ADDS32("Status",p->qmststus);
     ADDS32("Pubs"  ,p->qmstpubs);
   }
-#if CSQDSMF_VERSION >= 903
-  if (conv16(p->qmstll) >  offsetof(qmst,  qmstspp))/* Fields added for V9.0.3 */
+
+  VTEST(conv16(p->qmstll) >  offsetof(qmst,  qmstspp));/* Fields added for V9.0.3 */
   {
     ADDS64("PersPuts",    p->qmstspp);
     ADDS64("NonPersPuts", p->qmstsnp);
     ADDS64("PersPutBytes",    p->qmstpbp);
     ADDS64("NonPersPutBytes", p->qmstnbp);
   }
-#endif
 
-#if CSQDSMF_VERSION >= 943
-  // MQW 943 introduced OpenTelemetry tracing for applications via
+  // MQ 943 introduced OpenTelemetry tracing for applications via
   // SMF. As part of that, there are lots of new metrics.
-  if (conv16(p->qmstll) > offsetof(qmst,qmstocpa))
+  VTEST(conv16(p->qmstll) > offsetof(qmst,qmstocpa));
   {
     ADDU64("Otel_Prop_Put",       p->qmstocpa);
     ADDU64("Otel_Prop_Get",       p->qmstocga);
@@ -79,15 +77,13 @@ void printQMST(qmst *p)
     ADDSTCK("Otel_Wait_SMF_Time",      p->qmstotpd);
     ADDS32("Otel_EmissionTasks",       p->qmstotsk);
   }
-#endif
-#if CSQDSMF_VERSION >= 945
-  if (conv16(p->qmstll) > offsetof(qmst,qmstobse))
+
+  VTEST(conv16(p->qmstll) > offsetof(qmst,qmstobse));
   {
     ADDU64("Otel_IMS_Bridge_Spans",     p->qmstobse);
     ADDU64("Otel_IMS_Bridge_Propagates",p->qmstobcp);
     ADDU64("Otel_IBM_Bridge_Discard",  p->qmstobcd);
   }
-#endif
 
   SMFPRINTSTOP;
 

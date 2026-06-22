@@ -227,6 +227,11 @@ FILE *smfPrintStart(FILE *fp, char *name, void *p, size_t l, BOOL *f, BOOL *newF
 
     if (commonF.mqVer[3] == ' ') {
       l = SMF_VERSION_LENGTH; /* Use variable length of the field so we don't get right-padded old records */
+
+      // Add a blank QSG for old records if we've not asked for those to be restricted
+      if (!oldColsOnly) {
+        ADDSTRN("QSG",EMPTY_STRING,4,4);
+      }
     } else {
       // Only add the QSG for systems where we've got a "long" version
       ADDSTRN("QSG",commonF.QSG,4,4);

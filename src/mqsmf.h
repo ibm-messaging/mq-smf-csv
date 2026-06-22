@@ -258,6 +258,7 @@ extern void   convInit();              /* Initialise endianness            */
 extern char  *convBin(unsigned char *inbuf, int length );/* Print as hex string*/
 extern char  *convStr(unsigned char *,int);/* Convert EBCDIC string to ASCII*/
 extern char  *convSecUSec(unsigned long long s);/* Convert stck durations to string containing sec,usec*/
+extern char  *convSecUSecNoCol(void); /* Convert stck durations to string containing sec,usec*/
 extern void   convDate(unsigned long long s,char *dt[2]);  /* Convert stck to date/time*/
 extern int    looksLikeNum(int l, char *c);
 extern int    laterThan(int version); /* Is current record from qmgr version later than requested */
@@ -356,6 +357,15 @@ extern void  smfAddData(int datatype,char *fmt,...);
 extern void  smfAddString(int, char *);
 extern void checkStructureSizes(FILE *);
 
+/* Test if the next block of fields are available in the current record version    */
+/* If not, then either continue (and print dummy data) or jump straight to the end */
+#define VTEST(e) { \
+    if ((e)) colsAvail = TRUE; \
+    else colsAvail = FALSE; \
+    if (!colsAvail && oldColsOnly) \
+      goto mod_exit; \
+    }
+
 #define SMFPRINTGLOB \
   static BOOL first = TRUE;\
   static BOOL newFile = TRUE;\
@@ -365,42 +375,50 @@ extern void checkStructureSizes(FILE *);
   static columnHeader_t *columns[HEADINGS_COUNT]
 
 #define SMFPRINTSTART(n,p,l) \
+  colsAvail = TRUE; \
   fp = smfPrintStart(fp,n,p,l,&first,&newFile,&columns[0]);
 
 #define SMFPRINTSTOP \
-  smfPrintStop(fp, newFile, &first, &columns[0]);
+  mod_exit: \
+  smfPrintStop(fp, newFile, &first, &columns[0]); \
+  colsAvail = TRUE;
 
-#define ADDHEAD(a,b,c) smfAddHead(first,FALSE,a,b,c)
+#define ADDHEAD(a,b,c)    smfAddHead(first,FALSE,a,b,c)
 #define ADDHEADIDX(a,b,c) smfAddHead(first,TRUE,a,b,c)
-#define ADDDATA(t,f,...)    smfAddData(t,f,__VA_ARGS__)
+#define ADDDATA(t,f,...)  smfAddData(t,f,__VA_ARGS__)
 
+/* Most of these macros use the colsAvail global var to decide whether to            */
+/* print a dummy value when the data is not in the current version of the record.    */
+/* The pointer dereferences (eg ADDU64("Storage_Limit_64" , p->qcctslim);) are only  */
+/* executed when the colsAvail is TRUE. So it's safe to use those in the calling fn  */
 #define ADDS64(h,v) \
   ADDHEAD(h,DDL_I64,0); \
-  ADDDATA(ODT_I64,"%lld,",conv64(v))
+  ADDDATA(ODT_I64,"%lld,",colsAvail?conv64(v):-1LL)
 
 #define ADDU64(h,v) \
   ADDHEAD(h,DDL_I64,0); \
-  ADDDATA(ODT_I64,"%lld,",(DROPSIGN & conv64(v)))
+  ADDDATA(ODT_I64,"%lld,",colsAvail?((DROPSIGN & conv64(v))):-1LL)
 
 #define ADDS64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEADIDX(tmpHead,DDL_I64,0); \
-  ADDDATA(ODT_I64,"%lld,",conv64(v))
+  ADDDATA(ODT_I64,"%lld,",colsAvail?conv64(v):-1LL)
 
 #define ADDU64IDX(h,idx,v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEADIDX(tmpHead,DDL_I64,0); \
-  ADDDATA(ODT_I64,"%lld,",(DROPSIGN & conv64(v)))
+  ADDDATA(ODT_I64,"%lld,",colsAvail?(DROPSIGN & conv64(v)):-1LL)
 
 #define ADDS32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA(ODT_I,"%d,",conv32(v))
+  ADDDATA(ODT_I,"%d,",colsAvail?conv32(v):-1)
 
 #define ADDU32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA(ODT_I,"%u,",conv32(v))
+  ADDDATA(ODT_I,colsAvail?"%u,":"%d,",colsAvail?conv32(v):-1)
 
 /* Add a number that does not need to be byte-swapped */
+/* The only uses of this macro are not affected by colsAvail, so leave it alone */
 #define ADDU32NC(h,v) \
   ADDHEAD(h,DDL_I,0); \
   ADDDATA(ODT_I,"%u,",v)
@@ -408,36 +426,38 @@ extern void checkStructureSizes(FILE *);
 /* Print this as decimal, not hex */
 #define ADDX32(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA(ODT_I,"%u,",conv32(v))
+  ADDDATA(ODT_I,"%u,",colsAvail?conv32(v):-1)
 
 #define ADDS32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEADIDX(tmpHead,DDL_I,0); \
-  ADDDATA(ODT_I,"%d,",conv32(v))
+  ADDDATA(ODT_I,"%d,",colsAvail?conv32(v):-1)
 
 #define ADDU32IDX(h,idx, v) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEADIDX(tmpHead,DDL_I,0); \
-  ADDDATA(ODT_I,"%u,",conv32(v))
+  ADDDATA(ODT_I,colsAvail?"%u,":"%d,",colsAvail?conv32(v):-1)
 
 #define ADDS16(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA(ODT_I,"%hd,",conv16(v))
+  ADDDATA(ODT_I,"%hd,",colsAvail?conv16(v):-1)
 
 #define ADDU16(h,v) \
   ADDHEAD(h,DDL_I,0); \
-  ADDDATA(ODT_I,"%hu,",conv16(v))
+  ADDDATA(ODT_I,colsAvail?"%hu,":"%hd,",colsAvail?conv16(v):-1)
 
+/* The only uses of this macro are not affected by colsAvail, so leave it alone */
 #define ADDBYTE(h,v) \
   ADDHEAD(h,DDL_I,0); \
   ADDDATA(ODT_I,"%u,",(v))
 
+/* The only uses of this macro are not affected by colsAvail, so leave it alone */
 #define ADDBYTEX(h,v) \
     ADDHEAD(h,DDL_I,0); \
     ADDDATA(ODT_I,"%02X,",(v))
 
 #define ADDTIME(h,v) \
-  convDate(v,dt); \
+  convDate(colsAvail?v:-1LL,dt); \
   sprintf(tmpHead,"%s (DATE)",h); \
   ADDHEAD(tmpHead,DDL_DATE,0); \
   ADDDATA(ODT_C,"%s,",dt[0]);\
@@ -446,7 +466,7 @@ extern void checkStructureSizes(FILE *);
   ADDDATA(ODT_C,"%s,",dt[1])
 
 #define ADDTIMEIDX(h,idx,v) \
-  convDate(v,dt); \
+  convDate(colsAvail?v:-1LL,dt); \
   sprintf(tmpHead,"%s{%s} (DATE)",h,idx); \
   ADDHEADIDX(tmpHead,DDL_DATE,0); \
   ADDDATA(ODT_C,"%s,",dt[0]); \
@@ -464,7 +484,7 @@ extern void checkStructureSizes(FILE *);
    sprintf(tmpHead,"%s(US)",h); \
     ADDHEAD(tmpHead,DDL_SUS,0); \
   } \
-  ADDDATA(ODT_USEC,"%s,",convSecUSec(v))
+  ADDDATA(ODT_USEC,"%s,",colsAvail?convSecUSec(v):convSecUSecNoCol())
 
 /* STCKE values are 16 bytes wide but               */
 /* - the first byte is always 0                     */
@@ -484,12 +504,12 @@ extern void checkStructureSizes(FILE *);
   else \
   sprintf(tmpHead,"%s{%s}(S),%s{%s}(US)",h,idx,h,idx); \
   ADDHEADIDX(tmpHead,DDL_SUS,0); \
-  ADDDATA(ODT_USEC,"%s,",convSecUSec(v))
+  ADDDATA(ODT_USEC,"%s,",colsAvail?convSecUSec(v):convSecUSecNoCol())
 
 /* Add ASCII string, known length - underpins the other ADDSTRxx macros */
 #define ADDSTRN(h,v,l,maxlen) \
    ADDHEAD(h,DDL_C,maxlen); \
-   smfAddString(l,v)
+   smfAddString(colsAvail?l:5,colsAvail?v:EMPTY_STRING)
 
 #define ADDSTR(h,v,maxlen) \
   ADDSTRN(h,v,strlen(v),maxlen)             /* ASCII string null terminated*/
@@ -506,14 +526,13 @@ extern void checkStructureSizes(FILE *);
 #define ADDSTRENS(h,v) \
   ADDSTREN(h,v,sizeof(v))     /* EBCDIC string, length grabbed from sizeof */
 
-
 #define ADDSTRENM(h,v,l,maxlen) \
   ADDSTRN(h,convStr((unsigned char*)v,l),l,maxlen)    /* EBCDIC string, known length, fix max*/
 
 #define ADDSTRENIDX(h,idx, v,l) \
   if (first) sprintf(tmpHead,"%s {%s}",h,idx); \
   ADDHEADIDX(tmpHead,DDL_C,l);\
-  smfAddString(l,convStr((unsigned char*)v,l))               /* EBCDIC string, known length*/
+  smfAddString(colsAvail?l:5, colsAvail?convStr((unsigned char*)v,l):EMPTY_STRING)               /* EBCDIC string, known length*/
 
 #define ADDINDEX(n) \
   if (first) { \
@@ -541,6 +560,10 @@ extern int  debugLevel;
 extern BOOL  addEquals;
 extern BOOL  printHeaders;
 extern BOOL localTime;
+extern BOOL oldColsOnly;
+extern BOOL colsAvail;
+extern char EMPTY_STRING[];
+
 extern unsigned int   recordType;
 extern unsigned short recordSubType;
 extern commonFields_t commonF;

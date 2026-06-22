@@ -47,7 +47,7 @@ void printQJST(qjst *p)
   ADDS32("Log_Write_Threshold"   ,p->qjstthrw);
   ADDS32("Log_Write_Buffer_Paged",p->qjstbpag);
 
-  if (conv16(p->qjstll)>offsetof(qjst,qjstcompr))
+  VTEST(conv16(p->qjstll)>offsetof(qjst,qjstcompr));
   {
     /* Array of 1 entry! Reserved space follows for 2 more, but they   */
     /* are not currently used. If the others are ever used, change the */
@@ -68,7 +68,7 @@ void printQJST(qjst *p)
     }
   }
 
-  if (conv16(p->qjstll)>offsetof(qjst,qjstio[0]))
+  VTEST(conv16(p->qjstll)>offsetof(qjst,qjstio[0]));
   {
     for (i=0;i<2;i++)
     {
@@ -98,7 +98,7 @@ void printQJST(qjst *p)
   }
 
   /* MQ 9.1.2 added support for zHyperwrite logging */
-  if (conv16(p->qjstll)>offsetof(qjst,qjstcp1n))
+  VTEST(conv16(p->qjstll)>offsetof(qjst,qjstcp1n));
   {
       ADDS32("Copy1_New_Logs"           , p->qjstcp1n);
       ADDS32("Copy2_New_Logs"           , p->qjstcp2n);
@@ -107,12 +107,14 @@ void printQJST(qjst *p)
   }
 
   /* MQ 9.1.4 added support for encrypted datasets */
-  if (conv16(p->qjstll)>offsetof(qjst,qjstencr)) {
+  VTEST(conv16(p->qjstll)>offsetof(qjst,qjstencr));
+  {
       ADDS32("New_Logs_Encrypted",p->qjstencr);
   }
 
   /* MQ 9.4 added support for zHyperLink */
-  if (conv16(p->qjstll)>offsetof(qjst,qjsthlsciw)) {
+  VTEST(conv16(p->qjstll)>offsetof(qjst,qjsthlsciw));
+  {
     ADDU32("ZHL_Single_CI_Write_Requests" , p->qjsthlsciw);
     ADDU32("ZHL_Multi_CI_Write_Requests"  , p->qjsthlmciw);
     ADDU32("ZHL_CIs_Attempted"            , p->qjsthlcicntw);
