@@ -864,7 +864,7 @@ int main( int argc, char *argv[] )
       /* The program now, by default, can handle multiple MQ versions in a single run as it prints all known*/
       /* columns regardless of the record version. Using dummy values for the non-existent fields. If you   */
       /* want to not see those dummy values, you can run with "-f OLDCOLSONLY" but that comes with the cost */
-      /* of not allowing muptiple versions to be processed at the same time.                                */
+      /* of not allowing multiple versions to be processed at the same time.                                */
       /******************************************************************************************************/
       if (savedMqVer[0] == 0) {
         memcpy(savedMqVer,commonF.mqVer,SMF_VERSION_LENGTH_V10);

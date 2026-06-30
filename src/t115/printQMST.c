@@ -82,7 +82,7 @@ void printQMST(qmst *p)
   {
     ADDU64("Otel_IMS_Bridge_Spans",     p->qmstobse);
     ADDU64("Otel_IMS_Bridge_Propagates",p->qmstobcp);
-    ADDU64("Otel_IBM_Bridge_Discard",  p->qmstobcd);
+    ADDU64("Otel_IMS_Bridge_Discard",  p->qmstobcd);
   }
 
   SMFPRINTSTOP;
